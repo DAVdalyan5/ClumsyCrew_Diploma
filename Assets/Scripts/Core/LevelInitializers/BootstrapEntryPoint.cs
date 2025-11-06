@@ -1,6 +1,6 @@
-using Assets.Scripts.Core;
+using HeistNSeek.Core.StateMachine;
+using HeistNSeek.Core.StateMachine.States;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using VContainer.Unity;
 
 namespace HeistNSeek.Core
@@ -8,30 +8,25 @@ namespace HeistNSeek.Core
     /// <summary>
     /// EntryPoint for Bootstrap scene initialization.
     /// Runs after all dependencies are resolved in BootstrapLifetimeScope.
+    /// Starts the game state machine.
     /// </summary>
     public class BootstrapEntryPoint : IStartable
     {
+        private readonly GameStateMachine _stateMachine;
         private readonly int _gameplaySceneIndex;
 
-        public BootstrapEntryPoint(int gameplaySceneIndex)
+        public BootstrapEntryPoint(GameStateMachine stateMachine, int gameplaySceneIndex)
         {
+            _stateMachine = stateMachine;
             _gameplaySceneIndex = gameplaySceneIndex;
         }
 
         public void Start()
         {
-            Debug.Log("[BootstrapEntryPoint] Bootstrap scene initialized.");
+            Debug.Log("[BootstrapEntryPoint] Bootstrap scene initialized. Starting state machine...");
 
-            // Load the gameplay scene
-            if (_gameplaySceneIndex >= 0 && _gameplaySceneIndex < SceneManager.sceneCountInBuildSettings)
-            {
-                Debug.Log($"[BootstrapEntryPoint] Loading gameplay scene at index {_gameplaySceneIndex}");
-                SceneLoader.Load(_gameplaySceneIndex, LoadSceneMode.Additive);
-            }
-            else
-            {
-                Debug.LogError($"[BootstrapEntryPoint] Invalid gameplay scene index ({_gameplaySceneIndex}). Check Build Settings.");
-            }
+            // Start the game by entering the BootstrapState
+            _stateMachine.Enter<BootstrapState>();
         }
     }
 }

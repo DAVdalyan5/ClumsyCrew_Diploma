@@ -128,7 +128,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 900223070}
-  - component: {fileID: 900223069}
+  - component: {fileID: 900223071}
   m_Layer: 0
   m_Name: MonoServiceTest
   m_TagString: Untagged
@@ -136,19 +136,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &900223069
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 900223068}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b4e08a22593fa2f40abcf70be00045f9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.MonoService
-  message: Hello from MonoService
 --- !u!4 &900223070
 Transform:
   m_ObjectHideFlags: 0
@@ -164,6 +151,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &900223071
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900223068}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3797176fbbb1a1f48bcb2668382946d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.MonoService
+  message: Hello from MonoService
 --- !u!1 &1024269452
 GameObject:
   m_ObjectHideFlags: 0
@@ -424,7 +424,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1795699244}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6d003fd0c1997404a986274ef10a4fd3, type: 3}
+  m_Script: {fileID: 11500000, guid: bd15aadf8233e884a8ea495212f21659, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.InjectedConsumer
 --- !u!1 &1986291059

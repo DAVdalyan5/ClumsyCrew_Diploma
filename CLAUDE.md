@@ -105,6 +105,104 @@ namespace HeistNSeek.Core
 }
 ```
 
+### State Machine
+
+The project uses a centralized state machine (`GameStateMachine`) to manage game flow and state transitions.
+
+**Architecture:**
+- **GameStateMachine** (`Assets/Scripts/Core/StateMachine/GameStateMachine.cs`): Central state machine registered as singleton
+- **IState** (`Assets/Scripts/Core/StateMachine/IState.cs`): Interface for all states
+- **BaseState** (`Assets/Scripts/Core/StateMachine/BaseState.cs`): Base class implementing common state functionality
+- **States** (`Assets/Scripts/Core/StateMachine/States/`): Concrete state implementations
+
+**Built-in States:**
+- **BootstrapState**: Initial state, handles bootstrap initialization and transitions to loading
+- **LoadingState**: Handles async scene loading
+- **GameplayState**: Active gameplay state
+- **MenuState**: Example menu state (optional, not registered by default)
+
+**How the State Machine Works:**
+1. All states are registered in `BootstrapLifetimeScope` via DI
+2. `GameStateMachine` receives all registered states via constructor injection
+3. `BootstrapEntryPoint` starts the state machine by entering `BootstrapState`
+4. States can transition to other states via `StateMachine.Enter<TState>(payload)`
+5. State transitions are logged and published as events via `IMessageHub`
+
+**Creating a New State:**
+```csharp
+using HeistNSeek.Core.StateMachine;
+using UnityEngine;
+
+namespace HeistNSeek.Core.StateMachine.States
+{
+    public class MyNewState : BaseState
+    {
+        // Inject dependencies via constructor
+        private readonly IMyService _myService;
+
+        public MyNewState(IMyService myService)
+        {
+            _myService = myService;
+        }
+
+        public override void Enter(object payload = default)
+        {
+            Debug.Log("[MyNewState] Entered.");
+            // Initialization logic
+        }
+
+        public override void Exit()
+        {
+            Debug.Log("[MyNewState] Exited.");
+            // Cleanup logic
+        }
+
+        // Transition to another state
+        public void GoToNextState()
+        {
+            StateMachine.Enter<GameplayState>();
+        }
+    }
+}
+```
+
+**Registering a State:**
+Add to `BootstrapLifetimeScope.Configure()`:
+```csharp
+builder.Register<MyNewState>(Lifetime.Singleton).As<IState>();
+```
+
+**Using the State Machine:**
+```csharp
+public class MyController : MonoBehaviour
+{
+    [Inject] private GameStateMachine _stateMachine;
+
+    public void TransitionToMenu()
+    {
+        _stateMachine.Enter<MenuState>();
+    }
+
+    public void LoadScene(int sceneIndex)
+    {
+        _stateMachine.Enter<LoadingState>(sceneIndex);
+    }
+}
+```
+
+**State Events:**
+The state machine publishes events via `IMessageHub`:
+- `StateEnteredEvent`: Published when entering a state
+- `StateExitedEvent`: Published when exiting a state
+
+Subscribe to state changes:
+```csharp
+_messageHub.Subscribe<StateEnteredEvent>(evt =>
+{
+    Debug.Log($"Entered state: {evt.StateType.Name}");
+});
+```
+
 ## Project Structure
 
 ```
@@ -113,6 +211,11 @@ Assets/
 │   ├── Core/
 │   │   ├── InjectionBase/      # VContainer LifetimeScopes
 │   │   ├── LevelInitializers/  # Scene EntryPoints (initialization logic)
+│   │   ├── StateMachine/       # Game state machine
+│   │   │   ├── States/         # Concrete state implementations
+│   │   │   ├── IState.cs
+│   │   │   ├── BaseState.cs
+│   │   │   └── GameStateMachine.cs
 │   │   ├── ExampleUsage/       # Example code for testing
 │   │   └── DI/                 # Other DI-related utilities
 │   ├── Helpers/                # Utility classes (DO NOT modify unless specified)
@@ -128,6 +231,7 @@ Assets/
 **Key Folders:**
 - `Core/InjectionBase/`: Contains LifetimeScope configurations for each scene
 - `Core/LevelInitializers/`: Contains EntryPoint classes that run scene initialization logic
+- `Core/StateMachine/`: Game state machine infrastructure and state implementations
 - `Helpers/`: Reusable utilities (CoroutineHelper, SceneLoader, Extensions, etc.)
 
 ## Key Dependencies
@@ -283,10 +387,11 @@ Attach to scene object to display FPS metrics. Configure via inspector.
 ## Important Notes
 
 - **Always test from Bootstrap scene**: The project uses Bootstrap → Main scene flow with additive loading
+- **State machine controls game flow**: Game flow is managed by `GameStateMachine`. Use states for major game phases (bootstrap, loading, gameplay, menu, etc.)
 - **EntryPoint pattern**: Scene initialization logic should be in EntryPoint classes (in `LevelInitializers/`), not in MonoBehaviour Start/Awake methods
 - **Services are scoped**: Global services in BootstrapLifetimeScope, scene-specific in GameplayLifetimeScope
-- **MessageHub is global**: `IMessageHub` is registered in Bootstrap scope and available everywhere
+- **MessageHub is global**: `IMessageHub` is registered in Bootstrap scope and available everywhere. State machine publishes state transition events via MessageHub
 - **Scripts location**: All scripts must be created under `Assets/Scripts/` folder (see ModelInstructions.md)
-- **Scene management**: Use `SceneLoader` utility for async scene loading with proper scene activation
+- **Scene management**: Use `SceneLoader` utility for async scene loading or transition via `LoadingState` in the state machine
 - **Multiplayer functionality**: Integrated via Unity's multiplayer packages (Netcode, Widgets, Services)
 - **Editor utilities**: Use `[SceneDropdown]` attribute for scene index fields to get inspector dropdowns

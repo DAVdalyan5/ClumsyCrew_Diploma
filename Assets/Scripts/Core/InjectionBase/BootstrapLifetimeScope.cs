@@ -1,4 +1,6 @@
 using HeistNSeek.Core;
+using HeistNSeek.Core.StateMachine;
+using HeistNSeek.Core.StateMachine.States;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using VContainer;
@@ -15,6 +17,16 @@ public class BootstrapLifetimeScope : LifetimeScope
     {
         // Register MessageHub for pub/sub messaging
         builder.Register<IMessageHub, MessageHub>(Lifetime.Singleton);
+
+        // Register State Machine
+        builder.Register<GameStateMachine>(Lifetime.Singleton);
+
+        // Register all game states
+        builder.Register<BootstrapState>(Lifetime.Singleton)
+            .WithParameter(gameplaySceneIndex)
+            .As<IState>();
+        builder.Register<LoadingState>(Lifetime.Singleton).As<IState>();
+        builder.Register<GameplayState>(Lifetime.Singleton).As<IState>();
 
         builder.Register<IGlobalTestService, GlobalTestService>(Lifetime.Singleton);
         builder.RegisterComponentInHierarchy<MonoGlobalService>().As<IMonoGlobalService>();
