@@ -1,0 +1,144 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Easy.MessageHub</name>
+    </assembly>
+    <members>
+        <member name="T:Easy.MessageHub.IMessageHub">
+            <summary>
+            An implementation of the <c>Event Aggregator</c> pattern.
+            </summary>
+        </member>
+        <member name="M:Easy.MessageHub.IMessageHub.RegisterGlobalHandler(System.Action{System.Type,System.Object})">
+            <summary>
+            Registers a callback which is invoked on every message published by the <see cref="T:Easy.MessageHub.IMessageHub"/>.
+            <remarks>Invoking this method with a new <paramref name="onMessage"/>overwrites the previous one.</remarks>
+            </summary>
+            <param name="onMessage">
+            The callback to invoke on every message
+            <remarks>The callback receives the type of the message and the message as arguments</remarks>
+            </param>
+        </member>
+        <member name="M:Easy.MessageHub.IMessageHub.RegisterGlobalErrorHandler(System.Action{System.Guid,System.Exception})">
+            <summary>
+            Invoked if an error occurs when publishing a message to a subscriber.
+            <remarks>Invoking this method with a new <paramref name="onError"/>overwrites the previous one.</remarks>
+            </summary>
+        </member>
+        <member name="M:Easy.MessageHub.IMessageHub.Publish``1(``0)">
+            <summary>
+            Publishes the <paramref name="message"/> on the <see cref="T:Easy.MessageHub.IMessageHub"/>.
+            </summary>
+            <param name="message">The message to published</param>
+        </member>
+        <member name="M:Easy.MessageHub.IMessageHub.Subscribe``1(System.Action{``0})">
+            <summary>
+            Subscribes a callback against the <see cref="T:Easy.MessageHub.IMessageHub"/> for a specific type of message.
+            </summary>
+            <typeparam name="T">The type of message to subscribe to</typeparam>
+            <param name="action">The callback to be invoked once the message is published on the <see cref="T:Easy.MessageHub.IMessageHub"/></param>
+            <returns>The token representing the subscription</returns>
+        </member>
+        <member name="M:Easy.MessageHub.IMessageHub.Subscribe``1(System.Action{``0},System.TimeSpan)">
+            <summary>
+            Subscribes a callback against the <see cref="T:Easy.MessageHub.MessageHub"/> for a specific type of message.
+            </summary>
+            <typeparam name="T">The type of message to subscribe to</typeparam>
+            <param name="action">The callback to be invoked once the message is published on the <see cref="T:Easy.MessageHub.MessageHub"/></param>
+            <param name="throttleBy">The <see cref="T:System.TimeSpan"/> specifying the rate at which subscription is throttled</param>
+            <returns>The token representing the subscription</returns>
+        </member>
+        <member name="M:Easy.MessageHub.IMessageHub.Unsubscribe(System.Guid)">
+            <summary>
+            Unsubscribes a subscription from the <see cref="T:Easy.MessageHub.IMessageHub"/>.
+            </summary>
+            <param name="token">The token representing the subscription</param>
+        </member>
+        <member name="M:Easy.MessageHub.IMessageHub.IsSubscribed(System.Guid)">
+            <summary>
+            Checks if a specific subscription is active on the <see cref="T:Easy.MessageHub.IMessageHub"/>.
+            </summary>
+            <param name="token">The token representing the subscription</param>
+            <returns><c>True</c> if the subscription is active otherwise <c>False</c></returns>
+        </member>
+        <member name="M:Easy.MessageHub.IMessageHub.ClearSubscriptions">
+            <summary>
+            Clears all the subscriptions from the <see cref="T:Easy.MessageHub.MessageHub"/>.
+            <remarks>The global handler and the global error handler are not affected</remarks>
+            </summary>
+        </member>
+        <member name="T:Easy.MessageHub.MessageHub">
+            <summary>
+            An implementation of the <c>Event Aggregator</c> pattern.
+            </summary>
+        </member>
+        <member name="M:Easy.MessageHub.MessageHub.#ctor">
+            <summary>
+            Creates an instance of the <see cref="T:Easy.MessageHub.MessageHub"/>.
+            </summary>
+        </member>
+        <member name="M:Easy.MessageHub.MessageHub.RegisterGlobalHandler(System.Action{System.Type,System.Object})">
+            <summary>
+            Registers a callback which is invoked on every message published by the <see cref="T:Easy.MessageHub.MessageHub"/>.
+            <remarks>Invoking this method with a new <paramref name="onMessage"/>overwrites the previous one.</remarks>
+            </summary>
+            <param name="onMessage">
+            The callback to invoke on every message
+            <remarks>The callback receives the type of the message and the message as arguments</remarks>
+            </param>
+        </member>
+        <member name="M:Easy.MessageHub.MessageHub.RegisterGlobalErrorHandler(System.Action{System.Guid,System.Exception})">
+            <summary>
+            Invoked if an error occurs when publishing a message to a subscriber.
+            <remarks>Invoking this method with a new <paramref name="onError"/>overwrites the previous one.</remarks>
+            </summary>
+        </member>
+        <member name="M:Easy.MessageHub.MessageHub.Publish``1(``0)">
+            <summary>
+            Publishes the <paramref name="message"/> on the <see cref="T:Easy.MessageHub.MessageHub"/>.
+            </summary>
+            <param name="message">The message to published</param>
+        </member>
+        <member name="M:Easy.MessageHub.MessageHub.Subscribe``1(System.Action{``0})">
+            <summary>
+            Subscribes a callback against the <see cref="T:Easy.MessageHub.MessageHub"/> for a specific type of message.
+            </summary>
+            <typeparam name="T">The type of message to subscribe to</typeparam>
+            <param name="action">The callback to be invoked once the message is published on the <see cref="T:Easy.MessageHub.MessageHub"/></param>
+            <returns>The token representing the subscription</returns>
+        </member>
+        <member name="M:Easy.MessageHub.MessageHub.Subscribe``1(System.Action{``0},System.TimeSpan)">
+            <summary>
+            Subscribes a callback against the <see cref="T:Easy.MessageHub.MessageHub"/> for a specific type of message.
+            </summary>
+            <typeparam name="T">The type of message to subscribe to</typeparam>
+            <param name="action">The callback to be invoked once the message is published on the <see cref="T:Easy.MessageHub.MessageHub"/></param>
+            <param name="throttleBy">The <see cref="T:System.TimeSpan"/> specifying the rate at which subscription is throttled</param>
+            <returns>The token representing the subscription</returns>
+        </member>
+        <member name="M:Easy.MessageHub.MessageHub.Unsubscribe(System.Guid)">
+            <summary>
+            Unsubscribes a subscription from the <see cref="T:Easy.MessageHub.MessageHub"/>.
+            </summary>
+            <param name="token">The token representing the subscription</param>
+        </member>
+        <member name="M:Easy.MessageHub.MessageHub.IsSubscribed(System.Guid)">
+            <summary>
+            Checks if a specific subscription is active on the <see cref="T:Easy.MessageHub.MessageHub"/>.
+            </summary>
+            <param name="token">The token representing the subscription</param>
+            <returns><c>True</c> if the subscription is active otherwise <c>False</c></returns>
+        </member>
+        <member name="M:Easy.MessageHub.MessageHub.ClearSubscriptions">
+            <summary>
+            Clears all the subscriptions from the <see cref="T:Easy.MessageHub.MessageHub"/>.
+            <remarks>The global handler and the global error handler are not affected</remarks>
+            </summary>
+        </member>
+        <member name="M:Easy.MessageHub.MessageHub.Dispose">
+            <summary>
+            Disposes the <see cref="T:Easy.MessageHub.MessageHub"/>.
+            </summary>
+        </member>
+    </members>
+</doc>

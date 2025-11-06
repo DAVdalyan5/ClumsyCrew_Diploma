@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Easy.MessageHub</id>
+    <version>5.1.0</version>
+    <authors>Nima Ara</authors>
+    <owners></owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <projectUrl>https://github.com/NimaAra/Easy.MessageHub</projectUrl>
+    <description>An implementation of the EventAggregator pattern.</description>
+    <releaseNotes>https://github.com/NimaAra/Easy.MessageHub/releases/tag/release-v5.1.0</releaseNotes>
+    <copyright>2024 Nima Ara</copyright>
+    <tags>EventAggregator MessageHub Publish Subscribe</tags>
+    <repository type="git" url="https://github.com/NimaAra/Easy.MessageHub" commit="955246d6b7e57782fd22954eaa65f4c6d6005d3c" />
+    <dependencies>
+      <group targetFramework=".NETFramework4.8">
+        <dependency id="System.Memory" version="4.5.5" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="System.Memory" version="4.5.5" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+    <frameworkAssemblies>
+      <frameworkAssembly assemblyName="System" targetFramework=".NETFramework4.8" />
+    </frameworkAssemblies>
+  </metadata>
+</package>

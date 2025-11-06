@@ -1,0 +1,2 @@
+change main, to be dropdown instead of scene selector
+EasyMessageHub global integration
