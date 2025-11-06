@@ -18,18 +18,8 @@ public class BootstrapLifetimeScope : LifetimeScope
 
         builder.Register<IGlobalTestService, GlobalTestService>(Lifetime.Singleton);
         builder.RegisterComponentInHierarchy<MonoGlobalService>().As<IMonoGlobalService>();
-    }
 
-    //TODO:move those shits to entryPoint
-    private void Start()
-    {
-        if (gameplaySceneIndex >= 0 && gameplaySceneIndex < SceneManager.sceneCountInBuildSettings)
-        {
-            SceneLoader.Load(gameplaySceneIndex, LoadSceneMode.Additive);
-        }
-        else
-        {
-            Debug.LogError($"Invalid gameplay scene index ({gameplaySceneIndex}) on BootstrapLifetimeScope. Check Build Settings.");
-        }
+        // Register EntryPoint for Bootstrap initialization
+        builder.RegisterEntryPoint<BootstrapEntryPoint>(Lifetime.Singleton).WithParameter(gameplaySceneIndex);
     }
 }

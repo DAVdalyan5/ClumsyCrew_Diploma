@@ -11,5 +11,8 @@ public class GameplayLifetimeScope : LifetimeScope
         builder.RegisterComponentInHierarchy<MonoService>();
 
         builder.RegisterComponentInHierarchy<InjectedConsumer>();
+
+        // Register EntryPoint for Gameplay initialization
+        builder.RegisterEntryPoint<GameplayEntryPoint>(Lifetime.Singleton);
     }
 }
