@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6be375c6092ef14f86f32d15273a388, type: 3}
+  m_Name: DefaultRagdollConfig
+  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.ActiveRagdoll.ActiveRagdollConfig
+  balanceForce: 500
+  balanceDamping: 50
+  maxBalanceAngle: 15
+  maxMovementForce: 2000
+  movementAcceleration: 30
+  turnSpeed: 20
+  maxSpeed: 5
+  jumpForce: 100
+  jumpCooldown: 0.3
+  groundCheckDistance: 0.2
+  jointSpring: 5000
+  jointDamper: 500
+  jointMaxForce: 5000
+  stabilizationDrag: 0.5
+  angularDamping: 5
+  centerOfMassOffset: {x: 0, y: -0.2, z: 0}
+  groundLayers:
+    serializedVersion: 2
+    m_Bits: 1
+  groundCheckRays: 4
+  groundCheckRadius: 0.5
