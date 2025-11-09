@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.cysharp.r3": "https://github.com/Cysharp/R3.git?path=src/R3.Unity/Assets/R3.Unity",
     "com.unity.ai.navigation": "2.0.9",
     "com.unity.burst": "1.8.25",
     "com.unity.cinemachine": "2.10.4",
@@ -14,6 +15,7 @@
     "com.unity.multiplayer.center.quickstart": "1.0.1",
     "com.unity.multiplayer.playmode": "1.6.1",
     "com.unity.multiplayer.widgets": "1.0.3",
+    "com.unity.netcode.gameobjects": "2.5.0",
     "com.unity.nuget.mono-cecil": "1.11.5",
     "com.unity.nuget.newtonsoft-json": "3.2.2",
     "com.unity.package-validation-suite": "0.22.0-preview",
