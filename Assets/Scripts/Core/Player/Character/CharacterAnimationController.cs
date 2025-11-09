@@ -15,12 +15,12 @@ namespace HeistNSeek.Core.Character
         [Tooltip("Reference to the Animator component")]
         [SerializeField] private Animator animator;
 
-        [Header("Movement Thresholds")]
-        [Tooltip("Speed threshold to transition from IDLE to WALK")]
-        [SerializeField] private float walkThreshold = 0.1f;
+        //[Header("Movement Thresholds")]
+        //[Tooltip("Speed threshold to transition from IDLE to WALK")]
+        //[SerializeField] private float walkThreshold = 0.1f;
 
-        [Tooltip("Speed threshold to transition from WALK to RUN")]
-        [SerializeField] private float runThreshold = 3f;
+        //[Tooltip("Speed threshold to transition from WALK to RUN")]
+        //[SerializeField] private float runThreshold = 3f;
 
         [Header("Transition Settings")]
         [Tooltip("Smoothing factor for speed changes (higher = smoother but slower response)")]
