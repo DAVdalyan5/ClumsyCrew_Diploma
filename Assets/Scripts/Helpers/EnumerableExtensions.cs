@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Assets.Scripts.Runtime.Helpers
 {
@@ -18,9 +16,8 @@ namespace Assets.Scripts.Runtime.Helpers
 
         public static void AddIfNotContains<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, TValue value)
         {
-            if (!dict.ContainsKey(key))
+            if (dict.TryAdd(key, value))
             {
-                dict.Add(key, value);
                 return;
             }
 
@@ -35,9 +32,8 @@ namespace Assets.Scripts.Runtime.Helpers
         /// </summary>
         public static bool TryAddIfNotContains<Tkey, TValue>(this IDictionary<Tkey, TValue> dict, Tkey key, TValue value)
         {
-            if (!dict.ContainsKey(key))
+            if (dict.TryAdd(key, value))
             {
-                dict.Add(key, value);
                 return false;
             }
 
@@ -106,6 +102,18 @@ namespace Assets.Scripts.Runtime.Helpers
 
             var randomIndex = new Random().Next(0, source.Count);
             return source[randomIndex];
+        }
+
+        /// <summary>
+        /// Performs the specified action on each element of the collection
+        /// </summary>
+        public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
+        {
+            if (source == null) return;
+            foreach (var item in source)
+            {
+                action?.Invoke(item);
+            }
         }
     }
 }
