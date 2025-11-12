@@ -1,22 +1,19 @@
 ﻿using Assets.Scripts.Core.Character;
 using Assets.Scripts.Core.Player.Character;
 using NaughtyAttributes;
+using NUnit.Framework;
+using R3;
+using R3.Triggers;
+using StarterAssets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using R3;
-using R3.Triggers;
-using System.Threading.Tasks;
+using TMPro.EditorUtilities;
 using UnityEngine;
-using StarterAssets;
 
 namespace Assets.Scripts.Core.Player
 {
-    //TODO:apply force during collision
-    //disable movement
-    //Stuck in the wall
-    //add more colliders and subscirbe to them all.
+    //TODO: disable movement, fix stucking in the wall, add a script s.t. each collsion detector can have its own threshold
     public class PlayerController : MonoBehaviour
     {
         [Header("Balance Detection")]
@@ -35,13 +32,15 @@ namespace Assets.Scripts.Core.Player
         [Header("Debug")]
         [SerializeField] private bool showDebugInfo = true;
 
-        [SerializeField] private Collider triggerCollider;
+        [SerializeField] private List<Collider> collisionDetectors;
+        private List<IDisposable> colliderSubscribes = new();
+
+        [SerializeField] private GameObject ragdollHierarchyPart;
 
         private CharacterBalancer balancer;
-        private CharacterBalancer.BalanceInfo currentBalanceInfo;
+        private BalanceInfo currentBalanceInfo;
         private FirstPersonController characterController;
 
-        private IDisposable colliderSubscribe;
 
         private void Awake()
         {
@@ -53,19 +52,16 @@ namespace Assets.Scripts.Core.Player
                 return;
             }
 
-            this.balancer = new CharacterBalancer(characterTransform, forwardTiltThreshold, backwardTiltThreshold, highSpeedThreshold);
-            this.colliderSubscribe = this.triggerCollider.OnTriggerEnterAsObservable()
-                                    .Subscribe(collision =>
-                                    {
-                                        Debug.Log($"COLLISION HAPPENED {collision.name}", collision);
-                                        balancer.OnCollision(characterController.CurrentSpeed);
-                                    })
-                                    .AddTo(this);
+            this.balancer = new CharacterBalancer(highSpeedThreshold);
+
+            this.colliderSubscribes.AddRange(collisionDetectors.Select(collider => collider.OnTriggerEnterAsObservable().Subscribe(collision => HandleHighSpeedImpact(collision)).AddTo(this)));
+
+            this.characterController.BalanceResetAction += () => ResetPlayerBalance();
         }
 
         private void OnDestroy()
         {
-            this.colliderSubscribe?.Dispose();
+            this.colliderSubscribes?.ForEach(c => c?.Dispose());
         }
 
         private void FixedUpdate()
@@ -78,21 +74,19 @@ namespace Assets.Scripts.Core.Player
             {
                 this.EnablePlayerRagdoll();
             }
-            else if (currentBalanceInfo.IsBalanced && RagdollUtilities.IsRagdollEnabled(this.gameObject))
-            {
-                this.DisablePlayerRagdoll();
-            }
+        }
 
-            // Debug output
-            if (showDebugInfo)
-            {
-                Debug.Log($"[PlayerController] Balance Status:\n" +
-                         $"  Balanced: {currentBalanceInfo.IsBalanced}\n" +
-                         $"  Tipping Forward: {currentBalanceInfo.IsTippingForward}\n" +
-                         $"  Tipping Backward: {currentBalanceInfo.IsTippingBackward}\n" +
-                         $"  High Speed Impact: {currentBalanceInfo.HasHighSpeedImpact}\n" +
-                         $"  Tilt Angle: {currentBalanceInfo.ForwardTiltAngle:F2}°");
-            }
+        private void ResetPlayerBalance()
+        {
+            currentBalanceInfo.IsBalanced = true;
+            Debug.Log("[PlayerController] Balance reset requested.");
+            this.DisablePlayerRagdoll();
+        }
+
+        private void HandleHighSpeedImpact(Collider collision)
+        {
+            Debug.Log($"COLLISION HAPPENED {collision.name}", collision);
+            balancer.OnCollision(characterController.CurrentSpeed);
         }
 
         #region Test Area
@@ -100,13 +94,13 @@ namespace Assets.Scripts.Core.Player
         [Button("Enable Ragdoll")]
         public void EnablePlayerRagdoll()
         {
-            this.gameObject.ToggleRagdoll(true);
+            RagdollUtilities.ToggleRagdoll(ragdollHierarchyPart, true);
         }
 
         [Button("Disable Ragdoll")]
         public void DisablePlayerRagdoll()
         {
-            this.gameObject.ToggleRagdoll(false);
+            RagdollUtilities.ToggleRagdoll(ragdollHierarchyPart, false);
         }
 
         #endregion

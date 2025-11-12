@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using System;
+
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
@@ -51,6 +53,8 @@ namespace StarterAssets
 		public float TopClamp = 90.0f;
 		[Tooltip("How far in degrees can you move the camera down")]
 		public float BottomClamp = -90.0f;
+
+		public Action BalanceResetAction;
 
 		// cinemachine
 		private float _cinemachineTargetPitch;
@@ -122,9 +126,10 @@ namespace StarterAssets
 			JumpAndGravity();
 			GroundedCheck();
 			Move();
+			ResetBalance();
 		}
 
-		private void LateUpdate()
+        private void LateUpdate()
 		{
 			CameraRotation();
 		}
@@ -164,7 +169,19 @@ namespace StarterAssets
 			}
 		}
 
-		private void Move()
+        private void ResetBalance()
+        {
+            if (!_input.resetBalance)
+			{
+				return;
+			}
+
+			this.BalanceResetAction.Invoke();
+
+			_input.resetBalance = false;
+        }
+
+        private void Move()
 		{
 			// set target speed based on move speed, sprint speed and if sprint is pressed
 			float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
