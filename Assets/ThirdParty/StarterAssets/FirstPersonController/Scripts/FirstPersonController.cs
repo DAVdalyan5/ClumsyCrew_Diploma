@@ -56,8 +56,15 @@ namespace StarterAssets
 
 		public Action BalanceResetAction;
 
-		// cinemachine
-		private float _cinemachineTargetPitch;
+        private bool isBalanced;
+        public bool IsBalanced 
+		{ 
+			get => isBalanced;
+			set => isBalanced = value;
+		}
+
+        // cinemachine
+        private float _cinemachineTargetPitch;
 
 		// player
 		private float _rotationVelocity;
@@ -96,7 +103,7 @@ namespace StarterAssets
 			}
 		}
 
-		private void Awake()
+        private void Awake()
 		{
 			// get a reference to our main camera
 			if (_mainCamera == null)
@@ -183,6 +190,8 @@ namespace StarterAssets
 
         private void Move()
 		{
+			if (!IsBalanced) return;
+
 			// set target speed based on move speed, sprint speed and if sprint is pressed
 			float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
 

@@ -119,6 +119,11 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &285052923 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6907584355712633590, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
+  m_PrefabInstance: {fileID: 2025351052351381543}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &571675916
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -562,6 +567,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlayerCapsule
       objectReference: {fileID: 0}
+    - target: {fileID: 2263705777578523674, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
+      propertyPath: ragdollPositionRoot
+      value: 
+      objectReference: {fileID: 285052923}
     - target: {fileID: 3829135474290488472, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0.075

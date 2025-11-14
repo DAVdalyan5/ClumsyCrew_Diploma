@@ -1,5 +1,9 @@
 ﻿using Assets.Scripts.Core.Character;
 using Assets.Scripts.Core.Player.Character;
+using Assets.Scripts.Infrastructure.EasyMessageHub;
+using Assets.Scripts.Runtime.Helpers;
+using Easy.MessageHub;
+using HeistNSeek.Helpers;
 using NaughtyAttributes;
 using NUnit.Framework;
 using R3;
@@ -10,21 +14,24 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro.EditorUtilities;
 using UnityEngine;
+using VContainer;
 
 namespace Assets.Scripts.Core.Player
 {
-    //TODO: disable movement, fix stucking in the wall, add a script s.t. each collsion detector can have its own threshold
+    //TODO: fix stucking in the wall, add a script s.t. each collsion detector can have its own threshold
+    //TODO: could probably create a service to handle disposables. or inject a compositeDisposable when needed
     public class PlayerController : MonoBehaviour
     {
+        private readonly CompositeDisposable disposables = new CompositeDisposable();
+
+        private IMessageHub messageHub;
+
+        private CharacterBalancer balancer;
+        private FirstPersonController characterController;
+
         [Header("Balance Detection")]
         [Tooltip("Character's main transform (typically hips or root bone)")]
         [SerializeField] private Transform characterTransform;
-
-        [Tooltip("Maximum forward tilt angle before considered unbalanced (degrees)")]
-        [SerializeField] private float forwardTiltThreshold = 45f;
-
-        [Tooltip("Maximum backward tilt angle before considered unbalanced (degrees)")]
-        [SerializeField] private float backwardTiltThreshold = 30f;
 
         [Tooltip("Velocity magnitude threshold for high-speed impacts")]
         [SerializeField] private float highSpeedThreshold = 5f;
@@ -33,14 +40,27 @@ namespace Assets.Scripts.Core.Player
         [SerializeField] private bool showDebugInfo = true;
 
         [SerializeField] private List<Collider> collisionDetectors;
-        private List<IDisposable> colliderSubscribes = new();
 
         [SerializeField] private GameObject ragdollHierarchyPart;
+        [SerializeField] private GameObject ragdollPositionRoot;
 
-        private CharacterBalancer balancer;
+
         private BalanceInfo currentBalanceInfo;
-        private FirstPersonController characterController;
+        public BalanceInfo CurrentBalanceInfo
+        {
+            get => currentBalanceInfo;
+            set
+            {
+                currentBalanceInfo = value;
+                characterController.IsBalanced = currentBalanceInfo.IsBalanced;
+            }
+        }
 
+        [Inject]
+        public void Init(IMessageHub messageHub)
+        {
+            this.messageHub = messageHub;
+        }
 
         private void Awake()
         {
@@ -52,35 +72,65 @@ namespace Assets.Scripts.Core.Player
                 return;
             }
 
-            this.balancer = new CharacterBalancer(highSpeedThreshold);
-
-            this.colliderSubscribes.AddRange(collisionDetectors.Select(collider => collider.OnTriggerEnterAsObservable().Subscribe(collision => HandleHighSpeedImpact(collision)).AddTo(this)));
+            var collisionDisposables = collisionDetectors.Select(collider => collider.OnTriggerEnterAsObservable().Subscribe(collision => HandleHighSpeedImpact(collision)).AddTo(this));
+            disposables.AddMany(collisionDisposables);
 
             this.characterController.BalanceResetAction += () => ResetPlayerBalance();
         }
 
-        private void OnDestroy()
+        private void Start()
         {
-            this.colliderSubscribes?.ForEach(c => c?.Dispose());
+            if (messageHub == null)
+            {
+                Debug.LogError("[PlayerController] IMessageHub not injected! Make sure PlayerController is registered in a LifetimeScope.");
+                return;
+            }
+
+            this.balancer = new CharacterBalancer(messageHub, highSpeedThreshold);
+
+            currentBalanceInfo.IsBalanced = true;
+            characterController.IsBalanced = true;
+
+            // Subscribe to balance events using SubscribeSafe extension
+            messageHub.SubscribeSafe<BalanceLostEvent>(this, OnBalanceLost);
+            messageHub.SubscribeSafe<BalanceRegainedEvent>(this, OnBalanceRegained);
         }
 
-        private void FixedUpdate()
+        private void OnDestroy()
         {
-            if (balancer == null) return;
+            disposables.Dispose();
+        }
 
-            currentBalanceInfo = balancer.CheckBalance();
+        private void OnBalanceLost(BalanceLostEvent evt)
+        {
+            Debug.Log($"[PlayerController] Received BalanceLostEvent - Impact speed: {evt.ImpactSpeed}");
+            currentBalanceInfo.IsBalanced = false;
+            characterController.IsBalanced = false;
 
-            if (!currentBalanceInfo.IsBalanced && !RagdollUtilities.IsRagdollEnabled(this.gameObject))
+            if (!RagdollUtilities.IsRagdollEnabled(this.gameObject))
             {
                 this.EnablePlayerRagdoll();
             }
         }
 
+        private void OnBalanceRegained(BalanceRegainedEvent evt)
+        {
+            Debug.Log("[PlayerController] Received BalanceRegainedEvent");
+            currentBalanceInfo.IsBalanced = true;
+            characterController.IsBalanced = true;
+
+            this.transform.position = ragdollPositionRoot.transform.position;
+
+            // Disable ragdoll (enables animator and kinematic rigidbodies)
+            this.DisablePlayerRagdoll();
+        }
+
         private void ResetPlayerBalance()
         {
-            currentBalanceInfo.IsBalanced = true;
             Debug.Log("[PlayerController] Balance reset requested.");
-            this.DisablePlayerRagdoll();
+
+            // This will publish BalanceRegainedEvent, which we'll handle in OnBalanceRegained
+            balancer?.RegainBalance();
         }
 
         private void HandleHighSpeedImpact(Collider collision)

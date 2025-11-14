@@ -1,3 +1,4 @@
+using Assets.Scripts.Core.Player;
 using HeistNSeek.Core;
 using VContainer;
 using VContainer.Unity;
@@ -11,6 +12,9 @@ public class GameplayLifetimeScope : LifetimeScope
         builder.RegisterComponentInHierarchy<MonoService>();
 
         builder.RegisterComponentInHierarchy<InjectedConsumer>();
+
+        // Register PlayerController for IMessageHub injection
+        builder.RegisterComponentInHierarchy<PlayerController>();
 
         // Register EntryPoint for Gameplay initialization
         builder.RegisterEntryPoint<GameplayEntryPoint>(Lifetime.Singleton);

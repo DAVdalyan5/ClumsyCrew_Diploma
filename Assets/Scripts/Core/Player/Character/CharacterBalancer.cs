@@ -1,71 +1,52 @@
 ﻿using UnityEngine;
+using Easy.MessageHub;
 
 namespace Assets.Scripts.Core.Player.Character
 {
     public class CharacterBalancer
     {
         private readonly float highSpeedThreshold;
-        private readonly float recoveryTime;
+        private readonly IMessageHub messageHub;
         private BalanceInfo currentBalanceInfo;
-        private float timeSinceLastImpact;
 
-        public CharacterBalancer(float impactSpeedThreshold = 5f, float recoveryDuration = 1f)
+        public CharacterBalancer(IMessageHub messageHub, float impactSpeedThreshold = 5f)
         {
+            this.messageHub = messageHub ?? throw new System.ArgumentNullException(nameof(messageHub));
+
             currentBalanceInfo = new BalanceInfo
             {
                 IsBalanced = true,
             };
 
             highSpeedThreshold = impactSpeedThreshold;
-            recoveryTime = recoveryDuration;
-            timeSinceLastImpact = float.MaxValue;  // Start as not recovering
-        }
-
-        /// <summary>
-        /// Call this in FixedUpdate to update balance information and handle recovery.
-        /// </summary>
-        public BalanceInfo CheckBalance()
-        {
-            // Only increment and check if currently recovering
-            if (timeSinceLastImpact < recoveryTime)
-            {
-                timeSinceLastImpact += Time.deltaTime;
-
-                // Automatically reset balance when recovery time expires
-                if (timeSinceLastImpact >= recoveryTime)
-                {
-                    ResetImpact();
-                }
-                else
-                {
-                    // Still recovering
-                    currentBalanceInfo.IsBalanced = false;
-                }
-            }
-
-            return currentBalanceInfo;
         }
 
         /// <summary>
         /// Call this from OnCollisionEnter to detect high-speed impacts.
+        /// Publishes BalanceLostEvent when balance is lost.
         /// </summary>
         public void OnCollision(float collisionSpeed)
         {
-            if (collisionSpeed > highSpeedThreshold)
+            if (collisionSpeed > highSpeedThreshold && currentBalanceInfo.IsBalanced)
             {
-                // Always reset the timer on new impact, even if already recovering
-                timeSinceLastImpact = 0f;
                 currentBalanceInfo.IsBalanced = false;
+                messageHub.Publish(new BalanceLostEvent(collisionSpeed));
+                Debug.Log($"[CharacterBalancer] Balance lost! Impact speed: {collisionSpeed}");
             }
         }
 
         /// <summary>
-        /// Manually reset the impact state and begin balance recovery.
+        /// Manually reset the balance state (called when player presses recovery key).
+        /// Publishes BalanceRegainedEvent when balance is regained.
         /// </summary>
-        public void ResetImpact()
+        public void RegainBalance()
         {
-            currentBalanceInfo.IsBalanced = true;
-            timeSinceLastImpact = float.MaxValue;  // No longer recovering
+            if (!currentBalanceInfo.IsBalanced)
+            {
+                currentBalanceInfo.IsBalanced = true;
+                messageHub.Publish(new BalanceRegainedEvent());
+                Debug.Log("[CharacterBalancer] Balance regained!");
+            }
         }
 
         public BalanceInfo GetBalanceInfo()
