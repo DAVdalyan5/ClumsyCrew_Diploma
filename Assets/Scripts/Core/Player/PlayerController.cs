@@ -1,45 +1,31 @@
 ﻿using Assets.Scripts.Core.Character;
 using Assets.Scripts.Core.Player.Character;
-using Assets.Scripts.Infrastructure.EasyMessageHub;
 using Assets.Scripts.Runtime.Helpers;
 using Easy.MessageHub;
-using HeistNSeek.Helpers;
 using NaughtyAttributes;
-using NUnit.Framework;
 using R3;
-using R3.Triggers;
 using StarterAssets;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using TMPro.EditorUtilities;
 using UnityEngine;
 using VContainer;
 
 namespace Assets.Scripts.Core.Player
 {
-    //TODO: fix stucking in the wall, add a script s.t. each collsion detector can have its own threshold
-    //TODO: could probably create a service to handle disposables. or inject a compositeDisposable when needed
+    //TODO: fix stucking in the wall
     public class PlayerController : MonoBehaviour
     {
         private readonly CompositeDisposable disposables = new CompositeDisposable();
 
         private IMessageHub messageHub;
 
-        private CharacterBalancer balancer;
         private FirstPersonController characterController;
 
         [Header("Balance Detection")]
         [Tooltip("Character's main transform (typically hips or root bone)")]
         [SerializeField] private Transform characterTransform;
 
-        [Tooltip("Velocity magnitude threshold for high-speed impacts")]
-        [SerializeField] private float highSpeedThreshold = 5f;
-
-        [Header("Debug")]
-        [SerializeField] private bool showDebugInfo = true;
-
-        [SerializeField] private List<Collider> collisionDetectors;
+        [SerializeField] private List<CollisionDetector> collisionDetectors;
 
         [SerializeField] private GameObject ragdollHierarchyPart;
         [SerializeField] private GameObject ragdollPositionRoot;
@@ -62,7 +48,7 @@ namespace Assets.Scripts.Core.Player
             this.messageHub = messageHub;
         }
 
-        private void Awake()
+        private void Start()
         {
             this.characterController = this.GetComponent<FirstPersonController>();
 
@@ -72,28 +58,26 @@ namespace Assets.Scripts.Core.Player
                 return;
             }
 
-            var collisionDisposables = collisionDetectors.Select(collider => collider.OnTriggerEnterAsObservable().Subscribe(collision => HandleHighSpeedImpact(collision)).AddTo(this));
-            disposables.AddMany(collisionDisposables);
-
-            this.characterController.BalanceResetAction += () => ResetPlayerBalance();
-        }
-
-        private void Start()
-        {
             if (messageHub == null)
             {
                 Debug.LogError("[PlayerController] IMessageHub not injected! Make sure PlayerController is registered in a LifetimeScope.");
                 return;
             }
 
-            this.balancer = new CharacterBalancer(messageHub, highSpeedThreshold);
+            this.CurrentBalanceInfo = new BalanceInfo { IsBalanced = true };
+            this.characterController.IsBalanced = this.CurrentBalanceInfo.IsBalanced;
 
-            currentBalanceInfo.IsBalanced = true;
-            characterController.IsBalanced = true;
+            var collisionDisposables = collisionDetectors.Select(detector => detector.Subscribe((collision, det) => HandleHighSpeedImpact(collision, det)));
 
-            // Subscribe to balance events using SubscribeSafe extension
-            messageHub.SubscribeSafe<BalanceLostEvent>(this, OnBalanceLost);
-            messageHub.SubscribeSafe<BalanceRegainedEvent>(this, OnBalanceRegained);
+            disposables.AddMany(collisionDisposables);
+
+            this.characterController.BalanceResetAction += () => ResetPlayerBalance();
+        }
+
+        private void Awake()
+        {
+            //messageHub.SubscribeSafe<BalanceLostEvent>(this, OnBalanceLost);
+            //messageHub.SubscribeSafe<BalanceRegainedEvent>(this, OnBalanceRegained);
         }
 
         private void OnDestroy()
@@ -101,9 +85,9 @@ namespace Assets.Scripts.Core.Player
             disposables.Dispose();
         }
 
-        private void OnBalanceLost(BalanceLostEvent evt)
+        private void OnBalanceLost(float impactSpeed)
         {
-            Debug.Log($"[PlayerController] Received BalanceLostEvent - Impact speed: {evt.ImpactSpeed}");
+            Debug.Log($"[PlayerController] Received BalanceLostEvent - Impact speed: {impactSpeed}");
             currentBalanceInfo.IsBalanced = false;
             characterController.IsBalanced = false;
 
@@ -113,7 +97,7 @@ namespace Assets.Scripts.Core.Player
             }
         }
 
-        private void OnBalanceRegained(BalanceRegainedEvent evt)
+        private void OnBalanceRegained()
         {
             Debug.Log("[PlayerController] Received BalanceRegainedEvent");
             currentBalanceInfo.IsBalanced = true;
@@ -129,14 +113,23 @@ namespace Assets.Scripts.Core.Player
         {
             Debug.Log("[PlayerController] Balance reset requested.");
 
-            // This will publish BalanceRegainedEvent, which we'll handle in OnBalanceRegained
-            balancer?.RegainBalance();
+            this.CurrentBalanceInfo.IsBalanced = true;
+            OnBalanceRegained();
         }
 
-        private void HandleHighSpeedImpact(Collider collision)
+        private void HandleHighSpeedImpact(Collider collision, CollisionDetector detector)
         {
-            Debug.Log($"COLLISION HAPPENED {collision.name}", collision);
-            balancer.OnCollision(characterController.CurrentSpeed);
+            float currentSpeed = characterController.CurrentSpeed;
+            float effectiveSpeed = currentSpeed * detector.ImpactMultiplier;
+
+            Debug.Log($"[PlayerController] Collision detected on {detector.name} with {collision.name} - Speed: {currentSpeed}, Effective: {effectiveSpeed}, Threshold: {detector.HighSpeedThreshold}", collision);
+
+            if (effectiveSpeed > detector.HighSpeedThreshold)
+            {
+                this.CurrentBalanceInfo.IsBalanced = false;
+                Debug.Log($"[CharacterBalancer] Balance lost! Impact speed: {effectiveSpeed}");
+                OnBalanceLost(effectiveSpeed);
+            }
         }
 
         #region Test Area

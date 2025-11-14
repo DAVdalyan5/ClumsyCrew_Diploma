@@ -119,6 +119,26 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &258476421 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6221651706007909808, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
+  m_PrefabInstance: {fileID: 2025351052351381543}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &258476423
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 258476421}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c7b933d758b38244aea540061e15200, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.Core.Player.Character.CollisionDetector
+  highSpeedThreshold: 5
+  impactMultiplier: 1
+  cooldownTime: 0.2
 --- !u!1 &285052923 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6907584355712633590, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
@@ -507,6 +527,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bd15aadf8233e884a8ea495212f21659, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.InjectedConsumer
+--- !u!1 &1877910567 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2677292015300120940, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
+  m_PrefabInstance: {fileID: 2025351052351381543}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1877910569
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1877910567}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c7b933d758b38244aea540061e15200, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.Core.Player.Character.CollisionDetector
+  highSpeedThreshold: 5
+  impactMultiplier: 1
+  cooldownTime: 0.2
 --- !u!1 &1986291059
 GameObject:
   m_ObjectHideFlags: 0
@@ -571,6 +611,18 @@ PrefabInstance:
       propertyPath: ragdollPositionRoot
       value: 
       objectReference: {fileID: 285052923}
+    - target: {fileID: 2263705777578523674, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
+      propertyPath: 'collisionDetectors.Array.data[0]'
+      value: 
+      objectReference: {fileID: 258476423}
+    - target: {fileID: 2263705777578523674, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
+      propertyPath: 'collisionDetectors.Array.data[1]'
+      value: 
+      objectReference: {fileID: 1877910569}
+    - target: {fileID: 2263705777578523674, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
+      propertyPath: 'collisionDetectors.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2025351052351381545}
     - target: {fileID: 3829135474290488472, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0.075
@@ -630,8 +682,37 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6221651706007909808, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 258476423}
+    - targetCorrespondingSourceObject: {fileID: 2677292015300120940, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1877910569}
+    - targetCorrespondingSourceObject: {fileID: 5403441822764255482, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2025351052351381545}
   m_SourcePrefab: {fileID: 100100000, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
+--- !u!1 &2025351052351381544 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5403441822764255482, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
+  m_PrefabInstance: {fileID: 2025351052351381543}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2025351052351381545
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2025351052351381544}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c7b933d758b38244aea540061e15200, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.Core.Player.Character.CollisionDetector
+  highSpeedThreshold: 5
+  impactMultiplier: 1
+  cooldownTime: 0.2
 --- !u!1001 &2809837887597386239
 PrefabInstance:
   m_ObjectHideFlags: 0

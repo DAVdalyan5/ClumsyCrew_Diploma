@@ -2,7 +2,7 @@
 
 namespace Assets.Scripts.Core.Player.Character
 {
-    public struct BalanceInfo
+    public class BalanceInfo
     {
         public bool IsBalanced;
     }
