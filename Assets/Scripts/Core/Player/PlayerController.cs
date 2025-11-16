@@ -3,6 +3,8 @@ using Assets.Scripts.Core.Player.Character;
 using Assets.Scripts.Infrastructure.EasyMessageHub;
 using Assets.Scripts.Runtime.Helpers;
 using Easy.MessageHub;
+using HeistNSeek.Core.Player;
+using HeistNSeek.Events;
 using NaughtyAttributes;
 using R3;
 using StarterAssets;
@@ -20,7 +22,7 @@ namespace Assets.Scripts.Core.Player
 
         private IMessageHub messageHub;
 
-        private FirstPersonController characterController;
+        private FirstPersonMovementHandler characterController;
 
         [Header("Balance Detection")]
         [Tooltip("Character's main transform (typically hips or root bone)")]
@@ -51,7 +53,7 @@ namespace Assets.Scripts.Core.Player
 
         private void Start()
         {
-            this.characterController = this.GetComponent<FirstPersonController>();
+            this.characterController = this.GetComponent<FirstPersonMovementHandler>();
 
             if (characterTransform == null)
             {
@@ -72,13 +74,7 @@ namespace Assets.Scripts.Core.Player
 
             disposables.AddMany(collisionDisposables);
 
-            this.characterController.BalanceResetAction += () => ResetPlayerBalance();
-        }
-
-        private void Awake()
-        {
-            //messageHub.SubscribeSafe<BalanceLostEvent>(this, OnBalanceLost);
-            //messageHub.SubscribeSafe<BalanceRegainedEvent>(this, OnBalanceRegained);
+            this.messageHub.SubscribeSafe<ResetBalanceEvent>(this, ResetPlayerBalance);
         }
 
         private void OnDestroy()
@@ -111,7 +107,7 @@ namespace Assets.Scripts.Core.Player
             this.DisablePlayerRagdoll();
         }
 
-        private void ResetPlayerBalance()
+        private void ResetPlayerBalance(ResetBalanceEvent args)
         {
             Debug.Log("[PlayerController] Balance reset requested.");
 

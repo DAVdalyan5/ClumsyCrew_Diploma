@@ -133,6 +133,7 @@ namespace HeistNSeek.Core.Inventory.SessionInventory
             }
         }
 
+        //call this function with messegeHub interact event to pick up an item
         private void TryPickup()
         {
             // Try to get inventory from DI first, then fall back to static reference

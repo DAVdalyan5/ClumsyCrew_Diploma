@@ -1288,30 +1288,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 215958146}
   m_CullTransparentMesh: 1
---- !u!4 &231352114 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 4853298173530124205, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
-  m_PrefabInstance: {fileID: 2025351052351381543}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &258476421 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6221651706007909808, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
-  m_PrefabInstance: {fileID: 2025351052351381543}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &258476423
+--- !u!114 &258476423 stripped
 MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 5465522831454416838, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
+  m_PrefabInstance: {fileID: 2025351052351381543}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 258476421}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1c7b933d758b38244aea540061e15200, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.Core.Player.Character.CollisionDetector
-  highSpeedThreshold: 5
-  impactMultiplier: 1
 --- !u!1 &263607578
 GameObject:
   m_ObjectHideFlags: 0
@@ -2540,59 +2527,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Text: {fileID: 51101947}
   m_CopyCodeButton: {fileID: 1642111064}
---- !u!1 &621971311
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 621971312}
-  - component: {fileID: 621971313}
-  m_Layer: 6
-  m_Name: GroundLootGatherer
-  m_TagString: Player
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &621971312
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 621971311}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.498, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 231352114}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &621971313
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 621971311}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 256
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 247
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &731827286
 GameObject:
   m_ObjectHideFlags: 0
@@ -6882,25 +6816,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1818314018}
   m_CullTransparentMesh: 1
---- !u!1 &1877910567 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2677292015300120940, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
+--- !u!114 &1877910569 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1840720410329681123, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
   m_PrefabInstance: {fileID: 2025351052351381543}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1877910569
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1877910567}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1c7b933d758b38244aea540061e15200, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.Core.Player.Character.CollisionDetector
-  highSpeedThreshold: 5
-  impactMultiplier: 1
 --- !u!1 &1881298294
 GameObject:
   m_ObjectHideFlags: 0
@@ -7690,10 +7616,6 @@ PrefabInstance:
       propertyPath: m_ExcludeLayers.m_Bits
       value: 320
       objectReference: {fileID: 0}
-    - target: {fileID: 3829135474290488472, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0.075
-      objectReference: {fileID: 0}
     - target: {fileID: 4853298173530124205, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
       propertyPath: m_LocalPosition.x
       value: 4.435581
@@ -7734,18 +7656,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5403441822764255482, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
-      propertyPath: m_Name
-      value: LegFrontCollisionDetector
-      objectReference: {fileID: 0}
-    - target: {fileID: 7293688558204405474, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0.204
-      objectReference: {fileID: 0}
-    - target: {fileID: 8550222164034025169, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
-      propertyPath: m_Size.z
-      value: 0.49
-      objectReference: {fileID: 0}
     - target: {fileID: 8550222164034025169, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
       propertyPath: m_ExcludeLayers.m_Bits
       value: 320
@@ -7756,40 +7666,20 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 4853298173530124205, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 621971312}
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 6221651706007909808, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 258476423}
-    - targetCorrespondingSourceObject: {fileID: 2677292015300120940, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1877910569}
-    - targetCorrespondingSourceObject: {fileID: 5403441822764255482, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2025351052351381545}
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
---- !u!1 &2025351052351381544 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5403441822764255482, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
+--- !u!114 &2025351052351381545 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7807632608547898543, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
   m_PrefabInstance: {fileID: 2025351052351381543}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2025351052351381545
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2025351052351381544}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1c7b933d758b38244aea540061e15200, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.Core.Player.Character.CollisionDetector
-  highSpeedThreshold: 5
-  impactMultiplier: 1
 --- !u!1001 &2809837887597386239
 PrefabInstance:
   m_ObjectHideFlags: 0

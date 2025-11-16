@@ -2,6 +2,7 @@ using Assets.Scripts.Core.Inventory.Models;
 using Assets.Scripts.Core.Player;
 using HeistNSeek.Core;
 using HeistNSeek.Core.Inventory.SessionInventory;
+using HeistNSeek.Core.Player;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -20,6 +21,9 @@ public class GameplayLifetimeScope : LifetimeScope
 
         // Register PlayerController for IMessageHub injection
         builder.RegisterComponentInHierarchy<PlayerController>();
+        // Register First Person Input and Movement
+        builder.RegisterComponentInHierarchy<FirstPersonInputService>();
+        builder.RegisterComponentInHierarchy<FirstPersonMovementHandler>();
 
         // Register Session Inventory System
         builder.Register<SessionInventory>(Lifetime.Singleton);
