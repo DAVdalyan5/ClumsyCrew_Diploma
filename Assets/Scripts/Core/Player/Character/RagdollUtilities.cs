@@ -6,7 +6,7 @@ namespace Assets.Scripts.Core.Character
 {
     public static class RagdollUtilities
     {
-        public static void ToggleRagdoll(this GameObject character, bool state)
+        public static void ToggleRagdoll(GameObject character, bool state)
         {
             var rigidbodies = character.GetComponentsInChildren<Rigidbody>();
             var animator = character.GetComponentInChildren<Animator>();
@@ -25,7 +25,7 @@ namespace Assets.Scripts.Core.Character
             }
         }
 
-        public static bool IsRagdollEnabled(this GameObject character)
+        public static bool IsRagdollEnabled(GameObject character)
         {
             var rigidbodies = character.GetComponentsInChildren<Rigidbody>();
             var colliders = character.GetComponentsInChildren<Collider>();

@@ -7,6 +7,9 @@ using VContainer;
 using VContainer.Unity;
 using Easy.MessageHub;
 using Assets.Scripts.Core;
+using R3;
+using System.Collections.Generic;
+using System;
 
 public class BootstrapLifetimeScope : LifetimeScope
 {

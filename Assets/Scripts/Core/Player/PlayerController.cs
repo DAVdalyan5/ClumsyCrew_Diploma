@@ -1,49 +1,55 @@
 ﻿using Assets.Scripts.Core.Character;
 using Assets.Scripts.Core.Player.Character;
+using Assets.Scripts.Infrastructure.EasyMessageHub;
+using Assets.Scripts.Runtime.Helpers;
+using Easy.MessageHub;
 using NaughtyAttributes;
-using System;
+using R3;
+using StarterAssets;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using R3;
-using R3.Triggers;
-using System.Threading.Tasks;
 using UnityEngine;
-using StarterAssets;
+using VContainer;
 
 namespace Assets.Scripts.Core.Player
 {
-    //TODO:apply force during collision
-    //disable movement
-    //Stuck in the wall
-    //add more colliders and subscirbe to them all.
+    //TODO: fix stucking in the wall
     public class PlayerController : MonoBehaviour
     {
+        private readonly CompositeDisposable disposables = new CompositeDisposable();
+
+        private IMessageHub messageHub;
+
+        private FirstPersonController characterController;
+
         [Header("Balance Detection")]
         [Tooltip("Character's main transform (typically hips or root bone)")]
         [SerializeField] private Transform characterTransform;
 
-        [Tooltip("Maximum forward tilt angle before considered unbalanced (degrees)")]
-        [SerializeField] private float forwardTiltThreshold = 45f;
+        [SerializeField] private List<CollisionDetector> collisionDetectors;
 
-        [Tooltip("Maximum backward tilt angle before considered unbalanced (degrees)")]
-        [SerializeField] private float backwardTiltThreshold = 30f;
+        [SerializeField] private GameObject ragdollHierarchyPart;
+        [SerializeField] private GameObject ragdollPositionRoot;
 
-        [Tooltip("Velocity magnitude threshold for high-speed impacts")]
-        [SerializeField] private float highSpeedThreshold = 5f;
 
-        [Header("Debug")]
-        [SerializeField] private bool showDebugInfo = true;
+        private BalanceInfo currentBalanceInfo;
+        public BalanceInfo CurrentBalanceInfo
+        {
+            get => currentBalanceInfo;
+            set
+            {
+                currentBalanceInfo = value;
+                characterController.IsBalanced = currentBalanceInfo.IsBalanced;
+            }
+        }
 
-        [SerializeField] private Collider triggerCollider;
+        [Inject]
+        public void Init(IMessageHub messageHub)
+        {
+            this.messageHub = messageHub;
+        }
 
-        private CharacterBalancer balancer;
-        private CharacterBalancer.BalanceInfo currentBalanceInfo;
-        private FirstPersonController characterController;
-
-        private IDisposable colliderSubscribe;
-
-        private void Awake()
+        private void Start()
         {
             this.characterController = this.GetComponent<FirstPersonController>();
 
@@ -53,45 +59,78 @@ namespace Assets.Scripts.Core.Player
                 return;
             }
 
-            this.balancer = new CharacterBalancer(characterTransform, forwardTiltThreshold, backwardTiltThreshold, highSpeedThreshold);
-            this.colliderSubscribe = this.triggerCollider.OnTriggerEnterAsObservable()
-                                    .Subscribe(collision =>
-                                    {
-                                        Debug.Log($"COLLISION HAPPENED {collision.name}", collision);
-                                        balancer.OnCollision(characterController.CurrentSpeed);
-                                    })
-                                    .AddTo(this);
+            if (messageHub == null)
+            {
+                Debug.LogError("[PlayerController] IMessageHub not injected! Make sure PlayerController is registered in a LifetimeScope.");
+                return;
+            }
+
+            this.CurrentBalanceInfo = new BalanceInfo { IsBalanced = true };
+            this.characterController.IsBalanced = this.CurrentBalanceInfo.IsBalanced;
+
+            var collisionDisposables = collisionDetectors.Select(detector => detector.Subscribe((collision, det) => HandleHighSpeedImpact(collision, det)));
+
+            disposables.AddMany(collisionDisposables);
+
+            this.characterController.BalanceResetAction += () => ResetPlayerBalance();
+        }
+
+        private void Awake()
+        {
+            //messageHub.SubscribeSafe<BalanceLostEvent>(this, OnBalanceLost);
+            //messageHub.SubscribeSafe<BalanceRegainedEvent>(this, OnBalanceRegained);
         }
 
         private void OnDestroy()
         {
-            this.colliderSubscribe?.Dispose();
+            disposables.Dispose();
         }
 
-        private void FixedUpdate()
+        private void OnBalanceLost(float impactSpeed)
         {
-            if (balancer == null) return;
+            Debug.Log($"[PlayerController] Received BalanceLostEvent - Impact speed: {impactSpeed}");
+            currentBalanceInfo.IsBalanced = false;
+            characterController.IsBalanced = false;
 
-            currentBalanceInfo = balancer.CheckBalance();
-
-            if (!currentBalanceInfo.IsBalanced && !RagdollUtilities.IsRagdollEnabled(this.gameObject))
+            if (!RagdollUtilities.IsRagdollEnabled(this.gameObject))
             {
                 this.EnablePlayerRagdoll();
+                messageHub.Publish<BalanceLostEvent>(new BalanceLostEvent(impactSpeed));
             }
-            else if (currentBalanceInfo.IsBalanced && RagdollUtilities.IsRagdollEnabled(this.gameObject))
-            {
-                this.DisablePlayerRagdoll();
-            }
+        }
 
-            // Debug output
-            if (showDebugInfo)
+        private void OnBalanceRegained()
+        {
+            Debug.Log("[PlayerController] Received BalanceRegainedEvent");
+            currentBalanceInfo.IsBalanced = true;
+            characterController.IsBalanced = true;
+
+            this.transform.position = ragdollPositionRoot.transform.position;
+
+            // Disable ragdoll (enables animator and kinematic rigidbodies)
+            this.DisablePlayerRagdoll();
+        }
+
+        private void ResetPlayerBalance()
+        {
+            Debug.Log("[PlayerController] Balance reset requested.");
+
+            this.CurrentBalanceInfo.IsBalanced = true;
+            OnBalanceRegained();
+        }
+
+        private void HandleHighSpeedImpact(Collider collision, CollisionDetector detector)
+        {
+            float currentSpeed = characterController.CurrentSpeed;
+            float effectiveSpeed = currentSpeed * detector.ImpactMultiplier;
+
+            Debug.Log($"[PlayerController] Collision detected on {detector.name} with {collision.name} - Speed: {currentSpeed}, Effective: {effectiveSpeed}, Threshold: {detector.HighSpeedThreshold}", collision);
+
+            if (effectiveSpeed > detector.HighSpeedThreshold)
             {
-                Debug.Log($"[PlayerController] Balance Status:\n" +
-                         $"  Balanced: {currentBalanceInfo.IsBalanced}\n" +
-                         $"  Tipping Forward: {currentBalanceInfo.IsTippingForward}\n" +
-                         $"  Tipping Backward: {currentBalanceInfo.IsTippingBackward}\n" +
-                         $"  High Speed Impact: {currentBalanceInfo.HasHighSpeedImpact}\n" +
-                         $"  Tilt Angle: {currentBalanceInfo.ForwardTiltAngle:F2}°");
+                this.CurrentBalanceInfo.IsBalanced = false;
+                Debug.Log($"[CharacterBalancer] Balance lost! Impact speed: {effectiveSpeed}");
+                OnBalanceLost(effectiveSpeed);
             }
         }
 
@@ -100,13 +139,13 @@ namespace Assets.Scripts.Core.Player
         [Button("Enable Ragdoll")]
         public void EnablePlayerRagdoll()
         {
-            this.gameObject.ToggleRagdoll(true);
+            RagdollUtilities.ToggleRagdoll(ragdollHierarchyPart, true);
         }
 
         [Button("Disable Ragdoll")]
         public void DisablePlayerRagdoll()
         {
-            this.gameObject.ToggleRagdoll(false);
+            RagdollUtilities.ToggleRagdoll(ragdollHierarchyPart, false);
         }
 
         #endregion

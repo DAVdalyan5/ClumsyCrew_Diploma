@@ -1,15 +1,11 @@
 using HeistNSeek.Core.StateMachine;
 using HeistNSeek.Core.StateMachine.States;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using VContainer.Unity;
 
 namespace HeistNSeek.Core
 {
-    /// <summary>
-    /// EntryPoint for Bootstrap scene initialization.
-    /// Runs after all dependencies are resolved in BootstrapLifetimeScope.
-    /// Starts the game state machine.
-    /// </summary>
     public class BootstrapEntryPoint : IStartable
     {
         private readonly GameStateMachine _stateMachine;
@@ -24,9 +20,20 @@ namespace HeistNSeek.Core
         public void Start()
         {
             Debug.Log("[BootstrapEntryPoint] Bootstrap scene initialized. Starting state machine...");
-
-            // Start the game by entering the BootstrapState
             _stateMachine.Enter<BootstrapState>();
         }
+
+#if UNITY_EDITOR
+        private const string BOOTSTRAP_SCENE_NAME = "Bootstrap";
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        static void AutoLoadBootstrap()
+        {
+            if (SceneManager.GetActiveScene().name != BOOTSTRAP_SCENE_NAME)
+            {
+                SceneManager.LoadScene(BOOTSTRAP_SCENE_NAME);
+            }
+        }
+#endif
     }
 }

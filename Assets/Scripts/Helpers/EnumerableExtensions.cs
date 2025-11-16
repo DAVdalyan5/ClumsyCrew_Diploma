@@ -1,4 +1,5 @@
-﻿using System;
+﻿using R3;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -114,6 +115,11 @@ namespace Assets.Scripts.Runtime.Helpers
             {
                 action?.Invoke(item);
             }
+        }
+
+        public static void AddMany(this CompositeDisposable disposables, IEnumerable<IDisposable> toAdd)
+        {
+            toAdd.ForEach(d => disposables.Add(d));
         }
     }
 }
