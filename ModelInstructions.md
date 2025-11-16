@@ -7,3 +7,5 @@
 ## 
 - Create Regions only when target script is more than 500 lines.
 - Do not add comments if it is a simple method 
+- DO NOT WRITE UNNECCESARY METHODS
+- DO NOT OVERCOMPLICATE UNLESS SPECIFIED OTHERWISE

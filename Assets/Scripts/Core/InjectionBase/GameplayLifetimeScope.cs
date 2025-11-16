@@ -1,10 +1,15 @@
+using Assets.Scripts.Core.Inventory.Models;
 using Assets.Scripts.Core.Player;
 using HeistNSeek.Core;
+using HeistNSeek.Core.Inventory.SessionInventory;
+using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
 public class GameplayLifetimeScope : LifetimeScope
 {
+    [SerializeField] private ScatterConfigSO scatterConfigSO;
+
     protected override void Configure(IContainerBuilder builder)
     {
         //for testing purporses
@@ -15,6 +20,13 @@ public class GameplayLifetimeScope : LifetimeScope
 
         // Register PlayerController for IMessageHub injection
         builder.RegisterComponentInHierarchy<PlayerController>();
+
+        // Register Session Inventory System
+        builder.Register<SessionInventory>(Lifetime.Singleton);
+        builder.Register<ItemDropper>(Lifetime.Singleton);
+        builder.Register<ItemPickup>(Lifetime.Transient);
+
+        builder.RegisterInstance<ScatterConfigSO>(scatterConfigSO);
 
         // Register EntryPoint for Gameplay initialization
         builder.RegisterEntryPoint<GameplayEntryPoint>(Lifetime.Singleton);

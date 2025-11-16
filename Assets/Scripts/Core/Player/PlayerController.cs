@@ -1,5 +1,6 @@
 ﻿using Assets.Scripts.Core.Character;
 using Assets.Scripts.Core.Player.Character;
+using Assets.Scripts.Infrastructure.EasyMessageHub;
 using Assets.Scripts.Runtime.Helpers;
 using Easy.MessageHub;
 using NaughtyAttributes;
@@ -94,6 +95,7 @@ namespace Assets.Scripts.Core.Player
             if (!RagdollUtilities.IsRagdollEnabled(this.gameObject))
             {
                 this.EnablePlayerRagdoll();
+                messageHub.Publish<BalanceLostEvent>(new BalanceLostEvent(impactSpeed));
             }
         }
 
