@@ -18,7 +18,7 @@ using VContainer;
 namespace Assets.Scripts.Core.Player
 {
     //TODO: fix stucking in the wall
-    public class PlayerController : MonoBehaviour, IPushable
+    public class PlayerController : MonoBehaviour
     {
         private readonly CompositeDisposable disposables = new CompositeDisposable();
 
@@ -115,7 +115,7 @@ namespace Assets.Scripts.Core.Player
 
         private void HandleHighSpeedImpact(Collider collision, CollisionDetector detector)
         {
-            float currentSpeed = characterController.CurrentSpeed;
+            float currentSpeed = characterController.CurrentSpeed >= 0 ? 1 : characterController.CurrentSpeed;
             float effectiveSpeed = currentSpeed * detector.ImpactMultiplier;
 
             Debug.Log($"[PlayerController] Collision detected on {detector.name} with {collision.name} - Speed: {currentSpeed}, Effective: {effectiveSpeed}, Threshold: {detector.HighSpeedThreshold}", collision);
@@ -126,12 +126,6 @@ namespace Assets.Scripts.Core.Player
                 Debug.Log($"[CharacterBalancer] Balance lost! Impact speed: {effectiveSpeed}");
                 OnBalanceLost(effectiveSpeed);
             }
-        }
-
-        public void OnPushed(float force)
-        {
-            Debug.Log($"ShowIfTest WAS PUSHED");
-            throw new System.NotImplementedException();
         }
 
         #region Test Area

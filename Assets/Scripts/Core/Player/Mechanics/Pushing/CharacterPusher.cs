@@ -1,17 +1,12 @@
-using UnityEngine;
-using VContainer;
+using Assets.Scripts.Events.Actions;
+using Assets.Scripts.Infrastructure.EasyMessageHub;
 using Easy.MessageHub;
 using System.Collections;
-using Assets.Scripts.Infrastructure.EasyMessageHub;
-using Assets.Scripts.Events.Actions;
+using UnityEngine;
+using VContainer;
 
 namespace HeistNSeek.Core
 {
-    /// <summary>
-    /// Controls a collider that follows camera movement and can push forward when triggered.
-    /// Attach to PusherCollider GameObject.
-    /// </summary>
-    [RequireComponent(typeof(Collider))]
     public class CharacterPusher : MonoBehaviour
     {
         [Header("Camera Reference")]
@@ -91,10 +86,7 @@ namespace HeistNSeek.Core
         /// </summary>
         private void PerformPush()
         {
-            if (!isPushing)
-            {
-                StartCoroutine(PushCoroutine());
-            }
+            StartCoroutine(PerformRaycastPush());
         }
 
         private IEnumerator PushCoroutine()
@@ -135,10 +127,15 @@ namespace HeistNSeek.Core
 
         public IEnumerator PerformRaycastPush()
         {
-            isPushing = true;
+            //add cooldown
+            Vector3 pushDirection = cameraTransform != null ? cameraTransform.forward : transform.forward;
 
-            Vector3 pushDirection = cameraTransform != null ? cameraTransform.forward : transform.forward; 
-            Vector3 startPosition = transform.localPosition;
+            if (cameraTransform != null && Physics.Raycast(cameraTransform.position, pushDirection, out RaycastHit hit, pushDistance))
+            {
+                var pushable = hit.collider.GetComponent<Assets.Scripts.Core.Player.Mechanics.Pushing.IPushable>();
+                Debug.DrawRay(cameraTransform.position, pushDirection * hit.distance, Color.green, 2000);
+                pushable?.OnPushed(pushSpeed);
+            }
 
             yield return null;
         }

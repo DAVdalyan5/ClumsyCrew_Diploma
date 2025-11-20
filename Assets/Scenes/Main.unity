@@ -747,7 +747,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 164596466}
-  - component: {fileID: 164596467}
   - component: {fileID: 164596468}
   m_Layer: 6
   m_Name: PusherCollider
@@ -771,27 +770,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 184233510}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &164596467
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 164596465}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 0.2, z: 0.512}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &164596468
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1071,7 +1049,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9618c6b42230db7408b3b734da21470a, type: 2}
+  - {fileID: 2100000, guid: a4b62a69d54e80347bd546999c6d4b9e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -7188,7 +7166,9 @@ MonoBehaviour:
   autoRun: 1
   autoInjectGameObjects:
   - {fileID: 1974675958}
+  - {fileID: 164596465}
   scatterConfigSO: {fileID: 11400000, guid: 3b84e00c514ab43489986757786a7ae3, type: 2}
+  playerSpawner: {fileID: 0}
 --- !u!1 &1987634419
 GameObject:
   m_ObjectHideFlags: 0
@@ -7788,6 +7768,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlayerCapsule
       objectReference: {fileID: 0}
+    - target: {fileID: 1840720410329681123, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
+      propertyPath: pushImpactModifier
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 2263705777578523674, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
       propertyPath: ragdollPositionRoot
       value: 
@@ -7847,6 +7831,14 @@ PrefabInstance:
     - target: {fileID: 4853298173530124205, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5465522831454416838, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
+      propertyPath: pushImpactModifier
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 7807632608547898543, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
+      propertyPath: pushImpactModifier
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 8550222164034025169, guid: 9dcb217cf803d96478446ee67a61b9e5, type: 3}
       propertyPath: m_ExcludeLayers.m_Bits
