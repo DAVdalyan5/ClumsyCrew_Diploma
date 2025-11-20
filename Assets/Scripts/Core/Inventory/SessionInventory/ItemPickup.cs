@@ -240,7 +240,7 @@ namespace HeistNSeek.Core.Inventory.SessionInventory
             if (itemData != null)
             {
                 Gizmos.color = _isPickedUp ? Color.gray : Color.yellow;
-                Gizmos.DrawWireSphere(transform.position, 0.5f);
+                Gizmos.DrawWireSphere(transform.position, 0.2f);
             }
         }
 #endif

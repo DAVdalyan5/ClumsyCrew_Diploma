@@ -209,29 +209,102 @@ _messageHub.Subscribe<StateEnteredEvent>(evt =>
 Assets/
 ├── Scripts/
 │   ├── Core/
-│   │   ├── InjectionBase/      # VContainer LifetimeScopes
-│   │   ├── LevelInitializers/  # Scene EntryPoints (initialization logic)
-│   │   ├── StateMachine/       # Game state machine
-│   │   │   ├── States/         # Concrete state implementations
-│   │   │   ├── IState.cs
-│   │   │   ├── BaseState.cs
-│   │   │   └── GameStateMachine.cs
-│   │   ├── ExampleUsage/       # Example code for testing
-│   │   └── DI/                 # Other DI-related utilities
-│   ├── Helpers/                # Utility classes (DO NOT modify unless specified)
-│   └── Editor/                 # Unity Editor scripts (PropertyDrawers, etc.)
+│   │   ├── DI/                         # DI-related utilities (currently empty)
+│   │   ├── EasyMessageHub/             # MessageHub integration
+│   │   │   ├── DisposeMethod.cs
+│   │   │   ├── MessageHubExtensions.cs
+│   │   │   └── MessagingExample.cs
+│   │   ├── Editor/                     # Editor utilities (currently empty)
+│   │   ├── ExampleUsage/               # Example DI usage patterns
+│   │   │   ├── GlobalTestService.cs    # Example global service
+│   │   │   ├── InjectedConsumer.cs     # Example DI consumer
+│   │   │   ├── MonoGlobalService.cs    # Example global MonoBehaviour service
+│   │   │   ├── MonoService.cs          # Example MonoBehaviour service
+│   │   │   └── PlainService.cs         # Example plain C# service
+│   │   ├── InjectionBase/              # VContainer LifetimeScopes
+│   │   │   ├── BootstrapLifetimeScope.cs
+│   │   │   └── GameplayLifetimeScope.cs
+│   │   ├── Inventory/                  # Inventory system
+│   │   │   ├── Enums.cs                # Inventory enumerations
+│   │   │   ├── GlobalInventory/
+│   │   │   │   └── anotherTest.cs
+│   │   │   ├── Models/                 # ScriptableObject definitions
+│   │   │   │   ├── ItemDataSO.cs       # Item data
+│   │   │   │   ├── ScatterConfigSO.cs  # Item scatter configuration
+│   │   │   │   ├── WeaponDataSO.cs     # Weapon data
+│   │   │   │   └── WeaponModel.cs      # Weapon runtime model
+│   │   │   └── SessionInventory/       # Session-specific inventory
+│   │   │       ├── InventoryItem.cs    # Inventory item representation
+│   │   │       ├── ItemDropper.cs      # Item dropping logic
+│   │   │       ├── ItemPickup.cs       # Item pickup logic
+│   │   │       └── SessionInventory.cs # Session inventory manager
+│   │   ├── LevelInitializers/          # Scene EntryPoints (initialization logic)
+│   │   │   ├── BootstrapEntryPoint.cs
+│   │   │   └── GameplayEntryPoint.cs
+│   │   ├── Player/                     # Player-related systems
+│   │   │   ├── Character/
+│   │   │   │   ├── CharacterAnimationController.cs
+│   │   │   │   └── Models/             # Character data models (currently empty)
+│   │   │   ├── Mechanics/              # Player mechanics
+│   │   │   │   ├── Pushing/
+│   │   │   │   │   └── CharacterPusher.cs     # Push mechanic implementation
+│   │   │   │   └── Ragdoll/
+│   │   │   │       ├── BalanceInfo.cs         # Balance state information
+│   │   │   │       ├── CharacterBalancer.cs   # Character balance system
+│   │   │   │       ├── CollisionDetector.cs   # Collision detection for ragdoll
+│   │   │   │       └── RagdollUtilities.cs    # Ragdoll utility functions
+│   │   │   ├── FirstPersonInputService.cs     # First-person input handling
+│   │   │   ├── FirstPersonMovementHandler.cs  # First-person movement logic
+│   │   │   └── PlayerController.cs            # Main player controller
+│   │   └── StateMachine/               # Game state machine
+│   │       ├── States/                 # Concrete state implementations
+│   │       │   ├── BootstrapState.cs   # Bootstrap initialization state
+│   │       │   ├── GameplayState.cs    # Active gameplay state
+│   │       │   ├── LoadingState.cs     # Scene loading state
+│   │       │   └── MenuState.cs        # Menu state (example)
+│   │       ├── BaseState.cs            # Base state implementation
+│   │       ├── GameStateMachine.cs     # Central state machine
+│   │       ├── IState.cs               # State interface
+│   │       └── StateMachineExample.cs  # State machine usage example
+│   ├── EditorScripts/                  # Unity Editor scripts
+│   │   ├── SceneDropdownAttribute.cs   # Custom attribute for scene selection
+│   │   └── SceneDropdownDrawer.cs      # Property drawer for scene dropdown
+│   ├── Events/                         # Event definitions for MessageHub
+│   │   ├── Actions/                    # Player action events
+│   │   │   ├── InteractEvent.cs
+│   │   │   ├── JumpEvent.cs
+│   │   │   ├── PushEvent.cs
+│   │   │   └── ResetBalanceEvent.cs
+│   │   ├── BalanceLostEvent.cs         # Character balance lost
+│   │   ├── BalanceRegainedEvent.cs     # Character balance regained
+│   │   ├── ItemAddedEvent.cs           # Item added to inventory
+│   │   ├── ItemRemovedEvent.cs         # Item removed from inventory
+│   │   ├── ItemsDroppedEvent.cs        # Items dropped from inventory
+│   │   ├── StateEnteredEvent.cs        # State machine state entered
+│   │   └── StateExitedEvent.cs         # State machine state exited
+│   └── Helpers/                        # Utility classes (DO NOT modify unless specified)
+│       ├── CoroutineHelper.cs          # Run coroutines without MonoBehaviour
+│       ├── EnumerableExtensions.cs     # Collection extension methods
+│       ├── Extensions.cs               # General extension methods
+│       ├── FpsCounter.cs               # FPS display utility
+│       ├── SceneLoader.cs              # Async scene loading utility
+│       └── VariableLister.cs           # Variable listing utility
 ├── Scenes/
-│   ├── Bootstrap.unity         # Entry scene with root DI scope
-│   └── Main.unity              # Gameplay scene
-├── Prefabs/                    # Prefab assets
-├── Settings/                   # Project configuration
-└── Multiplayer Widgets/        # Unity multiplayer UI components
+│   ├── Bootstrap.unity                 # Entry scene with root DI scope
+│   └── Main.unity                      # Gameplay scene
+├── Prefabs/                            # Prefab assets
+├── Settings/                           # Project configuration
+└── Multiplayer Widgets/                # Unity multiplayer UI components
 ```
 
 **Key Folders:**
 - `Core/InjectionBase/`: Contains LifetimeScope configurations for each scene
 - `Core/LevelInitializers/`: Contains EntryPoint classes that run scene initialization logic
 - `Core/StateMachine/`: Game state machine infrastructure and state implementations
+- `Core/Player/`: Player controller, input handling, movement, and mechanics (pushing, ragdoll)
+- `Core/Inventory/`: Inventory system with items, weapons, and session management
+- `Events/`: Event definitions used with MessageHub for pub/sub communication
+- `EditorScripts/`: Custom Unity Editor utilities and property drawers
 - `Helpers/`: Reusable utilities (CoroutineHelper, SceneLoader, Extensions, etc.)
 
 ## Key Dependencies
@@ -395,3 +468,4 @@ Attach to scene object to display FPS metrics. Configure via inspector.
 - **Scene management**: Use `SceneLoader` utility for async scene loading or transition via `LoadingState` in the state machine
 - **Multiplayer functionality**: Integrated via Unity's multiplayer packages (Netcode, Widgets, Services)
 - **Editor utilities**: Use `[SceneDropdown]` attribute for scene index fields to get inspector dropdowns
+- CharacterPusher.cs is under Player folder in Mechanics then in Pushing subfolders

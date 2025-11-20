@@ -20,10 +20,12 @@ public class GameplayLifetimeScope : LifetimeScope
         builder.RegisterComponentInHierarchy<InjectedConsumer>();
 
         // Register PlayerController for IMessageHub injection
-        builder.RegisterComponentInHierarchy<PlayerController>();
+        builder.RegisterComponentInHierarchy<PlayerController>(); //not injection properly when multiple exist.
         // Register First Person Input and Movement
         builder.RegisterComponentInHierarchy<FirstPersonInputService>();
         builder.RegisterComponentInHierarchy<FirstPersonMovementHandler>();
+
+        builder.RegisterComponentInHierarchy<CharacterPusher>();
 
         // Register Session Inventory System
         builder.Register<SessionInventory>(Lifetime.Singleton);

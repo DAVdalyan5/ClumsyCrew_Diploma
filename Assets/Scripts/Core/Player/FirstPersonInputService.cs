@@ -1,4 +1,5 @@
 using Assets.Scripts.Events;
+using Assets.Scripts.Events.Actions;
 using Easy.MessageHub;
 using HeistNSeek.Events;
 using UnityEngine;
@@ -25,6 +26,7 @@ namespace HeistNSeek.Core.Player
         private const string jumpActionName = "Jump";
         private const string resetBalanceActionName = "ResetBalance";
         private const string interactActionName = "Interact";
+        private const string pushActionName = "Push";
 
         private InputAction moveAction;
         private InputAction lookAction;
@@ -32,6 +34,7 @@ namespace HeistNSeek.Core.Player
         private InputAction jumpAction;
         private InputAction resetBalanceAction;
         private InputAction interactAction;
+        private InputAction pushAction;
 
         private IMessageHub messageHub;
 
@@ -55,6 +58,7 @@ namespace HeistNSeek.Core.Player
             sprintAction = actionMap.FindAction(sprintActionName);
             resetBalanceAction = actionMap.FindAction(resetBalanceActionName);
             interactAction = actionMap.FindAction(interactActionName);
+            pushAction = actionMap.FindAction(pushActionName);
 
             RegisterInputActions();
             SetCursorState(cursorLocked);
@@ -79,8 +83,8 @@ namespace HeistNSeek.Core.Player
 
             jumpAction.performed += ctx => messageHub.Publish(new JumpEvent());
             resetBalanceAction.performed += ctx => messageHub.Publish(new ResetBalanceEvent());
-
             interactAction.performed += ctx => messageHub.Publish(new InteractEvent());
+            pushAction.performed += ctx => messageHub.Publish(new PushEvent());
         }
 
         private void OnEnable()
@@ -91,6 +95,7 @@ namespace HeistNSeek.Core.Player
             jumpAction?.Enable();
             resetBalanceAction?.Enable();
             interactAction?.Enable();
+            pushAction?.Enable();
         }
 
         private void OnDisable()
@@ -101,6 +106,7 @@ namespace HeistNSeek.Core.Player
             jumpAction?.Disable();
             resetBalanceAction?.Disable();
             interactAction?.Disable();
+            pushAction?.Disable();
         }
 
         private void OnApplicationFocus(bool hasFocus)

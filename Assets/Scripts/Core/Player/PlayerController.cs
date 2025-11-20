@@ -1,11 +1,13 @@
 ﻿using Assets.Scripts.Core.Character;
 using Assets.Scripts.Core.Player.Character;
+using Assets.Scripts.Core.Player.Mechanics.Pushing;
 using Assets.Scripts.Infrastructure.EasyMessageHub;
 using Assets.Scripts.Runtime.Helpers;
 using Easy.MessageHub;
 using HeistNSeek.Core.Player;
 using HeistNSeek.Events;
 using NaughtyAttributes;
+using NaughtyAttributes.Test;
 using R3;
 using StarterAssets;
 using System.Collections.Generic;
@@ -16,7 +18,7 @@ using VContainer;
 namespace Assets.Scripts.Core.Player
 {
     //TODO: fix stucking in the wall
-    public class PlayerController : MonoBehaviour
+    public class PlayerController : MonoBehaviour, IPushable
     {
         private readonly CompositeDisposable disposables = new CompositeDisposable();
 
@@ -84,7 +86,6 @@ namespace Assets.Scripts.Core.Player
 
         private void OnBalanceLost(float impactSpeed)
         {
-            Debug.Log($"[PlayerController] Received BalanceLostEvent - Impact speed: {impactSpeed}");
             currentBalanceInfo.IsBalanced = false;
             characterController.IsBalanced = false;
 
@@ -97,7 +98,6 @@ namespace Assets.Scripts.Core.Player
 
         private void OnBalanceRegained()
         {
-            Debug.Log("[PlayerController] Received BalanceRegainedEvent");
             currentBalanceInfo.IsBalanced = true;
             characterController.IsBalanced = true;
 
@@ -109,8 +109,6 @@ namespace Assets.Scripts.Core.Player
 
         private void ResetPlayerBalance(ResetBalanceEvent args)
         {
-            Debug.Log("[PlayerController] Balance reset requested.");
-
             this.CurrentBalanceInfo.IsBalanced = true;
             OnBalanceRegained();
         }
@@ -128,6 +126,12 @@ namespace Assets.Scripts.Core.Player
                 Debug.Log($"[CharacterBalancer] Balance lost! Impact speed: {effectiveSpeed}");
                 OnBalanceLost(effectiveSpeed);
             }
+        }
+
+        public void OnPushed(float force)
+        {
+            Debug.Log($"ShowIfTest WAS PUSHED");
+            throw new System.NotImplementedException();
         }
 
         #region Test Area
