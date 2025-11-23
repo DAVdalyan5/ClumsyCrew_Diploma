@@ -10,7 +10,7 @@ namespace HeistNSeek.Core
     public class CharacterPusher : MonoBehaviour
     {
         [Header("Camera Reference")]
-        [SerializeField] private Transform cameraTransform;
+        [SerializeField] public Transform CameraTransform;
 
         [Header("Push Settings")]
         [SerializeField] private float pushSpeed = 10f;
@@ -43,12 +43,12 @@ namespace HeistNSeek.Core
             initialLocalPosition = transform.localPosition;
 
             // Auto-find camera if not assigned
-            if (cameraTransform == null)
+            if (CameraTransform == null)
             {
                 Camera mainCamera = Camera.main;
                 if (mainCamera != null)
                 {
-                    cameraTransform = mainCamera.transform;
+                    CameraTransform = mainCamera.transform;
                     Debug.Log($"[CharacterPusher] Auto-assigned Main Camera to {gameObject.name}");
                 }
                 else
@@ -74,10 +74,10 @@ namespace HeistNSeek.Core
         /// </summary>
         private void FollowCameraRotation()
         {
-            if (cameraTransform == null) return;
+            if (CameraTransform == null) return;
 
             // Match the camera's rotation exactly
-            transform.rotation = cameraTransform.rotation;
+            transform.rotation = CameraTransform.rotation;
         }
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace HeistNSeek.Core
             isPushing = true;
 
             // Capture the push direction at the start (camera's forward direction in world space)
-            Vector3 pushDirection = cameraTransform != null ? cameraTransform.forward : transform.forward;
+            Vector3 pushDirection = CameraTransform != null ? CameraTransform.forward : transform.forward;
             Vector3 startPosition = transform.localPosition;
 
             // Push forward using the captured direction
@@ -128,14 +128,22 @@ namespace HeistNSeek.Core
         public IEnumerator PerformRaycastPush()
         {
             //add cooldown
-            Vector3 pushDirection = cameraTransform != null ? cameraTransform.forward : transform.forward;
+            Vector3 pushDirection = CameraTransform != null ? CameraTransform.forward : transform.forward;
 
-            if (cameraTransform != null && Physics.Raycast(cameraTransform.position, pushDirection, out RaycastHit hit, pushDistance))
+            if (CameraTransform != null && Physics.Raycast(CameraTransform.position, pushDirection, out RaycastHit hit, pushDistance))
             {
+                // Don't push yourself - check if hit object is in the same player hierarchy
+                if (hit.collider.transform.root == transform.root)
+                {
+                    Debug.DrawRay(CameraTransform.position, pushDirection * pushDistance, Color.yellow, 2000);
+                    yield return null;
+                    yield break;
+                }
+
                 var pushable = hit.collider.GetComponent<Assets.Scripts.Core.Player.Mechanics.Pushing.IPushable>();
-                Debug.DrawRay(cameraTransform.position, pushDirection * hit.distance, Color.green, 2000);
                 pushable?.OnPushed(pushSpeed);
             }
+            Debug.DrawRay(CameraTransform.position, pushDirection * pushDistance, Color.green, 2000);
 
             yield return null;
         }

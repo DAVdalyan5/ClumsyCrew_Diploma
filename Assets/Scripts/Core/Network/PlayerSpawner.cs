@@ -1,5 +1,6 @@
 using Assets.Scripts.Core.Player;
 using Cinemachine;
+using HeistNSeek.Core;
 using HeistNSeek.Core.Player;
 using Unity.Netcode;
 using UnityEngine;
@@ -14,8 +15,10 @@ namespace Assets.Scripts.Runtime.Core
     public class PlayerSpawner : MonoBehaviour
     {
         [SerializeField] private GameObject playerPrefab;
-        [SerializeField] private CinemachineVirtualCamera playerFollowCamera;
         [SerializeField] private Transform defaultSpawnPoint;
+
+        [SerializeField] private CinemachineVirtualCamera playerFollowCamera;
+        [SerializeField] private Camera mainCamera;
 
         private PlayerProvider playerProvider;
         private NetworkManager networkManager;
@@ -92,9 +95,11 @@ namespace Assets.Scripts.Runtime.Core
             }
 
             var followTransform = playerInstance.GetComponentInChildren<CameraRootMarker>()?.transform;
+            var pusher = playerInstance.GetComponentInChildren<CharacterPusher>();
             if (playerFollowCamera != null)
             {
                 playerFollowCamera.Follow = followTransform;
+                pusher.CameraTransform = mainCamera.transform;
                 //playerFollowCamera.LookAt = playerTransform;
             }
 
