@@ -22,7 +22,7 @@ namespace HeistNSeek.Core
         private new Collider collider;
         private Vector3 initialLocalPosition;
         private bool isPushing = false;
-
+    
         [Inject]
         public void Init(IMessageHub messageHub)
         {
@@ -33,11 +33,6 @@ namespace HeistNSeek.Core
         {
             // Get the collider component from this GameObject
             collider = GetComponent<Collider>();
-
-            if (collider == null)
-            {
-                Debug.LogError($"[CharacterPusher] No Collider component found on {gameObject.name}!");
-            }
 
             // Store initial local position for returning after push
             initialLocalPosition = transform.localPosition;

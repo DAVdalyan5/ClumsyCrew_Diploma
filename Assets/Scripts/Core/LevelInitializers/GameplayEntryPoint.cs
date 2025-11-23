@@ -10,11 +10,11 @@ namespace HeistNSeek.Core
     /// </summary>
     public class GameplayEntryPoint : IStartable
     {
-        private readonly ItemDropper _itemDropper;
+        // private readonly ItemDropper _itemDropper;
 
-        public GameplayEntryPoint(ItemDropper itemDropper)
+        public GameplayEntryPoint()
         {
-            _itemDropper = itemDropper;
+            // _itemDropper = itemDropper;
         }
 
         public void Start()
