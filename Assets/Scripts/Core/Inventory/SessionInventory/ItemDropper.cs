@@ -92,7 +92,8 @@ namespace HeistNSeek.Core.Inventory.SessionInventory
                 }
 
                 // Manually inject inventory into spawned item
-                pickup.Init(inventory);
+                // pickup.Init(inventory);
+                //TODO: remove or use the above Init method for DI
 
                 // Apply scatter physics
                 var rb = itemObject.GetComponent<Rigidbody>();

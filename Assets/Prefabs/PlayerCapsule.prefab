@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2828322845563378765}
   - component: {fileID: 3656305318965539710}
   - component: {fileID: 8634112227377827540}
+  - component: {fileID: 4051467152180415651}
   - component: {fileID: 2263705777578523674}
   - component: {fileID: 4091347969911463063}
   - component: {fileID: 8139465705805819720}
@@ -181,6 +182,31 @@ MonoBehaviour:
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
+--- !u!114 &4051467152180415651
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 91792620953967996}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 4073115033
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!114 &2263705777578523674
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -193,6 +219,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 65de5aa2f8c458240a5c3c297002405c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.Core.Player.PlayerController
+  ShowTopMostFoldoutHeaderGroup: 1
   characterTransform: {fileID: 1632912199065694288}
   collisionDetectors:
   - {fileID: 5465522831454416838}
@@ -374,7 +401,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.Core.Player.Character.CollisionDetector
   highSpeedThreshold: 5
-  impactMultiplier: 1
+  pushImpactModifier: 10
 --- !u!1 &5403441822764255482
 GameObject:
   m_ObjectHideFlags: 0
@@ -470,7 +497,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.Core.Player.Character.CollisionDetector
   highSpeedThreshold: 5
-  impactMultiplier: 1
+  pushImpactModifier: 2
 --- !u!1 &6221651706007909808
 GameObject:
   m_ObjectHideFlags: 0
@@ -566,7 +593,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.Core.Player.Character.CollisionDetector
   highSpeedThreshold: 5
-  impactMultiplier: 1
+  pushImpactModifier: 10
 --- !u!1 &6853014928038553885
 GameObject:
   m_ObjectHideFlags: 0
@@ -576,6 +603,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7452315219737407534}
+  - component: {fileID: 4934839959993187861}
   m_Layer: 6
   m_Name: PlayerCameraRoot
   m_TagString: CinemachineTarget
@@ -598,6 +626,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4853298173530124205}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4934839959993187861
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6853014928038553885}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fabce128a9b9a514a8a2fe89ca8d75e9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.Core.Player.CameraRootMarker
 --- !u!1 &7810601676208089516
 GameObject:
   m_ObjectHideFlags: 0

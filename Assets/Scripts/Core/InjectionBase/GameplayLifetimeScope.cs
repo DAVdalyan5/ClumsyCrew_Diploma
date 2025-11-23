@@ -1,44 +1,45 @@
 using Assets.Scripts.Core.Inventory.Models;
-using Assets.Scripts.Core.Player;
 using Assets.Scripts.Runtime.Core;
 using HeistNSeek.Core;
-using HeistNSeek.Core.Inventory.SessionInventory;
 using HeistNSeek.Core.Player;
+using NaughtyAttributes;
+using System;
+using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Serialization;
 using VContainer;
 using VContainer.Unity;
 
 public class GameplayLifetimeScope : LifetimeScope
 {
-    [SerializeField] private ScatterConfigSO scatterConfigSO;
     [SerializeField] private PlayerSpawner playerSpawner;
+    [SerializeField] private ScatterConfigSO scatterConfigSO;
+    [SerializeField] private NetworkManager networkManager;
 
     protected override void Configure(IContainerBuilder builder)
     {
-        //for testing purporses
+        builder.RegisterInstance(networkManager);
+
+        // Testing services (can be removed when no longer needed)
         builder.Register<IPlainService, PlainService>(Lifetime.Singleton);
         builder.RegisterComponentInHierarchy<MonoService>();
-
         builder.RegisterComponentInHierarchy<InjectedConsumer>();
 
-        // Register PlayerController for IMessageHub injection
-        builder.RegisterComponentInHierarchy<PlayerController>(); //not injection properly when multiple exist.
-        
-        // Register First Person Input and Movement
-        builder.RegisterComponentInHierarchy<FirstPersonInputService>();
-        builder.RegisterComponentInHierarchy<FirstPersonMovementHandler>();
-        builder.RegisterComponentInHierarchy<CharacterPusher>();
+        // Player management - handles per-player dependency injection
+        builder.Register<PlayerProvider>(Lifetime.Singleton);
 
-        // Register Session Inventory System
-        builder.Register<SessionInventory>(Lifetime.Singleton);
-        builder.Register<ItemDropper>(Lifetime.Singleton);
-        builder.Register<ItemPickup>(Lifetime.Transient);
-
+        // Shared scene configuration
         builder.RegisterInstance(scatterConfigSO);
-        builder.RegisterInstance(playerSpawner);
+       // builder.RegisterInstance(playerSpawner);
 
         // Register EntryPoint for Gameplay initialization
         builder.RegisterEntryPoint<GameplayEntryPoint>(Lifetime.Singleton);
     }
+
+    #region Helper Methods
+    [Button]
+    public void SpawnPlayer()
+    {
+        this.playerSpawner.SpawnPlayer((ulong)(UnityEngine.Random.value * 10));
+    }
+    #endregion
 }

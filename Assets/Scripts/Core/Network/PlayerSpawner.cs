@@ -1,26 +1,30 @@
+using Assets.Scripts.Core.Player;
+using Cinemachine;
+using HeistNSeek.Core.Player;
 using Unity.Netcode;
 using UnityEngine;
 using VContainer;
-using VContainer.Unity;
 
 namespace Assets.Scripts.Runtime.Core
 {
     /// <summary>
-    /// Handles spawning players through VContainer for automatic dependency injection
+    /// Handles spawning players with per-player dependency injection scopes
     /// when clients connect to the network.
     /// </summary>
     public class PlayerSpawner : MonoBehaviour
     {
         [SerializeField] private GameObject playerPrefab;
+        [SerializeField] private CinemachineVirtualCamera playerFollowCamera;
         [SerializeField] private Transform defaultSpawnPoint;
-        
-        private IObjectResolver container;
+
+        private PlayerProvider playerProvider;
         private NetworkManager networkManager;
 
         [Inject]
-        public void Construct(IObjectResolver resolver, NetworkManager netManager)
+        public void Construct(PlayerProvider provider, NetworkManager netManager)
         {
-            container = resolver;
+            Debug.Log("PlayerSpawner Constructed with PlayerProvider and NetworkManager.");
+            playerProvider = provider;
             networkManager = netManager;
         }
 
@@ -57,47 +61,63 @@ namespace Assets.Scripts.Runtime.Core
         private void OnClientDisconnected(ulong clientId)
         {
             if (!networkManager.IsServer) return;
-            
-            Debug.Log($"Client {clientId} disconnected.");
+
+            Debug.Log($"Client {clientId} disconnected. Cleaning up player...");
+            playerProvider.RemovePlayer(clientId);
         }
 
         private void SpawnPlayerForClient(ulong clientId)
         {
             // Get spawn position
-            Vector3 spawnPosition = defaultSpawnPoint != null 
-                ? defaultSpawnPoint.position 
+            Vector3 spawnPosition = defaultSpawnPoint != null
+                ? defaultSpawnPoint.position
                 : Vector3.zero;
-            Quaternion spawnRotation = defaultSpawnPoint != null 
-                ? defaultSpawnPoint.rotation 
+            Quaternion spawnRotation = defaultSpawnPoint != null
+                ? defaultSpawnPoint.rotation
                 : Quaternion.identity;
 
-            // VContainer instantiates the player - this automatically injects all [Inject] dependencies!
-            GameObject playerInstance = container.Instantiate(
-                playerPrefab, 
-                spawnPosition, 
+            // PlayerProvider creates player with per-player DI scope
+            // This ensures each player gets isolated SessionInventory and ItemDropper instances
+            GameObject playerInstance = playerProvider.CreatePlayer(       //provider not being injected
+                clientId,
+                playerPrefab,
+                spawnPosition,
                 spawnRotation
             );
 
+            if (playerInstance == null)
+            {
+                Debug.LogError($"Failed to create player for client {clientId}");
+                return;
+            }
+
+            var followTransform = playerInstance.GetComponentInChildren<CameraRootMarker>()?.transform;
+            if (playerFollowCamera != null)
+            {
+                playerFollowCamera.Follow = followTransform;
+                //playerFollowCamera.LookAt = playerTransform;
+            }
+
             // Get the NetworkObject component
             NetworkObject networkObject = playerInstance.GetComponent<NetworkObject>();
-            
+
             if (networkObject != null)
             {
                 // Spawn on the network and assign ownership to the client
                 networkObject.SpawnAsPlayerObject(clientId, true);
-                Debug.Log($"Player spawned and assigned to client {clientId} with dependency injection complete.");
+                Debug.Log($"Player spawned and assigned to client {clientId} with per-player dependency injection complete.");
             }
             else
             {
                 Debug.LogError("Player prefab must have a NetworkObject component!");
-                Destroy(playerInstance);
+                playerProvider.RemovePlayer(clientId);
             }
         }
 
         /// <summary>
         /// Manually spawn a player at a specific location (optional, for custom spawn logic)
         /// </summary>
-        public void SpawnPlayerAtPosition(ulong clientId, Vector3 position, Quaternion rotation)
+        private void SpawnPlayerAtPosition(ulong clientId, Vector3 position, Quaternion rotation)
         {
             if (!networkManager.IsServer)
             {
@@ -105,13 +125,35 @@ namespace Assets.Scripts.Runtime.Core
                 return;
             }
 
-            GameObject playerInstance = container.Instantiate(playerPrefab, position, rotation);
+            GameObject playerInstance = playerProvider.CreatePlayer(clientId, playerPrefab, position, rotation);
+
+            if (playerInstance == null)
+            {
+                Debug.LogError($"Failed to create player for client {clientId}");
+                return;
+            }
+
             NetworkObject networkObject = playerInstance.GetComponent<NetworkObject>();
-            
+
             if (networkObject != null)
             {
                 networkObject.SpawnAsPlayerObject(clientId, true);
             }
+            else
+            {
+                Debug.LogError("Player prefab must have a NetworkObject component!");
+                playerProvider.RemovePlayer(clientId);
+            }
+        }
+
+        public void SpawnPlayer(ulong id, Vector3 position = default)
+        {
+            if (position == default)
+            {
+                SpawnPlayerForClient(id);
+                return;
+            }
+            SpawnPlayerAtPosition(id, position, Quaternion.identity);
         }
     }
 }

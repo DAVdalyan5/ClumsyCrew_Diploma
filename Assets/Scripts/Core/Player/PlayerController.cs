@@ -12,13 +12,14 @@ using R3;
 using StarterAssets;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Netcode;
 using UnityEngine;
 using VContainer;
 
 namespace Assets.Scripts.Core.Player
 {
     //TODO: fix stucking in the wall
-    public class PlayerController : MonoBehaviour
+    public class PlayerController : NetworkBehaviour
     {
         private readonly CompositeDisposable disposables = new CompositeDisposable();
 
