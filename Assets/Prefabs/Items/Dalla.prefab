@@ -67,6 +67,7 @@ GameObject:
   - component: {fileID: 3869817082194324080}
   - component: {fileID: 7621098808708751297}
   - component: {fileID: 7804438874713859549}
+  - component: {fileID: 8117954746820029102}
   m_Layer: 8
   m_Name: Dalla
   m_TagString: Untagged
@@ -213,3 +214,21 @@ MonoBehaviour:
   pickupKey: 101
   pickupTrigger: {fileID: 6337469674112129837}
   visualRoot: {fileID: 0}
+--- !u!114 &8117954746820029102
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4537982506703968968}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuickOutline
+  outlineMode: 1
+  outlineColor: {r: 1, g: 1, b: 1, a: 1}
+  outlineWidth: 6.97
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []

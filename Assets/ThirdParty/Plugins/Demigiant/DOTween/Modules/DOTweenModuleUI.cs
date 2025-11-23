@@ -167,8 +167,8 @@ namespace DG.Tweening
 
         #region Outline
 
-        /// <summary>Tweens a Outline's effectColor to the given value.
-        /// Also stores the Outline as the tween's target so it can be used for filtered operations</summary>
+        /// <summary>Tweens a QuickOutline's effectColor to the given value.
+        /// Also stores the QuickOutline as the tween's target so it can be used for filtered operations</summary>
         /// <param name="endValue">The end value to reach</param><param name="duration">The duration of the tween</param>
         public static TweenerCore<Color, Color, ColorOptions> DOColor(this Outline target, Color endValue, float duration)
         {
@@ -177,8 +177,8 @@ namespace DG.Tweening
             return t;
         }
 
-        /// <summary>Tweens a Outline's effectColor alpha to the given value.
-        /// Also stores the Outline as the tween's target so it can be used for filtered operations</summary>
+        /// <summary>Tweens a QuickOutline's effectColor alpha to the given value.
+        /// Also stores the QuickOutline as the tween's target so it can be used for filtered operations</summary>
         /// <param name="endValue">The end value to reach</param><param name="duration">The duration of the tween</param>
         public static TweenerCore<Color, Color, ColorOptions> DOFade(this Outline target, float endValue, float duration)
         {
@@ -187,8 +187,8 @@ namespace DG.Tweening
             return t;
         }
 
-        /// <summary>Tweens a Outline's effectDistance to the given value.
-        /// Also stores the Outline as the tween's target so it can be used for filtered operations</summary>
+        /// <summary>Tweens a QuickOutline's effectDistance to the given value.
+        /// Also stores the QuickOutline as the tween's target so it can be used for filtered operations</summary>
         /// <param name="endValue">The end value to reach</param><param name="duration">The duration of the tween</param>
         public static TweenerCore<Vector2, Vector2, VectorOptions> DOScale(this Outline target, Vector2 endValue, float duration)
         {
