@@ -55,7 +55,11 @@ namespace Assets.Scripts.Runtime.Core
         private void OnClientConnected(ulong clientId)
         {
             // Only server spawns players
-            if (!networkManager.IsServer) return;
+            if (!networkManager.IsServer)
+            {
+                Debug.Log("[PlayerSpawner] Not server. Ignoring spawn.");
+                return;
+            }
 
             Debug.Log($"Client {clientId} connected. Spawning player via VContainer...");
             SpawnPlayerForClient(clientId);
