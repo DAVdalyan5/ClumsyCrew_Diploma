@@ -1,7 +1,9 @@
 using Assets.Scripts.Events;
 using Assets.Scripts.Events.Actions;
+using Assets.Scripts.Runtime.Helpers;
 using Easy.MessageHub;
 using HeistNSeek.Events;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
@@ -37,6 +39,7 @@ namespace HeistNSeek.Core.Player
         private InputAction pushAction;
 
         private IMessageHub messageHub;
+        private NetworkBehaviour networkBehaviour;
 
         public Vector2 MoveInput { get; private set; }
         public Vector2 LookInput { get; private set; }
@@ -50,6 +53,16 @@ namespace HeistNSeek.Core.Player
 
         private void Start()
         {
+            networkBehaviour = GetComponent<NetworkBehaviour>();
+
+            if (!networkBehaviour.IsOwnerOrStandalone())
+            {
+                // Non-owner clients don't process input
+                Debug.Log($"[FirstPersonInputService] Not owner, disabling input processing.");
+                enabled = false;
+                return;
+            }
+
             var actionMap = playerControls.FindActionMap(actionMapName);
 
             moveAction = actionMap.FindAction(moveActionName);
@@ -89,6 +102,8 @@ namespace HeistNSeek.Core.Player
 
         private void OnEnable()
         {
+            if (!networkBehaviour.IsOwnerOrStandalone()) return;
+
             moveAction?.Enable();
             lookAction?.Enable();
             sprintAction?.Enable();
@@ -100,6 +115,8 @@ namespace HeistNSeek.Core.Player
 
         private void OnDisable()
         {
+            if (!networkBehaviour.IsOwnerOrStandalone()) return;
+
             moveAction?.Disable();
             lookAction?.Disable();
             sprintAction?.Disable();
@@ -111,6 +128,7 @@ namespace HeistNSeek.Core.Player
 
         private void OnApplicationFocus(bool hasFocus)
         {
+            if (!networkBehaviour.IsOwnerOrStandalone()) return;
             SetCursorState(cursorLocked);
         }
 

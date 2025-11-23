@@ -1,8 +1,10 @@
 using Assets.Scripts.Infrastructure.EasyMessageHub;
+using Assets.Scripts.Runtime.Helpers;
 using Easy.MessageHub;
 using HeistNSeek.Core.Character;
 using HeistNSeek.Events;
 using System;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
@@ -80,6 +82,7 @@ namespace HeistNSeek.Core.Player
         private GameObject _mainCamera;
         private CharacterAnimationController _animController;
         private IMessageHub _messageHub;
+        private NetworkBehaviour _networkBehaviour;
 
         private const float _threshold = 0.01f;
 
@@ -112,6 +115,7 @@ namespace HeistNSeek.Core.Player
             _controller = GetComponent<CharacterController>();
             _input = GetComponent<FirstPersonInputService>();
             _animController = GetComponentInChildren<CharacterAnimationController>();
+            _networkBehaviour = GetComponent<NetworkBehaviour>();
 #if ENABLE_INPUT_SYSTEM
             _playerInput = GetComponent<PlayerInput>();
 #endif
@@ -122,11 +126,14 @@ namespace HeistNSeek.Core.Player
 
         private void RegisterEvents()
         {
+            if (!_networkBehaviour.IsOwnerOrStandalone()) return;
             _messageHub.SubscribeSafe<JumpEvent>(this, OnJumpEvent);
         }
 
         private void Update()
         {
+            if (!_networkBehaviour.IsOwnerOrStandalone()) return;
+
             HandleGroundCheck();
             ApplyGravity();
             HandleMovement();
@@ -134,6 +141,7 @@ namespace HeistNSeek.Core.Player
 
         private void LateUpdate()
         {
+            if (!_networkBehaviour.IsOwnerOrStandalone()) return;
             HandleCameraRotation();
         }
 

@@ -56,6 +56,22 @@ namespace Assets.Scripts.Core.Player
 
         private void Start()
         {
+            InitializeController();
+
+            if (!IsOwner)
+            {
+                // Non-owner clients only need to observe state changes
+                // Collision detection and physics are handled by the owner
+                Debug.Log("[PlayerController] Not owner, disabling collision detection.");
+                DisableCollisionDetectors();
+                return;
+            }
+
+            SetupOwnerBehavior();
+        }
+
+        private void InitializeController()
+        {
             this.characterController = this.GetComponent<FirstPersonMovementHandler>();
 
             if (characterTransform == null)
@@ -72,16 +88,32 @@ namespace Assets.Scripts.Core.Player
 
             this.CurrentBalanceInfo = new BalanceInfo { IsBalanced = true };
             this.characterController.IsBalanced = this.CurrentBalanceInfo.IsBalanced;
+        }
 
+        private void SetupOwnerBehavior()
+        {
             var collisionDisposables = collisionDetectors.Select(detector => detector.Subscribe((collision, det) => HandleHighSpeedImpact(collision, det)));
-
             disposables.AddMany(collisionDisposables);
-
             this.messageHub.SubscribeSafe<ResetBalanceEvent>(this, ResetPlayerBalance);
         }
 
-        private void OnDestroy()
+        private void DisableCollisionDetectors()
         {
+            // Disable collision detectors on non-owner clients
+            if (collisionDetectors == null) return;
+
+            foreach (var detector in collisionDetectors)
+            {
+                if (detector != null)
+                {
+                    detector.enabled = false;
+                }
+            }
+        }
+
+        public override void OnDestroy()
+        {
+            base.OnDestroy();
             disposables.Dispose();
         }
 
@@ -146,3 +178,4 @@ namespace Assets.Scripts.Core.Player
         #endregion
     }
 }
+
