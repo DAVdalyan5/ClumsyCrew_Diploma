@@ -5,6 +5,7 @@ using HeistNSeek.Core.Player;
 using Unity.Netcode;
 using UnityEngine;
 using VContainer;
+using VContainer.Unity;
 
 namespace Assets.Scripts.Runtime.Core
 {
@@ -12,22 +13,25 @@ namespace Assets.Scripts.Runtime.Core
     /// Handles spawning players with per-player dependency injection scopes
     /// when clients connect to the network.
     /// </summary>
-    public class PlayerSpawner : MonoBehaviour
+    public class PlayerSpawner : NetworkBehaviour
     {
-        [SerializeField] private GameObject playerPrefab;
-        [SerializeField] private Transform defaultSpawnPoint;
-
         [SerializeField] private CinemachineVirtualCamera playerFollowCamera;
         [SerializeField] private Camera mainCamera;
 
-        private PlayerProvider playerProvider;
+        [SerializeField] private GameObject playerPrefab;
+
         private NetworkManager networkManager;
+        private IObjectResolver container;
 
         [Inject]
-        public void Construct(PlayerProvider provider, NetworkManager netManager)
+        public void Init(IObjectResolver container)
         {
-            playerProvider = provider;
-            networkManager = netManager;
+            this.container = container;
+        }
+
+        private void Awake()
+        {
+            networkManager = NetworkManager.Singleton;
         }
 
         private void Start()
@@ -56,24 +60,20 @@ namespace Assets.Scripts.Runtime.Core
 
         private void SpawnPlayerForClient(ulong clientId)
         {
-            Vector3 spawnPosition = defaultSpawnPoint != null
-                ? defaultSpawnPoint.position
-                : Vector3.zero;
+            if (!IsServer) return;
 
-            GameObject playerInstance = playerProvider.CreatePlayer(
-                clientId,
-                playerPrefab,
-                spawnPosition,
-                Quaternion.identity
-            );
+            Vector3 spawnPosition = Vector3.zero;
 
-            var followTransform = playerInstance.GetComponentInChildren<CameraRootMarker>()?.transform;
-            var pusher = playerInstance.GetComponentInChildren<CharacterPusher>();
-            if (playerFollowCamera != null)
+            var playerInstance = container.Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
+            var networkObject = playerInstance.GetComponent<NetworkObject>();
+
+            var injector = playerInstance.GetComponent<ClientSidePlayerConfigurator>();
+            if (injector != null)
             {
-                playerFollowCamera.Follow = followTransform;
-                pusher.CameraTransform = mainCamera.transform;
+                injector.SetContainer(container);
             }
+
+            networkObject.SpawnAsPlayerObject(clientId);
         }
 
         public void SpawnPlayer(ulong id, Vector3 position = default)

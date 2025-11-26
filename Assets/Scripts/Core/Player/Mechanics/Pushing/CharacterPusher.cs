@@ -37,20 +37,20 @@ namespace HeistNSeek.Core
             // Store initial local position for returning after push
             initialLocalPosition = transform.localPosition;
 
-            // Auto-find camera if not assigned
-            if (CameraTransform == null)
-            {
-                Camera mainCamera = Camera.main;
-                if (mainCamera != null)
-                {
-                    CameraTransform = mainCamera.transform;
-                    Debug.Log($"[CharacterPusher] Auto-assigned Main Camera to {gameObject.name}");
-                }
-                else
-                {
-                    Debug.LogWarning($"[CharacterPusher] No camera assigned and Main Camera not found for {gameObject.name}!");
-                }
-            }
+            //// Auto-find camera if not assigned
+            //if (CameraTransform == null)
+            //{
+            //    Camera mainCamera = Camera.main;
+            //    if (mainCamera != null)
+            //    {
+            //        CameraTransform = mainCamera.transform;
+            //        Debug.Log($"[CharacterPusher] Auto-assigned Main Camera to {gameObject.name}");
+            //    }
+            //    else
+            //    {
+            //        Debug.LogWarning($"[CharacterPusher] No camera assigned and Main Camera not found for {gameObject.name}!");
+            //    }
+            //}
         }
 
         private void Start()

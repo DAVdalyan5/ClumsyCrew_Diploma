@@ -16,22 +16,12 @@ public class GameplayLifetimeScope : LifetimeScope
 {
     [SerializeField] private PlayerSpawner playerSpawner;
     [SerializeField] private ScatterConfigSO scatterConfigSO;
-    [SerializeField] private NetworkManager networkManager;
 
     protected override void Configure(IContainerBuilder builder)
     {
-        builder.Register<IMessageHub, MessageHub>(Lifetime.Singleton);
-        builder.RegisterInstance(networkManager);
-
-        // Player management - handles per-player dependency injection
-        builder.Register<PlayerProvider>(Lifetime.Singleton);
-
-        // Shared scene configuration
         builder.RegisterInstance(scatterConfigSO);
+        builder.Register<IMessageHub, MessageHub>(Lifetime.Singleton);
 
-        builder.Register<SessionInventory>(Lifetime.Singleton);
-
-        // Register EntryPoint for Gameplay initialization
         builder.RegisterEntryPoint<GameplayEntryPoint>(Lifetime.Singleton);
     }
 
