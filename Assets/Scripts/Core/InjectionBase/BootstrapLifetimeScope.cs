@@ -19,7 +19,8 @@ public class BootstrapLifetimeScope : LifetimeScope
     protected override void Configure(IContainerBuilder builder)
     {
         // Register MessageHub for pub/sub messaging
-        builder.Register<IMessageHub, MessageHub>(Lifetime.Singleton);
+        var globalMessageHub = new MessageHub();
+        builder.Register<IGlobalMessageHub, GlobalMessageHub>(Lifetime.Singleton).WithParameter(globalMessageHub);
 
         // Register State Machine
         builder.Register<GameStateMachine>(Lifetime.Singleton);
@@ -31,10 +32,25 @@ public class BootstrapLifetimeScope : LifetimeScope
         builder.Register<LoadingState>(Lifetime.Singleton).As<IState>();
         builder.Register<GameplayState>(Lifetime.Singleton).As<IState>();
 
-        builder.Register<IGlobalTestService, GlobalTestService>(Lifetime.Singleton);
-        builder.RegisterComponentInHierarchy<MonoGlobalService>().As<IMonoGlobalService>();
-
         // Register EntryPoint for Bootstrap initialization
         builder.RegisterEntryPoint<BootstrapEntryPoint>(Lifetime.Singleton).WithParameter(gameplaySceneIndex);
     }
+}
+
+public class GlobalMessageHub : IGlobalMessageHub
+{
+    public GlobalMessageHub(MessageHub hub)
+    {
+        this.Hub = hub;
+    }
+
+    public MessageHub Hub
+    {
+        get;
+    }
+}
+
+public interface IGlobalMessageHub 
+{     
+    MessageHub Hub { get; }
 }

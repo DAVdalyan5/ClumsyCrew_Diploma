@@ -13,11 +13,11 @@ namespace HeistNSeek.Core.StateMachine
     public class GameStateMachine
     {
         private readonly Dictionary<Type, IState> _states = new();
-        private readonly IMessageHub _messageHub;
+        private readonly IGlobalMessageHub _messageHub;
         private IState _activeState;
 
         [Inject]
-        public GameStateMachine(IEnumerable<IState> states, IMessageHub messageHub)
+        public GameStateMachine(IEnumerable<IState> states, IGlobalMessageHub messageHub)
         {
             _messageHub = messageHub;
 
@@ -47,7 +47,7 @@ namespace HeistNSeek.Core.StateMachine
                 Debug.Log($"[GameStateMachine] Exited state: {exitingStateName}");
 
                 // Publish state exit event
-                _messageHub?.Publish(new StateExitedEvent { StateType = _activeState.GetType() });
+                _messageHub?.Hub?.Publish(new StateExitedEvent { StateType = _activeState.GetType() });
             }
 
             // Enter new state
@@ -58,7 +58,7 @@ namespace HeistNSeek.Core.StateMachine
             Debug.Log($"[GameStateMachine] Entered state: {stateType.Name}");
 
             // Publish state enter event
-            _messageHub?.Publish(new StateEnteredEvent { StateType = stateType, Payload = payload });
+            _messageHub?.Hub?.Publish(new StateEnteredEvent { StateType = stateType, Payload = payload });
         }
 
         /// <summary>

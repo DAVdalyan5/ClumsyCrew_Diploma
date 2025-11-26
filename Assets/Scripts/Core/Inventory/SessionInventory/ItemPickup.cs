@@ -95,13 +95,6 @@ namespace HeistNSeek.Core.Inventory.SessionInventory
                 visualRoot = gameObject;
         }
 
-      /*  [Inject]
-        public void Init(SessionInventory inventory)
-        {
-            _inventory = inventory;
-        }*/
-      //TODO: remove or use the above Init method for DI
-
         private void OnTriggerEnter(Collider other)
         {
             if (_isPickedUp || itemData == null)

@@ -1,8 +1,11 @@
 using Assets.Scripts.Core.Inventory.Models;
 using Assets.Scripts.Runtime.Core;
+using Easy.MessageHub;
 using HeistNSeek.Core;
+using HeistNSeek.Core.Inventory.SessionInventory;
 using HeistNSeek.Core.Player;
 using NaughtyAttributes;
+using StarterAssets;
 using System;
 using Unity.Netcode;
 using UnityEngine;
@@ -17,19 +20,16 @@ public class GameplayLifetimeScope : LifetimeScope
 
     protected override void Configure(IContainerBuilder builder)
     {
+        builder.Register<IMessageHub, MessageHub>(Lifetime.Singleton);
         builder.RegisterInstance(networkManager);
-
-        // Testing services (can be removed when no longer needed)
-        builder.Register<IPlainService, PlainService>(Lifetime.Singleton);
-        builder.RegisterComponentInHierarchy<MonoService>();
-        builder.RegisterComponentInHierarchy<InjectedConsumer>();
 
         // Player management - handles per-player dependency injection
         builder.Register<PlayerProvider>(Lifetime.Singleton);
 
         // Shared scene configuration
         builder.RegisterInstance(scatterConfigSO);
-       // builder.RegisterInstance(playerSpawner);
+
+        builder.Register<SessionInventory>(Lifetime.Singleton);
 
         // Register EntryPoint for Gameplay initialization
         builder.RegisterEntryPoint<GameplayEntryPoint>(Lifetime.Singleton);
