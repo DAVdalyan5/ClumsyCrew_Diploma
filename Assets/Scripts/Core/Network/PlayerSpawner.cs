@@ -15,9 +15,6 @@ namespace Assets.Scripts.Runtime.Core
     /// </summary>
     public class PlayerSpawner : NetworkBehaviour
     {
-        [SerializeField] private CinemachineVirtualCamera playerFollowCamera;
-        [SerializeField] private Camera mainCamera;
-
         [SerializeField] private GameObject playerPrefab;
 
         private NetworkManager networkManager;
@@ -75,6 +72,8 @@ namespace Assets.Scripts.Runtime.Core
         [Rpc(SendTo.Owner)]
         private void ClientSideSetupRpc()
         {
+            if (IsServer) return;
+
             var playerInstance = FindFirstObjectByType<PlayerController>().gameObject;
 
             var injector = playerInstance.GetComponent<ClientSidePlayerConfigurator>();
