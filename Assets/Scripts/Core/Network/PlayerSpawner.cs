@@ -67,13 +67,21 @@ namespace Assets.Scripts.Runtime.Core
             var playerInstance = container.Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
             var networkObject = playerInstance.GetComponent<NetworkObject>();
 
+            ClientSideSetupRpc();
+
+            networkObject.SpawnAsPlayerObject(clientId);
+        }
+
+        [Rpc(SendTo.Owner)]
+        private void ClientSideSetupRpc()
+        {
+            var playerInstance = FindFirstObjectByType<PlayerController>().gameObject;
+
             var injector = playerInstance.GetComponent<ClientSidePlayerConfigurator>();
             if (injector != null)
             {
                 injector.SetContainer(container);
             }
-
-            networkObject.SpawnAsPlayerObject(clientId);
         }
 
         public void SpawnPlayer(ulong id, Vector3 position = default)
