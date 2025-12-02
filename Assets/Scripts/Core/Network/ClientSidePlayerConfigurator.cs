@@ -31,10 +31,11 @@ namespace Assets.Scripts.Runtime.Core
                 sharedContainer.InjectGameObject(gameObject);
             }
 
-            SetupCameras();
+            SetupCamerasRpc();
         }
 
-        private void SetupCameras()
+        [Rpc(SendTo.Owner)]
+        private void SetupCamerasRpc()
         {
             if (!IsOwner) return;
 

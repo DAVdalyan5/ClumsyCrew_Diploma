@@ -3,6 +3,7 @@ using Cinemachine;
 using HeistNSeek.Core;
 using HeistNSeek.Core.Player;
 using Unity.Netcode;
+using Unity.Services.Matchmaker.Models;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -17,32 +18,24 @@ namespace Assets.Scripts.Runtime.Core
     {
         [SerializeField] private GameObject playerPrefab;
 
-        private NetworkManager networkManager;
+        private GameObject playerInstance;
         private IObjectResolver container;
 
         [Inject]
         public void Init(IObjectResolver container)
         {
             this.container = container;
+
+            NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
         }
 
-        private void Awake()
+        private void OnDisable()
         {
-            networkManager = NetworkManager.Singleton;
-        }
-
-        private void Start()
-        {
-            networkManager.OnClientConnectedCallback += OnClientConnected;
-            networkManager.OnClientDisconnectCallback += OnClientDisconnected;
-        }
-
-        private void OnDestroy()
-        {
-            if (networkManager != null)
+            if (NetworkManager.Singleton != null)
             {
-                networkManager.OnClientConnectedCallback -= OnClientConnected;
-                networkManager.OnClientDisconnectCallback -= OnClientDisconnected;
+                NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
+                NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
             }
         }
 
@@ -53,6 +46,7 @@ namespace Assets.Scripts.Runtime.Core
 
         private void OnClientDisconnected(ulong clientId)
         {
+            Debug.Log("Disconnect Sequence starts here");
         }
 
         private void SpawnPlayerForClient(ulong clientId)
@@ -61,21 +55,16 @@ namespace Assets.Scripts.Runtime.Core
 
             Vector3 spawnPosition = Vector3.zero;
 
-            var playerInstance = container.Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
+            playerInstance = container.Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
             var networkObject = playerInstance.GetComponent<NetworkObject>();
 
-            ClientSideSetupRpc();
+            SetupPlayerInternals();
 
             networkObject.SpawnAsPlayerObject(clientId);
         }
 
-        [Rpc(SendTo.Owner)]
-        private void ClientSideSetupRpc()
+        private void SetupPlayerInternals()
         {
-            if (IsServer) return;
-
-            var playerInstance = FindFirstObjectByType<PlayerController>().gameObject;
-
             var injector = playerInstance.GetComponent<ClientSidePlayerConfigurator>();
             if (injector != null)
             {

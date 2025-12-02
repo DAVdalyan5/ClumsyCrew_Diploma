@@ -23,17 +23,17 @@ namespace HeistNSeek.Core
             _stateMachine.Enter<BootstrapState>();
         }
 
-#if UNITY_EDITOR
-        private const string BOOTSTRAP_SCENE_NAME = "Bootstrap";
+//#if UNITY_EDITOR
+//        private const string BOOTSTRAP_SCENE_NAME = "Bootstrap";
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        static void AutoLoadBootstrap()
-        {
-            if (SceneManager.GetActiveScene().name != BOOTSTRAP_SCENE_NAME)
-            {
-                SceneManager.LoadScene(BOOTSTRAP_SCENE_NAME);
-            }
-        }
-#endif
+//        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+//        static void AutoLoadBootstrap()
+//        {
+//            if (SceneManager.GetActiveScene().name != BOOTSTRAP_SCENE_NAME)
+//            {
+//                SceneManager.LoadScene(BOOTSTRAP_SCENE_NAME);
+//            }
+//        }
+//#endif
     }
 }
