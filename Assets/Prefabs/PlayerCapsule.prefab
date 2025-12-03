@@ -1216,6 +1216,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 417840188221826752, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4333540878873311464}
+    - targetCorrespondingSourceObject: {fileID: 417840188221826752, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3659656064387523422}
   m_SourcePrefab: {fileID: 100100000, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
 --- !u!4 &1632912199065694288 stripped
 Transform:
@@ -1241,6 +1244,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.Character.CharacterAnimationController
   animator: {fileID: 4632348224878520874}
   speedDampTime: 0.1
+--- !u!114 &3659656064387523422
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2153446655167703786}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e50aed223d556643aa23675f9653e92, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.Core.Player.Animation.AnimationOwnerNetworkAnimator
+  ShowTopMostFoldoutHeaderGroup: 1
+  TransitionStateInfoList: []
+  m_Animator: {fileID: 4632348224878520874}
 --- !u!1 &4023448297963553162 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3456736833312558496, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}

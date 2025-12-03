@@ -94,7 +94,7 @@ namespace Assets.Scripts.Core.Player
         {
             var collisionDisposables = collisionDetectors.Select(detector => detector.Subscribe((collision, det) => HandleHighSpeedImpact(collision, det)));
             disposables.AddMany(collisionDisposables);
-            this.messageHub.SubscribeSafe<ResetBalanceEvent>(this, ResetPlayerBalance);
+            this.messageHub.SubscribeSafe<ResetBalanceEvent>(this, ResetBalanceEventWrapper);
         }
 
         private void DisableCollisionDetectors()
@@ -117,7 +117,8 @@ namespace Assets.Scripts.Core.Player
             disposables.Dispose();
         }
 
-        private void OnBalanceLost(float impactSpeed)
+        [Rpc(SendTo.ClientsAndHost)] //TODO: idk why bit its(ragdoll) too strong on listening clients
+        private void OnBalanceLostRpc(float impactSpeed)
         {
             currentBalanceInfo.IsBalanced = false;
             characterController.IsBalanced = false;
@@ -140,7 +141,13 @@ namespace Assets.Scripts.Core.Player
             this.DisablePlayerRagdoll();
         }
 
-        private void ResetPlayerBalance(ResetBalanceEvent args)
+        private void ResetBalanceEventWrapper(ResetBalanceEvent args)
+        {
+            ResetPlayerBalanceRpc();
+        }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        private void ResetPlayerBalanceRpc()
         {
             this.CurrentBalanceInfo.IsBalanced = true;
             OnBalanceRegained();
@@ -157,25 +164,19 @@ namespace Assets.Scripts.Core.Player
             {
                 this.CurrentBalanceInfo.IsBalanced = false;
                 Debug.Log($"[CharacterBalancer] Balance lost! Impact speed: {effectiveSpeed}");
-                OnBalanceLost(effectiveSpeed);
+                OnBalanceLostRpc(effectiveSpeed);
             }
         }
 
-        #region Test Area
-
-        [Button("Enable Ragdoll")]
         public void EnablePlayerRagdoll()
         {
             RagdollUtilities.ToggleRagdoll(ragdollHierarchyPart, true);
         }
 
-        [Button("Disable Ragdoll")]
         public void DisablePlayerRagdoll()
         {
             RagdollUtilities.ToggleRagdoll(ragdollHierarchyPart, false);
         }
-
-        #endregion
     }
 }
 
