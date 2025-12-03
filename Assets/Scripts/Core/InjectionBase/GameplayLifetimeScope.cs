@@ -19,11 +19,27 @@ public class GameplayLifetimeScope : LifetimeScope
     [SerializeField] private GameObject playerSpawnerPrefab;
     [SerializeField] private ScatterConfigSO scatterConfigSO;
 
+    private LifetimeScope _parentScope;
+
+    protected override void Awake()
+    {
+        // Find BootstrapLifetimeScope in the scene (should exist as DontDestroyOnLoad)
+        _parentScope = FindAnyObjectByType<BootstrapLifetimeScope>();
+        if (_parentScope == null)
+        {
+            Debug.LogWarning($"[GameplayLifetimeScope] BootstrapLifetimeScope not found. This scope will be root.");
+        }
+        else
+        {
+            Debug.Log($"[GameplayLifetimeScope] Parent scope set to BootstrapLifetimeScope.");
+        }
+
+        base.Awake();
+    }
+
     protected override void Configure(IContainerBuilder builder)
     {
         builder.RegisterInstance(scatterConfigSO);
-        
-        builder.Register<IMessageHub, MessageHub>(Lifetime.Singleton);
 
         builder.RegisterEntryPoint<GameplayEntryPoint>(Lifetime.Singleton).WithParameter(playerSpawnerPrefab);
     }

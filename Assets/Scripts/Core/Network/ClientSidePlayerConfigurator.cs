@@ -11,25 +11,30 @@ namespace Assets.Scripts.Runtime.Core
     //all this should run locally
     public class ClientSidePlayerConfigurator : NetworkBehaviour
     {
-        private static IObjectResolver sharedContainer;
-
-        public void SetContainer(IObjectResolver container)
-        {
-            sharedContainer = container;
-        }
+        private IObjectResolver _container;
 
         public override void OnNetworkSpawn()
         {
             base.OnNetworkSpawn();
 
-            if (sharedContainer == null)
+            // Find a LifetimeScope in the scene for dependency injection
+            // Prefer GameplayLifetimeScope as it contains scene-specific registrations
+            LifetimeScope scope = FindAnyObjectByType<GameplayLifetimeScope>();
+            if (scope == null)
             {
-                sharedContainer = FindAnyObjectByType<LifetimeScope>()?.Container;
+                // Fallback to any LifetimeScope (e.g., BootstrapLifetimeScope)
+                scope = FindAnyObjectByType<LifetimeScope>();
             }
 
-            if (sharedContainer != null)
+            if (scope != null)
             {
-                sharedContainer.InjectGameObject(gameObject);
+                _container = scope.Container;
+                _container.InjectGameObject(gameObject);
+                Debug.Log($"[ClientSidePlayerConfigurator] Injected dependencies using container from {scope.GetType().Name}");
+            }
+            else
+            {
+                Debug.LogWarning($"[ClientSidePlayerConfigurator] No LifetimeScope found. Dependency injection skipped.");
             }
 
             SetupCameras();
