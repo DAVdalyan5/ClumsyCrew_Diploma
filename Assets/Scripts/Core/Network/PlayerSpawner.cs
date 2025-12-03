@@ -58,12 +58,13 @@ namespace Assets.Scripts.Runtime.Core
             playerInstance = container.Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
             var networkObject = playerInstance.GetComponent<NetworkObject>();
 
-            SetupPlayerInternals();
+            SetupPlayerInternalsRpc();
 
             networkObject.SpawnAsPlayerObject(clientId);
         }
 
-        private void SetupPlayerInternals()
+        [Rpc(SendTo.Owner)]
+        private void SetupPlayerInternalsRpc()
         {
             var injector = playerInstance.GetComponent<ClientSidePlayerConfigurator>();
             if (injector != null)

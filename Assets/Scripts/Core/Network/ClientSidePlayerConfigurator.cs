@@ -8,6 +8,7 @@ using VContainer.Unity;
 
 namespace Assets.Scripts.Runtime.Core
 {
+    //all this should run locally
     public class ClientSidePlayerConfigurator : NetworkBehaviour
     {
         private static IObjectResolver sharedContainer;
@@ -31,11 +32,10 @@ namespace Assets.Scripts.Runtime.Core
                 sharedContainer.InjectGameObject(gameObject);
             }
 
-            SetupCamerasRpc();
+            SetupCameras();
         }
 
-        [Rpc(SendTo.Owner)]
-        private void SetupCamerasRpc()
+        private void SetupCameras()
         {
             if (!IsOwner) return;
 
