@@ -160,7 +160,8 @@ namespace HeistNSeek.Core.Player
         {
             if (_input.LookInput.sqrMagnitude >= _threshold)
             {
-                float deltaTimeMultiplier = IsCurrentDeviceMouse ? 1.0f : Time.deltaTime;
+                //float deltaTimeMultiplier = IsCurrentDeviceMouse ? 1.0f : Time.deltaTime;
+                float deltaTimeMultiplier = 1.0f;
 
                 _cinemachineTargetPitch += _input.LookInput.y * RotationSpeed * deltaTimeMultiplier;
                 _rotationVelocity = _input.LookInput.x * RotationSpeed * deltaTimeMultiplier;

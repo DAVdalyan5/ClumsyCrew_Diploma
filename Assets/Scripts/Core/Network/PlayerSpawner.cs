@@ -3,8 +3,10 @@ using Cinemachine;
 using HeistNSeek.Core;
 using HeistNSeek.Core.Player;
 using Unity.Netcode;
+using Unity.Services.Matchmaker.Models;
 using UnityEngine;
 using VContainer;
+using VContainer.Unity;
 
 namespace Assets.Scripts.Runtime.Core
 {
@@ -12,36 +14,28 @@ namespace Assets.Scripts.Runtime.Core
     /// Handles spawning players with per-player dependency injection scopes
     /// when clients connect to the network.
     /// </summary>
-    public class PlayerSpawner : MonoBehaviour
+    public class PlayerSpawner : NetworkBehaviour
     {
         [SerializeField] private GameObject playerPrefab;
-        [SerializeField] private Transform defaultSpawnPoint;
 
-        [SerializeField] private CinemachineVirtualCamera playerFollowCamera;
-        [SerializeField] private Camera mainCamera;
-
-        private PlayerProvider playerProvider;
-        private NetworkManager networkManager;
+        private GameObject playerInstance;
+        private IObjectResolver container;
 
         [Inject]
-        public void Construct(PlayerProvider provider, NetworkManager netManager)
+        public void Init(IObjectResolver container)
         {
-            playerProvider = provider;
-            networkManager = netManager;
+            this.container = container;
+
+            NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
         }
 
-        private void Start()
+        private void OnDisable()
         {
-            networkManager.OnClientConnectedCallback += OnClientConnected;
-            networkManager.OnClientDisconnectCallback += OnClientDisconnected;
-        }
-
-        private void OnDestroy()
-        {
-            if (networkManager != null)
+            if (NetworkManager.Singleton != null)
             {
-                networkManager.OnClientConnectedCallback -= OnClientConnected;
-                networkManager.OnClientDisconnectCallback -= OnClientDisconnected;
+                NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
+                NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
             }
         }
 
@@ -52,28 +46,20 @@ namespace Assets.Scripts.Runtime.Core
 
         private void OnClientDisconnected(ulong clientId)
         {
+            Debug.Log("Disconnect Sequence starts here");
         }
 
         private void SpawnPlayerForClient(ulong clientId)
         {
-            Vector3 spawnPosition = defaultSpawnPoint != null
-                ? defaultSpawnPoint.position
-                : Vector3.zero;
+            if (!IsServer) return;
 
-            GameObject playerInstance = playerProvider.CreatePlayer(
-                clientId,
-                playerPrefab,
-                spawnPosition,
-                Quaternion.identity
-            );
+            Vector3 spawnPosition = Vector3.zero;
 
-            var followTransform = playerInstance.GetComponentInChildren<CameraRootMarker>()?.transform;
-            var pusher = playerInstance.GetComponentInChildren<CharacterPusher>();
-            if (playerFollowCamera != null)
-            {
-                playerFollowCamera.Follow = followTransform;
-                pusher.CameraTransform = mainCamera.transform;
-            }
+            playerInstance = container.Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
+            var networkObject = playerInstance.GetComponent<NetworkObject>();
+
+            // Client-side injection will be handled by ClientSidePlayerConfigurator.OnNetworkSpawn
+            networkObject.SpawnAsPlayerObject(clientId);
         }
 
         public void SpawnPlayer(ulong id, Vector3 position = default)

@@ -16,11 +16,19 @@ public class BootstrapLifetimeScope : LifetimeScope
     [SceneDropdown]
     [SerializeField] private int gameplaySceneIndex = 0; // Default to index 1 (Main scene)
 
+    protected override void Awake()
+    {
+        // Ensure this GameObject persists across scene loads
+        DontDestroyOnLoad(gameObject);
+        base.Awake();
+    }
+
     protected override void Configure(IContainerBuilder builder)
     {
         // Register MessageHub for pub/sub messaging
-        var globalMessageHub = new MessageHub();
-        builder.Register<IGlobalMessageHub, GlobalMessageHub>(Lifetime.Singleton).WithParameter(globalMessageHub);
+        var messageHub = new MessageHub();
+        //builder.Register<IGlobalMessageHub, GlobalMessageHub>(Lifetime.Singleton).WithParameter(messageHub);
+        builder.RegisterInstance<IMessageHub>(messageHub);
 
         // Register State Machine
         builder.Register<GameStateMachine>(Lifetime.Singleton);
@@ -37,20 +45,20 @@ public class BootstrapLifetimeScope : LifetimeScope
     }
 }
 
-public class GlobalMessageHub : IGlobalMessageHub
-{
-    public GlobalMessageHub(MessageHub hub)
-    {
-        this.Hub = hub;
-    }
+//public class GlobalMessageHub : IGlobalMessageHub
+//{
+//    public GlobalMessageHub(MessageHub hub)
+//    {
+//        this.Hub = hub;
+//    }
 
-    public MessageHub Hub
-    {
-        get;
-    }
-}
+//    public MessageHub Hub
+//    {
+//        get;
+//    }
+//}
 
-public interface IGlobalMessageHub 
-{     
-    MessageHub Hub { get; }
-}
+//public interface IGlobalMessageHub 
+//{     
+//    MessageHub Hub { get; }
+//}
