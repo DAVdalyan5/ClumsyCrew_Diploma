@@ -177,6 +177,16 @@ namespace Assets.Scripts.Core.Player
         {
             RagdollUtilities.ToggleRagdoll(ragdollHierarchyPart, false);
         }
+
+        /// <summary>
+        /// Called by the server when this player is pushed by another player.
+        /// Triggers ragdoll on all clients via RPC.
+        /// </summary>
+        public void TriggerPushRagdoll(float force)
+        {
+            Debug.Log($"[PlayerController] TriggerPushRagdoll called with force: {force}");
+            OnBalanceLostRpc(force);
+        }
     }
 }
 

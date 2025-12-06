@@ -38,6 +38,7 @@ namespace Assets.Scripts.Runtime.Core
             }
 
             SetupCameras();
+            SetupPusherCameraRpc();
         }
 
         private void SetupCameras()
@@ -55,5 +56,19 @@ namespace Assets.Scripts.Runtime.Core
                 pusher.CameraTransform = mainCamera.transform;
             }
         }
+
+        private void SetupPusherCameraRpc()
+        {
+            if (!IsOwner) return;
+
+            var playerPusher = FindObjectsByType<CharacterPusher>(FindObjectsSortMode.None)[0];
+            var mainCamera = FindObjectsByType<Camera>(FindObjectsSortMode.None)[0];
+
+            if (mainCamera != null)
+            {
+                playerPusher.CameraTransform = mainCamera.transform;
+            }
+        }
+
     }
 }

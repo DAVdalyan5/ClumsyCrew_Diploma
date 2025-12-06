@@ -1,13 +1,15 @@
+using Assets.Scripts.Core.Player;
 using Assets.Scripts.Events.Actions;
 using Assets.Scripts.Infrastructure.EasyMessageHub;
 using Easy.MessageHub;
 using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 using VContainer;
 
 namespace HeistNSeek.Core
 {
-    public class CharacterPusher : MonoBehaviour
+    public class CharacterPusher : NetworkBehaviour
     {
         [Header("Camera Reference")]
         [SerializeField] public Transform CameraTransform;
@@ -22,7 +24,10 @@ namespace HeistNSeek.Core
         private new Collider collider;
         private Vector3 initialLocalPosition;
         private bool isPushing = false;
-    
+
+        private Transform pusherPositionTransform;
+        private PlayerController ownerPlayerController;
+
         [Inject]
         public void Init(IMessageHub messageHub)
         {
@@ -31,30 +36,17 @@ namespace HeistNSeek.Core
 
         private void Awake()
         {
-            // Get the collider component from this GameObject
             collider = GetComponent<Collider>();
+            pusherPositionTransform = GetComponentInChildren<PushPositionMarker>().transform;
+            ownerPlayerController = GetComponentInParent<PlayerController>();
 
-            // Store initial local position for returning after push
             initialLocalPosition = transform.localPosition;
-
-            //// Auto-find camera if not assigned
-            //if (CameraTransform == null)
-            //{
-            //    Camera mainCamera = Camera.main;
-            //    if (mainCamera != null)
-            //    {
-            //        CameraTransform = mainCamera.transform;
-            //        Debug.Log($"[CharacterPusher] Auto-assigned Main Camera to {gameObject.name}");
-            //    }
-            //    else
-            //    {
-            //        Debug.LogWarning($"[CharacterPusher] No camera assigned and Main Camera not found for {gameObject.name}!");
-            //    }
-            //}
         }
 
         private void Start()
         {
+            if (!IsOwner) return;
+
             this._messageHub.SubscribeSafe<PushEvent>(this, _ => PerformPush());
         }
 
@@ -81,80 +73,61 @@ namespace HeistNSeek.Core
         /// </summary>
         private void PerformPush()
         {
+            if (!IsOwner) return;
+
             StartCoroutine(PerformRaycastPush());
-        }
-
-        private IEnumerator PushCoroutine()
-        {
-            isPushing = true;
-
-            // Capture the push direction at the start (camera's forward direction in world space)
-            Vector3 pushDirection = CameraTransform != null ? CameraTransform.forward : transform.forward;
-            Vector3 startPosition = transform.localPosition;
-
-            // Push forward using the captured direction
-            float distance = 0f;
-            while (distance < pushDistance)
-            {
-                float step = pushSpeed * Time.deltaTime;
-                // Move in world space using the captured direction
-                transform.position += pushDirection * step;
-                distance += step;
-                yield return null;
-            }
-
-            // Return to initial position (local space)
-            while (Vector3.Distance(transform.localPosition, initialLocalPosition) > 0.01f)
-            {
-                transform.localPosition = Vector3.MoveTowards(
-                    transform.localPosition,
-                    initialLocalPosition,
-                    returnSpeed * Time.deltaTime
-                );
-                yield return null;
-            }
-
-            // Ensure exact position
-            transform.localPosition = initialLocalPosition;
-
-            isPushing = false;
         }
 
         public IEnumerator PerformRaycastPush()
         {
             //add cooldown
+            //maybe some bug here hoenslty with position but will fix it later
+            //TODO:
             Vector3 pushDirection = CameraTransform != null ? CameraTransform.forward : transform.forward;
 
-            if (CameraTransform != null && Physics.Raycast(CameraTransform.position, pushDirection, out RaycastHit hit, pushDistance))
+            if (CameraTransform != null && Physics.Raycast(pusherPositionTransform.position, pushDirection, out RaycastHit hit, pushDistance))
             {
-                // Don't push yourself - check if hit object is in the same player hierarchy
-                if (hit.collider.transform.root == transform.root)
+                var hitPlayerController = hit.collider.GetComponentInParent<PlayerController>();
+
+                // Prevent self-pushing: check if we hit our own player
+                if (hitPlayerController != null && hitPlayerController == ownerPlayerController)
                 {
-                    Debug.DrawRay(CameraTransform.position, pushDirection * pushDistance, Color.yellow, 2000);
+                    Debug.DrawRay(pusherPositionTransform.position, pushDirection * pushDistance, Color.yellow, 2000);
                     yield return null;
                     yield break;
                 }
 
+                // If we hit another player, trigger their ragdoll via RPC
+                if (hitPlayerController != null)
+                {
+                    Debug.Log($"[CharacterPusher] Hit player: {hitPlayerController.name}, triggering push with force {pushSpeed}");
+                    RequestPushPlayerServerRpc(hitPlayerController.NetworkObjectId, pushSpeed);
+                    Debug.DrawRay(pusherPositionTransform.position, pushDirection * pushDistance, Color.red, 2000);
+                    yield return null;
+                    yield break;
+                }
+
+                // For non-player pushables (objects), handle locally
                 var pushable = hit.collider.GetComponent<Assets.Scripts.Core.Player.Mechanics.Pushing.IPushable>();
                 pushable?.OnPushed(pushSpeed);
             }
-            Debug.DrawRay(CameraTransform.position, pushDirection * pushDistance, Color.green, 2000);
+            Debug.DrawRay(pusherPositionTransform.position, pushDirection * pushDistance, Color.green, 2000);
 
             yield return null;
         }
 
-        /// <summary>
-        /// Resets the collider to its initial position immediately.
-        /// </summary>
-        public void ResetPosition()
+        [Rpc(SendTo.Server)]
+        private void RequestPushPlayerServerRpc(ulong targetNetworkObjectId, float force)
         {
-            if (isPushing)
+            // Server finds the target player and tells all clients to enable ragdoll
+            if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetworkObjectId, out var targetNetworkObject))
             {
-                StopAllCoroutines();
-                isPushing = false;
+                var targetPlayerController = targetNetworkObject.GetComponent<PlayerController>();
+                if (targetPlayerController != null)
+                {
+                    targetPlayerController.TriggerPushRagdoll(force);
+                }
             }
-
-            transform.localPosition = initialLocalPosition;
         }
     }
 }
