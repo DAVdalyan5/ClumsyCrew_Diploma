@@ -126,7 +126,14 @@ namespace Assets.Scripts.Core.Player
             if (!RagdollUtilities.IsRagdollEnabled(this.gameObject))
             {
                 this.EnablePlayerRagdoll();
-                messageHub.Publish<BalanceLostEvent>(new BalanceLostEvent(impactSpeed));
+
+                // Only the owner should publish BalanceLostEvent to trigger item dropping
+                // This prevents other players' droppers from receiving the event when
+                // this RPC executes on hosts/other clients
+                if (IsOwner)
+                {
+                    messageHub.Publish<BalanceLostEvent>(new BalanceLostEvent(impactSpeed));
+                }
             }
         }
 

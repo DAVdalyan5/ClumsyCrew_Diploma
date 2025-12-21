@@ -18,6 +18,8 @@ GameObject:
   - component: {fileID: 8139465705805819720}
   - component: {fileID: 7723419332960670919}
   - component: {fileID: 606631551863734566}
+  - component: {fileID: 9059837651824169573}
+  - component: {fileID: 328432537749625398}
   m_Layer: 6
   m_Name: PlayerCapsule
   m_TagString: Player
@@ -333,6 +335,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 141453991666ec9458cf24baa5e59f38, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.Runtime.Core.NetworkPlayerInjector
+  ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &9059837651824169573
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 91792620953967996}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa15cbae03f647241bc1208684b7a316, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.Inventory.NetworkedInventory.NetworkedPlayerInventory
+  ShowTopMostFoldoutHeaderGroup: 1
+  maxSlots: 20
+--- !u!114 &328432537749625398
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 91792620953967996}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce1ce4479a5bdf04d8a5f94b6ee1fb79, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.Inventory.NetworkedInventory.NetworkedItemDropper
   ShowTopMostFoldoutHeaderGroup: 1
 --- !u!1 &1956041386944301305
 GameObject:

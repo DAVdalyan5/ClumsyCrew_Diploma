@@ -1,3 +1,4 @@
+using HeistNSeek.Core.Inventory.NetworkedInventory;
 using HeistNSeek.Core.Inventory.SessionInventory;
 using Unity.Multiplayer.Center.NetcodeForGameObjectsExample.DistributedAuthority;
 using Unity.Netcode;
@@ -16,10 +17,12 @@ namespace HeistNSeek.Core
     {
         private IObjectResolver container;
         private GameObject playerSpawnerPrefab;
+        private GameObject networkedItemSpawnManager;
 
-        public GameplayEntryPoint(GameObject playerSpawnerPrefab)
+        public GameplayEntryPoint(EntryPointParameters parameters)
         {
-            this.playerSpawnerPrefab = playerSpawnerPrefab;
+            this.playerSpawnerPrefab = parameters.PlayerSpawnerPrefab;
+            this.networkedItemSpawnManager = parameters.NetworkedItemSpawnManager;
         }
 
         [Inject]
@@ -30,7 +33,21 @@ namespace HeistNSeek.Core
 
         public void Start()
         {
-            NetworkManager.Singleton.OnServerStarted += () => CreateSpawner();
+            NetworkManager.Singleton.OnServerStarted += () => OnServerStarted();
+        }
+
+        private void OnServerStarted()
+        {
+            CreateSpawner();
+            CreateNetworkedItemSpawnManager();
+        }
+
+        private void CreateNetworkedItemSpawnManager()
+        {
+            var itemSpawnManager = container.Instantiate(networkedItemSpawnManager);
+
+            var networkObjectSpawner = itemSpawnManager.GetComponent<NetworkObject>();
+            networkObjectSpawner.Spawn();
         }
 
         private void CreateSpawner()
@@ -41,6 +58,18 @@ namespace HeistNSeek.Core
 
             var networkObjectSpawner = spawner.GetComponent<NetworkObject>();
             networkObjectSpawner.Spawn();
+        }
+    }
+
+    public class EntryPointParameters
+    {
+        public GameObject PlayerSpawnerPrefab { get; }
+        public GameObject NetworkedItemSpawnManager { get; }
+
+        public EntryPointParameters(GameObject playerSpawnerPrefab, GameObject networkedItemSpawnManager)
+        {
+            PlayerSpawnerPrefab = playerSpawnerPrefab;
+            NetworkedItemSpawnManager = networkedItemSpawnManager;
         }
     }
 }
