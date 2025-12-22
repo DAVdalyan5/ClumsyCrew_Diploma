@@ -18,6 +18,7 @@ public class GameplayLifetimeScope : LifetimeScope
 {
     [SerializeField] private GameObject playerSpawnerPrefab;
     [SerializeField] private ScatterConfigSO scatterConfigSO;
+    [SerializeField] private GameObject networkedItemSpawnManager;
 
     private LifetimeScope _parentScope;
 
@@ -41,7 +42,7 @@ public class GameplayLifetimeScope : LifetimeScope
     {
         builder.RegisterInstance(scatterConfigSO);
 
-        builder.RegisterEntryPoint<GameplayEntryPoint>(Lifetime.Singleton).WithParameter(playerSpawnerPrefab);
+        builder.RegisterEntryPoint<GameplayEntryPoint>(Lifetime.Singleton).WithParameter(new EntryPointParameters(playerSpawnerPrefab, networkedItemSpawnManager));
     }
 
     #region Helper Methods
