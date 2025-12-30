@@ -45,6 +45,10 @@ public class GameplayLifetimeScope : LifetimeScope
         builder.RegisterEntryPoint<GameplayEntryPoint>(Lifetime.Singleton).WithParameter(new EntryPointParameters(playerSpawnerPrefab, networkedItemSpawnManager));
     }
 
+    protected void ConfigureViews(IContainerBuilder builder)
+    {
+    }
+
     #region Helper Methods
     [Button]
     public void SpawnPlayer()

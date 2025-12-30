@@ -20,11 +20,11 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
         [SerializeField] private float spawnHeightOffset = 0.5f;
 
         [Header("Network Item Prefab")]
-        [Tooltip("The networked item prefab with NetworkedItemPickup component")]
+        [Tooltip("The networked item prefab with NetworkedItem component")]
         [SerializeField] private GameObject networkedItemPrefab;
 
         // Track all spawned items for cleanup
-        private readonly Dictionary<ulong, NetworkedItemPickup> _spawnedItems = new();
+        private readonly Dictionary<ulong, NetworkedItem> _spawnedItems = new();
 
         private void Awake()
         {
@@ -51,9 +51,9 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
 
         /// <summary>
         /// Register a pre-placed scene item with the manager.
-        /// Called by NetworkedItemPickup during OnNetworkSpawn for items already in scene.
+        /// Called by NetworkedItem during OnNetworkSpawn for items already in scene.
         /// </summary>
-        public void RegisterSceneItem(NetworkedItemPickup itemPickup)
+        public void RegisterSceneItem(NetworkedItem itemPickup)
         {
             if (!IsServer) return;
             if (itemPickup == null) return;
@@ -70,12 +70,12 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
         }
 
         /// <summary>
-        /// Find and register all NetworkedItemPickup objects already in the scene.
+        /// Find and register all NetworkedItem objects already in the scene.
         /// Called on server when NetworkedItemSpawnManager spawns.
         /// </summary>
         private void RegisterSceneItems()
         {
-            var sceneItems = FindObjectsByType<NetworkedItemPickup>(FindObjectsSortMode.None);
+            var sceneItems = FindObjectsByType<NetworkedItem>(FindObjectsSortMode.None);
             int registeredCount = 0;
 
             foreach (var item in sceneItems)
@@ -150,11 +150,11 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
                 return;
             }
 
-            // Get the NetworkedItemPickup component
-            var itemPickup = itemObject.GetComponent<NetworkedItemPickup>();
+            // Get the NetworkedItem component
+            var itemPickup = itemObject.GetComponent<NetworkedItem>();
             if (itemPickup == null)
             {
-                Debug.LogError("[NetworkedItemSpawnManager] Prefab missing NetworkedItemPickup component!");
+                Debug.LogError("[NetworkedItemSpawnManager] Prefab missing NetworkedItem component!");
                 Destroy(itemObject);
                 return;
             }

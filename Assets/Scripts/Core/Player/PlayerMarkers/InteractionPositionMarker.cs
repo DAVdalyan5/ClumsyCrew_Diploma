@@ -2,7 +2,7 @@
 
 namespace Assets.Scripts.Core.Player
 {
-    public class PushPositionMarker : MonoBehaviour
+    public class InteractionPositionMarker : MonoBehaviour
     {
     }
 }

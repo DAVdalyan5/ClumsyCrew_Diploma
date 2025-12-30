@@ -258,7 +258,7 @@ MonoBehaviour:
   meshRenderer: {fileID: 4006490184994540478}
   meshFilter: {fileID: 447090738274973756}
   playerTag: Player
-  autoPickup: 1
+  autoPickup: 0
   pickupKey: 101
   pickupCooldown: 0.5
   preplacedItemData: {fileID: 11400000, guid: ff659c3bb3270f4489dae3e10f36c73b, type: 2}

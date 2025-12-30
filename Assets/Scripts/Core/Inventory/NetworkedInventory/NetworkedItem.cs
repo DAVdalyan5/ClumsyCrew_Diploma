@@ -11,7 +11,7 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
     /// Clients see the same items in the same positions.
     /// </summary>
     [RequireComponent(typeof(NetworkObject))]
-    public class NetworkedItemPickup : NetworkBehaviour
+    public class NetworkedItem : NetworkBehaviour, ICollectable
     {
         [Header("Visual Settings")]
         [SerializeField] private GameObject visualRoot;
@@ -77,7 +77,7 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
                 if (!string.IsNullOrEmpty(itemId))
                 {
                     _itemId.Value = itemId;
-                    Debug.Log($"[NetworkedItemPickup] Initialized pre-placed item with ID: {itemId}");
+                    Debug.Log($"[NetworkedItem] Initialized pre-placed item with ID: {itemId}");
                 }
             }
 
@@ -94,7 +94,7 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
                 NetworkedItemSpawnManager.Instance.RegisterSceneItem(this);
             }
 
-            Debug.Log($"[NetworkedItemPickup] Spawned. ItemId: {_itemId.Value}, IsServer: {IsServer}");
+            Debug.Log($"[NetworkedItem] Spawned. ItemId: {_itemId.Value}, IsServer: {IsServer}");
         }
 
         public override void OnNetworkDespawn()
@@ -142,7 +142,7 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
         {
             if (!IsServer)
             {
-                Debug.LogWarning("[NetworkedItemPickup] InitializeItem called on client!");
+                Debug.LogWarning("[NetworkedItem] InitializeItem called on client!");
                 return;
             }
 
@@ -188,7 +188,7 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
             var itemData = ItemRegistry.GetItemData(itemId);
             if (itemData == null)
             {
-                Debug.LogWarning($"[NetworkedItemPickup] Item data not found for: {itemId}");
+                Debug.LogWarning($"[NetworkedItem] Item data not found for: {itemId}");
                 return;
             }
 
@@ -233,7 +233,7 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
                 }
             }
 
-            Debug.Log($"[NetworkedItemPickup] Updated visuals for: {itemId}");
+            Debug.Log($"[NetworkedItem] Updated visuals for: {itemId}");
         }
 
         private void OnTriggerEnter(Collider other)
@@ -256,7 +256,7 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
 
             if (autoPickup)
             {
-                TryPickup();
+                ExecutePickup();
             }
         }
 
@@ -273,19 +273,20 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
             }
         }
 
-        private void Update()
-        {
-            // Only the local player can trigger pickup with key
-            if (!autoPickup && _playerInRange && !_isPickedUp.Value)
-            {
-                if (Input.GetKeyDown(pickupKey))
-                {
-                    TryPickup();
-                }
-            }
-        }
+        //private void Update()
+        //{
+        //    // Only the local player can trigger pickup with key
+        //    if (!autoPickup && _playerInRange && !_isPickedUp.Value)
+        //    {
+        //        //change to input system
+        //        if (Input.GetKeyDown(pickupKey))
+        //        {
+        //            ExecutePickup();
+        //        }
+        //    }
+        //}
 
-        private void TryPickup()
+        public void ExecutePickup()
         {
             // Cooldown check
             if (Time.time - _lastPickupAttempt < pickupCooldown) return;
@@ -313,7 +314,30 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
             }
             else
             {
-                Debug.LogWarning("[NetworkedItemPickup] NetworkedItemSpawnManager not found!"); //her error
+                Debug.LogWarning("[NetworkedItem] NetworkedItemSpawnManager not found!"); //her error
+            }
+        }
+
+        public void ForcePickup(ulong playerClientId)
+        {
+            // Cooldown check
+            if (Time.time - _lastPickupAttempt < pickupCooldown) return;
+            _lastPickupAttempt = Time.time;
+
+            if (_isPickedUp.Value) return;
+
+            // Request pickup from server via manager
+            if (NetworkedItemSpawnManager.Instance != null)
+            {
+                var networkObject = GetComponent<NetworkObject>();
+                NetworkedItemSpawnManager.Instance.RequestPickupItem(
+                    networkObject.NetworkObjectId,
+                    playerClientId
+                );
+            }
+            else
+            {
+                Debug.LogWarning("[NetworkedItem] NetworkedItemSpawnManager not found!");
             }
         }
 
@@ -346,9 +370,9 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
     /// </summary>
     public class TriggerForwarder : MonoBehaviour
     {
-        private NetworkedItemPickup _parent;
+        private NetworkedItem _parent;
 
-        public void Initialize(NetworkedItemPickup parent)
+        public void Initialize(NetworkedItem parent)
         {
             _parent = parent;
         }

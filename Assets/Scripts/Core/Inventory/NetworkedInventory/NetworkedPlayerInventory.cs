@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.Core.Inventory.Models;
+using Assets.Scripts.Events.Inventory;
 using Easy.MessageHub;
 using HeistNSeek.Events;
-using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using VContainer;
@@ -69,6 +69,19 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
             {
                 // Notify local systems about inventory change
                 Debug.Log($"[NetworkedPlayerInventory] Inventory changed: {changeEvent.Type}");
+                
+                //TODO: Separte This, create extension to iterate throught this shit.
+                int inventoryPrice = 0;
+                foreach (var item in _syncedInventory)
+                {
+                    var itemData = ItemRegistry.GetItemData(item.ItemId.ToString());
+                    if (itemData != null)
+                    {
+                        inventoryPrice += itemData.price * item.Amount;
+                    }
+                }
+
+                _messageHub.Publish(new InventoryPriceChangedEvent(inventoryPrice));
             }
         }
 
@@ -336,36 +349,6 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
         {
             public string ItemId;
             public int Amount;
-        }
-    }
-
-    /// <summary>
-    /// Network-serializable inventory slot data
-    /// </summary>
-    public struct NetworkedInventorySlot : INetworkSerializable, IEquatable<NetworkedInventorySlot>
-    {
-        public FixedString64Bytes ItemId;
-        public int Amount;
-
-        public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
-        {
-            serializer.SerializeValue(ref ItemId);
-            serializer.SerializeValue(ref Amount);
-        }
-
-        public bool Equals(NetworkedInventorySlot other)
-        {
-            return ItemId.Equals(other.ItemId) && Amount == other.Amount;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is NetworkedInventorySlot other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(ItemId, Amount);
         }
     }
 }

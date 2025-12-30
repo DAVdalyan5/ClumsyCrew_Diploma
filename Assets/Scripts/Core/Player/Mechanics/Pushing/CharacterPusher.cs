@@ -37,7 +37,7 @@ namespace HeistNSeek.Core
         private void Awake()
         {
             collider = GetComponent<Collider>();
-            pusherPositionTransform = GetComponentInChildren<PushPositionMarker>().transform;
+            pusherPositionTransform = GetComponentInChildren<InteractionPositionMarker>().transform;
             ownerPlayerController = GetComponentInParent<PlayerController>();
 
             initialLocalPosition = transform.localPosition;

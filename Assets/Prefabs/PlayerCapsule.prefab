@@ -20,6 +20,7 @@ GameObject:
   - component: {fileID: 606631551863734566}
   - component: {fileID: 9059837651824169573}
   - component: {fileID: 328432537749625398}
+  - component: {fileID: 6855587266865313832}
   m_Layer: 6
   m_Name: PlayerCapsule
   m_TagString: Player
@@ -232,7 +233,6 @@ MonoBehaviour:
   - {fileID: 7807632608547898543}
   ragdollHierarchyPart: {fileID: 4023448297963553162}
   ragdollPositionRoot: {fileID: 6907584355712633590}
-  ragdollNetworkSync: {fileID: 0}
 --- !u!114 &4091347969911463063
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -364,6 +364,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.Inventory.NetworkedInventory.NetworkedItemDropper
   ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &6855587266865313832
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 91792620953967996}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7071b98df27de5647b5ee87b51ae6391, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.Core.Player.NetworkPlayerInventory.NetworkedItemCollector
+  ShowTopMostFoldoutHeaderGroup: 1
+  pickupKey: 101
+  maxPickupDistance: 20
 --- !u!1 &1956041386944301305
 GameObject:
   m_ObjectHideFlags: 0
@@ -633,7 +648,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.Core.Player.Character.CollisionDetector
   highSpeedThreshold: 5
-  pushImpactModifier: 2
+  pushImpactModifier: 10
 --- !u!1 &6221651706007909808
 GameObject:
   m_ObjectHideFlags: 0
