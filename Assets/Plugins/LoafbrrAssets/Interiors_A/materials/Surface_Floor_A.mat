@@ -62,7 +62,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _AlphaClip: 1
-    - _AlphaClipping: 0.5
+    - _AlphaClipping: 0.42
     - _AlphaToMask: 1
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
@@ -71,7 +71,7 @@ Material:
     - _DstBlend: 0
     - _DstBlendAlpha: 0
     - _Metallic: 0
-    - _NormalStr: 1
+    - _NormalStr: 0.2
     - _QueueControl: 0
     - _QueueOffset: 0
     - _ReceiveShadows: 1
