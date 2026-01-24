@@ -1,11 +1,12 @@
 using Assets.Scripts.Events.Inventory;
 using Assets.Scripts.Infrastructure.EasyMessageHub;
 using Easy.MessageHub;
+using HeistNSeek.UI;
 using TMPro;
 using UnityEngine;
 using VContainer;
 
-public class InventoryPriceView : MonoBehaviour
+public class GameplayView : UIView
 {
     [SerializeField] TMP_Text textBox;
     private IMessageHub _messageHub;
