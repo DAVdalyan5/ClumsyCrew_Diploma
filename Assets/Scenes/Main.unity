@@ -8326,6 +8326,7 @@ MonoBehaviour:
   - {fileID: 1974675958}
   - {fileID: 164596465}
   - {fileID: 50836249}
+  - {fileID: 2127339140}
   playerSpawnerPrefab: {fileID: 78505982812229185, guid: 5873d64c02e199346a56927145c3b3ec, type: 3}
   scatterConfigSO: {fileID: 11400000, guid: 3b84e00c514ab43489986757786a7ae3, type: 2}
   networkedItemSpawnManager: {fileID: 2043999773559601908, guid: 34702a674c1d9594db4242b64456849c, type: 3}

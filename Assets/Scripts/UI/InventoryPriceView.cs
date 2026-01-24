@@ -14,10 +14,12 @@ public class InventoryPriceView : MonoBehaviour
     public void Init(IMessageHub messageHub)
     {
         _messageHub = messageHub;
+        Debug.Log("---AAAA");
     }
 
     void Start()
     {
+        Debug.Log("---BBB");
         _messageHub.SubscribeSafe<InventoryPriceChangedEvent>(this, message =>
         {
             textBox.text = message.NewPrice.ToString();
