@@ -28,6 +28,7 @@ namespace cowsins
 
 
         public static PlayerActions inputActions;
+        private static int activeInputManagers = 0;
 
         private PlayerDependencies playerDependencies;
 
@@ -55,6 +56,9 @@ namespace cowsins
 
         private void OnEnable()
         {
+            if (activeInputManagers < 0) activeInputManagers = 0;
+            activeInputManagers++;
+
             Init();
 
             inputActions.GameControls.Crouching.started += crouchStarted;
@@ -117,7 +121,15 @@ namespace cowsins
 
             inputActions.UI.Back.started -= ctx => OnBackUI?.Invoke();
 
-            inputActions.Disable();
+            // IMPORTANT (multiplayer):
+            // InputManager.inputActions is static and shared per-process.
+            // Multiple player prefabs may contain InputManager instances (e.g., remote proxies).
+            // Disabling the static asset when any proxy is disabled will break local player input (WASD).
+            activeInputManagers = Mathf.Max(0, activeInputManagers - 1);
+            if (activeInputManagers == 0)
+            {
+                inputActions.Disable();
+            }
         }
         private void Update()
         {
