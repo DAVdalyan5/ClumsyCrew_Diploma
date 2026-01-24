@@ -4,6 +4,7 @@ using Easy.MessageHub;
 using HeistNSeek.Core;
 using HeistNSeek.Core.Inventory.SessionInventory;
 using HeistNSeek.Core.Player;
+using HeistNSeek.UI;
 using NaughtyAttributes;
 using StarterAssets;
 using System;
@@ -43,10 +44,6 @@ public class GameplayLifetimeScope : LifetimeScope
         builder.RegisterInstance(scatterConfigSO);
 
         builder.RegisterEntryPoint<GameplayEntryPoint>(Lifetime.Singleton).WithParameter(new EntryPointParameters(playerSpawnerPrefab, networkedItemSpawnManager));
-    }
-
-    protected void ConfigureViews(IContainerBuilder builder)
-    {
     }
 
     #region Helper Methods

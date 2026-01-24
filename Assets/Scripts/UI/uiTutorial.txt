@@ -1,0 +1,8 @@
+﻿To add a view:
+1. Create view script in `views/` directory.
+2. Should inherit UIView base class
+3. Add that view in UIViewManager list.
+
+To navigate to a view:
+1. Use the navigation method provided by ViewSelector
+	a. Throw event ChangeViewEvent with view as parameter and data as optional to pass to the view.
