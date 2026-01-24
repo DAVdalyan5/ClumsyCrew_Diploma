@@ -55,7 +55,11 @@ namespace Assets.Scripts.Runtime.Core
 
             Vector3 spawnPosition = Vector3.zero;
 
-            playerInstance = container.Instantiate(playerPrefab, spawnPosition, Quaternion.identity);
+            // IMPORTANT (Netcode):
+            // VContainer's 3-arg Instantiate(prefab, pos, rot) may temporarily parent the instance under the LifetimeScope
+            // and then SetParent(null). Netcode throws SpawnStateException if a NetworkObject is reparented before Spawn().
+            // Use the overload with explicit parent = null to avoid any pre-spawn parenting.
+            playerInstance = container.Instantiate(playerPrefab, spawnPosition, Quaternion.identity, null);
             var networkObject = playerInstance.GetComponent<NetworkObject>();
 
             // Client-side injection will be handled by ClientSidePlayerConfigurator.OnNetworkSpawn

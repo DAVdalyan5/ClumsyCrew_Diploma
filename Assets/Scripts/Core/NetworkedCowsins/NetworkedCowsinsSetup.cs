@@ -176,13 +176,11 @@ namespace HeistNSeek.Core.NetworkedCowsins.Editor
             // Root is spawned by PlayerSpawner -> keep NetworkObject ONLY on root to avoid Netcode reparent-before-spawn exceptions.
             EnsureComponent<NetworkObject>(prefabRoot);
 
+            // Remove accidental nested NetworkObjects / NetworkTransforms anywhere under the prefab (children must not have them)
+            RemoveNetworkComponentsFromChildren(prefabRoot.transform);
+
             var player = FindChildByName(prefabRoot.transform, "Player");
             if (player == null) throw new Exception("Could not find child 'Player'. Your prefab hierarchy differs from expected.");
-
-            // Remove accidental nested NetworkObjects / NetworkTransforms on children (they cause SpawnStateException on instantiate).
-            RemoveIfExists<NetworkObject>(player.gameObject);
-            RemoveIfExists<NetworkTransform>(player.gameObject);
-            RemoveIfExists<OwnerAuthoritativeNetworkTransform>(player.gameObject);
 
             // Owner-authoritative transform sync on ROOT (clients move their own player; root follows player via NetworkedCowsinsRootSync).
             var ownerNt = EnsureComponent<OwnerAuthoritativeNetworkTransform>(prefabRoot);
@@ -245,9 +243,25 @@ namespace HeistNSeek.Core.NetworkedCowsins.Editor
 
             // Fixups for Cowsins scripts that NRE on OnEnable before Start
             EnsureComponent<CowsinsNetcodeFixups>(player.gameObject);
+            EnsureComponent<CowsinsPreEnableGuard>(player.gameObject);
 
             // Ensure PlayerDependencies serialized references are wired (prevents CameraEffects NRE).
             WirePlayerDependencies(player.gameObject, prefabRoot);
+        }
+
+        private static void RemoveNetworkComponentsFromChildren(Transform root)
+        {
+            // Remove from children only (not root itself)
+            for (int i = 0; i < root.childCount; i++)
+            {
+                var child = root.GetChild(i);
+
+                RemoveIfExists<NetworkObject>(child.gameObject);
+                RemoveIfExists<NetworkTransform>(child.gameObject);
+                RemoveIfExists<OwnerAuthoritativeNetworkTransform>(child.gameObject);
+
+                RemoveNetworkComponentsFromChildren(child);
+            }
         }
 
         private static void WirePlayerDependencies(GameObject playerGo, GameObject prefabRoot)
