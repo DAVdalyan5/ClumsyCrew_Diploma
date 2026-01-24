@@ -31,7 +31,12 @@ namespace Assets.Scripts.UI.Base
 
         public void Start()
         {
-            _messageHub.SubscribeSafe<ChangeViewEvent>(this, p => _manager.Show(p.ViewType, p.Data));
+            _messageHub.SubscribeSafe<ChangeViewEvent>(this, m => ChangeCurrentView(m));
+        }
+
+        private void ChangeCurrentView(ChangeViewEvent m)
+        {
+            _manager.Show(m.ViewType, m.Data);
         }
     }
 }
