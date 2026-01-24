@@ -7,7 +7,7 @@ namespace HeistNSeek.Core.NetworkedCowsins
     /// <summary>
     /// Synchronizes Cowsins player states across the network
     /// </summary>
-    [RequireComponent(typeof(PlayerMovement))]
+    [DisallowMultipleComponent]
     public class NetworkedCowsinsStateSync : NetworkBehaviour
     {
         [Header("State Synchronization")]
@@ -33,6 +33,10 @@ namespace HeistNSeek.Core.NetworkedCowsins
         [Tooltip("How often to sync states (times per second)")]
         [SerializeField] private float syncRate = 10f;
         
+        [Header("References")]
+        [Tooltip("Cowsins PlayerMovement (usually on the 'Player' child). If null we auto-find in children.")]
+        [SerializeField] private PlayerMovement playerMovement;
+
         private PlayerMovement _playerMovement;
         private float _lastSyncTime;
         
@@ -83,7 +87,8 @@ namespace HeistNSeek.Core.NetworkedCowsins
         
         private void Awake()
         {
-            _playerMovement = GetComponent<PlayerMovement>();
+            _playerMovement = playerMovement != null ? playerMovement : GetComponentInChildren<PlayerMovement>(true);
+            if (playerMovement == null) playerMovement = _playerMovement;
             
             if (_playerMovement == null)
             {

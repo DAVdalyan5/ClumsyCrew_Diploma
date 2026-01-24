@@ -151,6 +151,8 @@ namespace HeistNSeek.Core.NetworkedCowsins.Editor
             var root = PrefabUtility.LoadPrefabContents(path);
             try
             {
+                // Validate + cleanup first (matches runtime safety net, but we want the prefab correct).
+                CleanupNestedNetworking(root);
                 SetupPrefabContents(root);
                 PrefabUtility.SaveAsPrefabAsset(root, path);
                 Debug.Log($"[NetworkedCowsinsSetup] Setup complete: {path}");
@@ -177,7 +179,7 @@ namespace HeistNSeek.Core.NetworkedCowsins.Editor
             EnsureComponent<NetworkObject>(prefabRoot);
 
             // Remove accidental nested NetworkObjects / NetworkTransforms anywhere under the prefab (children must not have them)
-            RemoveNetworkComponentsFromChildren(prefabRoot.transform);
+            CleanupNestedNetworking(prefabRoot);
 
             var player = FindChildByName(prefabRoot.transform, "Player");
             if (player == null) throw new Exception("Could not find child 'Player'. Your prefab hierarchy differs from expected.");
@@ -238,8 +240,11 @@ namespace HeistNSeek.Core.NetworkedCowsins.Editor
                 soPc2.ApplyModifiedPropertiesWithoutUndo();
             }
 
-            // Optional state sync (lives with PlayerMovement) - keep on Player object
-            EnsureComponent<NetworkedCowsinsStateSync>(player.gameObject);
+            // State sync must live on ROOT (NetworkBehaviour requires a NetworkObject; nested NetworkObjects are not supported on spawned prefabs)
+            var stateSync = EnsureComponent<NetworkedCowsinsStateSync>(prefabRoot);
+            var soState = new SerializedObject(stateSync);
+            soState.FindProperty("playerMovement").objectReferenceValue = pm;
+            soState.ApplyModifiedPropertiesWithoutUndo();
 
             // Fixups for Cowsins scripts that NRE on OnEnable before Start
             EnsureComponent<CowsinsNetcodeFixups>(player.gameObject);
@@ -249,19 +254,61 @@ namespace HeistNSeek.Core.NetworkedCowsins.Editor
             WirePlayerDependencies(player.gameObject, prefabRoot);
         }
 
-        private static void RemoveNetworkComponentsFromChildren(Transform root)
+        private static void CleanupNestedNetworking(GameObject prefabRoot)
         {
-            // Remove from children only (not root itself)
-            for (int i = 0; i < root.childCount; i++)
+            // This mirrors the runtime cleanup we had in PlayerSpawner, but we do it once in-editor so the prefab is correct.
+            // Rules for spawned player prefab:
+            // - Exactly one NetworkObject on the root
+            // - No NetworkBehaviours and no NetworkObject on any child
+            var rootTransform = prefabRoot.transform;
+            var rootNo = prefabRoot.GetComponent<NetworkObject>();
+
+            int removedNetworkObjects = 0;
+            int removedNetworkBehaviours = 0;
+            int removedNetworkTransforms = 0;
+
+            var transforms = prefabRoot.GetComponentsInChildren<Transform>(true);
+            for (int i = 0; i < transforms.Length; i++)
             {
-                var child = root.GetChild(i);
+                var t = transforms[i];
+                if (t == null || t == rootTransform) continue;
 
-                RemoveIfExists<NetworkObject>(child.gameObject);
-                RemoveIfExists<NetworkTransform>(child.gameObject);
-                RemoveIfExists<OwnerAuthoritativeNetworkTransform>(child.gameObject);
+                var go = t.gameObject;
 
-                RemoveNetworkComponentsFromChildren(child);
+                // Remove NetworkBehaviours from children (they would require a child NetworkObject -> not supported here).
+                var nbs = go.GetComponents<NetworkBehaviour>();
+                if (nbs != null && nbs.Length > 0)
+                {
+                    for (int j = 0; j < nbs.Length; j++)
+                    {
+                        var nb = nbs[j];
+                        if (nb == null) continue;
+                        removedNetworkBehaviours++;
+                        Object.DestroyImmediate(nb, true);
+                    }
+                }
+
+                // Remove any network transform flavours from children.
+                if (go.GetComponent<NetworkTransform>() != null) { removedNetworkTransforms++; RemoveIfExists<NetworkTransform>(go); }
+                if (go.GetComponent<OwnerAuthoritativeNetworkTransform>() != null) { removedNetworkTransforms++; RemoveIfExists<OwnerAuthoritativeNetworkTransform>(go); }
+
+                // Remove child NetworkObject last (after NetworkBehaviours are gone).
+                var childNo = go.GetComponent<NetworkObject>();
+                if (childNo != null && childNo != rootNo)
+                {
+                    removedNetworkObjects++;
+                    Object.DestroyImmediate(childNo, true);
+                }
             }
+
+            // Final sanity: if root NetworkObject somehow ended up missing, restore it.
+            if (prefabRoot.GetComponent<NetworkObject>() == null)
+            {
+                EnsureComponent<NetworkObject>(prefabRoot);
+            }
+
+            // Lightweight summary in console for visibility during setup.
+            Debug.Log($"[NetworkedCowsinsSetup] Cleanup nested networking: removed {removedNetworkObjects} child NetworkObject(s), {removedNetworkBehaviours} child NetworkBehaviour(s), {removedNetworkTransforms} child NetworkTransform(s).");
         }
 
         private static void WirePlayerDependencies(GameObject playerGo, GameObject prefabRoot)

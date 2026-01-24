@@ -7193,18 +7193,15 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4612824604642224938, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6443974139965357337}
-    - targetCorrespondingSourceObject: {fileID: 4612824603642630890, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
+    - targetCorrespondingSourceObject: {fileID: 4612824604642224938, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 3751514052311712912}
-    - targetCorrespondingSourceObject: {fileID: 4612824603642630890, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 6429217191058570443}
-    - targetCorrespondingSourceObject: {fileID: 4612824603642630890, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 5246904179375507603}
+      addedObject: {fileID: 6124408511337917785}
     - targetCorrespondingSourceObject: {fileID: 4612824603642630890, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1308802268738642336}
+    - targetCorrespondingSourceObject: {fileID: 4612824603642630890, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5287447855001943848}
     - targetCorrespondingSourceObject: {fileID: 4965469476012000205, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6218912840943283553}
@@ -7326,6 +7323,27 @@ MonoBehaviour:
   - {fileID: 1195374611263023442}
   ownerOnlyInput: 1
   ownerOnlyPhysics: 1
+--- !u!114 &6124408511337917785
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1195374611476548383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 313aa0427501dc241a398a18fb9dc1db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.NetworkedCowsins.NetworkedCowsinsStateSync
+  ShowTopMostFoldoutHeaderGroup: 1
+  syncGroundedState: 1
+  syncCrouchingState: 1
+  syncSlidingState: 1
+  syncClimbingState: 1
+  syncWallRunningState: 1
+  syncDashingState: 1
+  syncRate: 10
+  playerMovement: {fileID: 1195374612628124382}
 --- !u!4 &1195374612628124357 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4612824603642630896, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
@@ -7358,72 +7376,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 4612824603642630890, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
   m_PrefabInstance: {fileID: 5805941918662991925}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &3751514052311712912
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1195374612628124383}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 0
-  InScenePlacedSourceGlobalObjectIdHash: 0
-  DeferredDespawnTick: 0
-  Ownership: 1
-  AlwaysReplicateAsRoot: 0
-  SynchronizeTransform: 1
-  ActiveSceneSynchronization: 0
-  SceneMigrationSynchronization: 1
-  SpawnWithObservers: 1
-  DontDestroyWithOwner: 0
-  AutoObjectParentSync: 1
-  SyncOwnerTransformWhenParented: 1
-  AllowOwnerToParent: 0
---- !u!114 &6429217191058570443
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1195374612628124383}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 868a59f69e9ea9846b0e72bcf21adbc3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.NetworkedCowsins.NetworkedCowsinsPlayerController
-  ShowTopMostFoldoutHeaderGroup: 1
-  playerMovement: {fileID: 1195374612628124382}
-  networkedInputManager: {fileID: 6218912840943283553}
-  movingTransform: {fileID: 0}
-  ownerOnlyObjects:
-  - {fileID: 1195374612638355300}
-  - {fileID: 1195374611263023442}
-  ownerOnlyInput: 1
-  ownerOnlyPhysics: 1
---- !u!114 &5246904179375507603
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1195374612628124383}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 313aa0427501dc241a398a18fb9dc1db, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.NetworkedCowsins.NetworkedCowsinsStateSync
-  ShowTopMostFoldoutHeaderGroup: 1
-  syncGroundedState: 1
-  syncCrouchingState: 1
-  syncSlidingState: 1
-  syncClimbingState: 1
-  syncWallRunningState: 1
-  syncDashingState: 1
-  syncRate: 10
 --- !u!114 &1308802268738642336
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7436,6 +7388,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ecb72d8782933894ea64413ba032c02c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.NetworkedCowsins.CowsinsNetcodeFixups
+--- !u!114 &5287447855001943848
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1195374612628124383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24306d6a582eb274fb5b73c467bc691f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.NetworkedCowsins.CowsinsPreEnableGuard
 --- !u!1 &1195374612638355300 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4612824603648159569, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
