@@ -85,6 +85,8 @@ namespace HeistNSeek.Core.NetworkedCowsins
                     Debug.Log($"[NetworkedCowsinsPlayerController] Disabling input manager for non-owner client");
                     networkedInputManager.SetInputEnabled(false);
                 }
+
+                DisableNonOwnerLocalSystems();
                 
                 // Non-owner clients: disable physics if configured
                 if (ownerOnlyPhysics && playerMovement != null)
@@ -122,6 +124,20 @@ namespace HeistNSeek.Core.NetworkedCowsins
 
                 playerMovement.enabled = true;
             }
+        }
+
+        private void DisableNonOwnerLocalSystems()
+        {
+            // These systems expect local camera/input and will NRE on remote instances.
+            var camFx = GetComponentsInChildren<cowsins.CameraEffects>(true);
+            var states = GetComponentsInChildren<cowsins.PlayerStates>(true);
+            var interact = GetComponentsInChildren<cowsins.InteractManager>(true);
+            var pause = GetComponentsInChildren<cowsins.PauseMenu>(true);
+
+            foreach (var c in camFx) if (c != null) c.enabled = false;
+            foreach (var c in states) if (c != null) c.enabled = false;
+            foreach (var c in interact) if (c != null) c.enabled = false;
+            foreach (var c in pause) if (c != null) c.enabled = false;
         }
 
         private void ApplyOwnerOnlyObjects()

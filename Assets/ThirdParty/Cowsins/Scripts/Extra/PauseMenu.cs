@@ -58,7 +58,8 @@ namespace cowsins
 
         private void OnDisable()
         {
-            inputManager.OnTogglePause -= TogglePause;
+            if (inputManager != null)
+                inputManager.OnTogglePause -= TogglePause;
         }
 
         private IEnumerator HandlePause()

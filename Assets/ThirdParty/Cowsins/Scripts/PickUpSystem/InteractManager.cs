@@ -1,5 +1,5 @@
 /// <summary>
-/// This script belongs to cowsins™ as a part of the cowsins´ FPS Engine. All rights reserved. 
+/// This script belongs to cowsins? as a part of the cowsins? FPS Engine. All rights reserved. 
 /// </summary>
 using UnityEngine;
 using UnityEngine.Events;
@@ -83,6 +83,8 @@ namespace cowsins
 
         public InteractEvents userEvents;
 
+        private bool _agentSubscribedSelectWeapon;
+
         private void OnEnable()
         {
             // Subscribe to the event
@@ -92,7 +94,7 @@ namespace cowsins
                 else UIEvents.onAttachmentUIElementClicked += DeactivateCurrentAttachment;
             }
 
-            weaponEvents.Events.OnSelectWeapon.AddListener(ResetInteractable);
+            TrySubscribeSelectWeapon();
         }
 
         private void Start()
@@ -108,8 +110,11 @@ namespace cowsins
             mainCamera = weaponReferences.MainCamera;
             inputManager = playerDependencies.InputManager;
 
+            // In networked scenarios, OnEnable can run before Start, so ensure subscriptions are applied now too.
+            TrySubscribeSelectWeapon();
+
             // Listen for the drop event from the InputManager
-            if(canDrop)
+            if(canDrop && inputManager != null)
                 inputManager.OnDrop += HandleDrop;
         }
 
@@ -119,10 +124,28 @@ namespace cowsins
             // Unsubscribe to the event
             UIEvents.onAttachmentUIElementClicked -= DropAttachment;
             UIEvents.onAttachmentUIElementClicked -= DeactivateCurrentAttachment;
-            if (canDrop) 
+            if (canDrop && inputManager != null) 
                 inputManager.OnDrop -= HandleDrop;
 
+            TryUnsubscribeSelectWeapon();
+        }
+
+        private void TrySubscribeSelectWeapon()
+        {
+            if (_agentSubscribedSelectWeapon) return;
+            if (weaponEvents == null || weaponEvents.Events == null) return;
+
+            weaponEvents.Events.OnSelectWeapon.AddListener(ResetInteractable);
+            _agentSubscribedSelectWeapon = true;
+        }
+
+        private void TryUnsubscribeSelectWeapon()
+        {
+            if (!_agentSubscribedSelectWeapon) return;
+            if (weaponEvents == null || weaponEvents.Events == null) { _agentSubscribedSelectWeapon = false; return; }
+
             weaponEvents.Events.OnSelectWeapon.RemoveListener(ResetInteractable);
+            _agentSubscribedSelectWeapon = false;
         }
 
         private void Update()

@@ -45,6 +45,9 @@ namespace cowsins
         private Vector3 origPos;
         private Quaternion origRot;
 
+        private bool _agentInitialized;
+        private bool _agentShootShakeSubscribed;
+
         public void Initialize(PlayerDependencies playerDependencies)
         {
             player = playerDependencies.PlayerMovementState;
@@ -54,18 +57,47 @@ namespace cowsins
             this.inputManager = playerDependencies.InputManager;
 
             playerDependencies.PlayerMovementEvents.Events.OnLand.AddListener(LandingShake);
+
+            _agentInitialized = true;
+
+            // If OnEnable ran before Initialize, subscribe now.
+            TryCaptureOriginalTransforms();
+            TrySubscribeShootShake();
         }
 
         private void OnEnable()
         {
+            // In networked instantiation, OnEnable can run before dependencies are wired via PlayerDependencies.Awake().
+            // If not initialized yet, skip; Initialize() will subscribe later.
+            if (!_agentInitialized) return;
+
+            TryCaptureOriginalTransforms();
+            TrySubscribeShootShake();
+        }
+
+        private void TryCaptureOriginalTransforms()
+        {
+            if (playerCamera == null) return;
             origPos = playerCamera.localPosition;
             origRot = playerCamera.localRotation;
+        }
+
+        private void TrySubscribeShootShake()
+        {
+            if (_agentShootShakeSubscribed) return;
+            if (weaponEvents == null || weaponEvents.Events == null) return;
 
             weaponEvents.Events.OnShootShake.AddListener(ShootShake);
+            _agentShootShakeSubscribed = true;
         }
+
         private void OnDisable()
         {
-            weaponEvents.Events.OnShootShake.RemoveListener(ShootShake);
+            if (weaponEvents != null && weaponEvents.Events != null && _agentShootShakeSubscribed)
+            {
+                weaponEvents.Events.OnShootShake.RemoveListener(ShootShake);
+                _agentShootShakeSubscribed = false;
+            }
         }
 
 

@@ -25,7 +25,7 @@ namespace cowsins
 
         // We need to satisfy the required interfaces
         public PlayerOrientation Orientation { get { return orientation; } set { orientation = value; } }
-        public bool IsIdle => rb.linearVelocity.magnitude < .2f;
+        public bool IsIdle => rb == null || rb.linearVelocity.magnitude < .2f;
         public float CurrentSpeed { get; set; }
         public float RunSpeed => playerSettings.runSpeed;
         public float WalkSpeed => playerSettings.walkSpeed;
@@ -87,13 +87,20 @@ namespace cowsins
         #endregion
 
         #region Basic
+        private void Awake()
+        {
+            // Ensure critical refs are available even if Start never runs (e.g., component disabled early for non-owners).
+            GetDependencies();
+        }
+
         private void OnEnable() => Events.OnRespawn.AddListener(TeleportPlayer);
 
         private void OnDisable() => Events.OnRespawn.RemoveListener(TeleportPlayer);
 
         private void Start()
         {
-            GetDependencies();
+            // GetDependencies() is also called in Awake; keep this as a safety net.
+            if (rb == null || playerDependencies == null) GetDependencies();
             playerSettings.events.OnSpawn.Invoke();
 
             inputManager.SetPlayerInputModes(playerSettings);
