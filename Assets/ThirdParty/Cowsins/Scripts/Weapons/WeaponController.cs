@@ -2,6 +2,7 @@
 /// This script belongs to cowsins™ as a part of the cowsins´ FPS Engine. All rights reserved. 
 /// </summary>
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 #if UNITY_EDITOR
@@ -79,16 +80,21 @@ namespace cowsins
             };
 
             InitializeBehaviours();
-            weaponInventoryBehaviour.GetInitialWeapons();
-
-            InitialSettings();
-
-            Events.OnInitializeWeaponSystem?.Invoke(settings.inventorySize);
 
             interactEvents.Events.OnDrop.AddListener(ReleaseCurrentWeapon);
-
             playerMovementEvents.Events.OnCrouchStart.AddListener(SetCrouchCamShakeMultiplier);
             playerMovementEvents.Events.OnCrouchStop.AddListener(ResetCrouchCamShakeMultiplier);
+
+            // Defer so UIController and other subscribers have run Awake/Start (avoids NRE when initial weapons trigger SetInventoryUISlotWeapon)
+            StartCoroutine(DeferredWeaponSystemInit());
+        }
+
+        private IEnumerator DeferredWeaponSystemInit()
+        {
+            yield return null;
+            Events.OnInitializeWeaponSystem?.Invoke(settings.inventorySize);
+            weaponInventoryBehaviour.GetInitialWeapons();
+            InitialSettings();
         }
 
 

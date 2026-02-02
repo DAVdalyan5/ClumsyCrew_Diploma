@@ -6142,6 +6142,14 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 0}
     - target: {fileID: 4612824603642630899, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
+      propertyPath: settings.initialWeapons.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4612824603642630899, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
+      propertyPath: 'settings.initialWeapons.Array.data[0]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 80da6c1185b9c6744b9452ea80dee4b3, type: 2}
+    - target: {fileID: 4612824603642630899, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: events.OnShoot.m_PersistentCalls.m_Calls.Array.size
       value: 1
       objectReference: {fileID: 0}
@@ -7288,6 +7296,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4612824604642224938, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6124408511337917785}
+    - targetCorrespondingSourceObject: {fileID: 4612824604642224938, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3732310422485037533}
     - targetCorrespondingSourceObject: {fileID: 4612824603642630890, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1308802268738642336}
@@ -7325,7 +7336,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 88982089
+  GlobalObjectIdHash: 581361915
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -7441,6 +7452,20 @@ MonoBehaviour:
   syncDashingState: 1
   syncRate: 10
   playerMovement: {fileID: 1195374612628124382}
+--- !u!114 &3732310422485037533
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1195374611476548383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c202b953840af546bdb7798ad00cb85, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.NetworkedCowsins.NetworkedHealth
+  ShowTopMostFoldoutHeaderGroup: 1
+  maxHealth: 100
 --- !u!4 &1195374612628124357 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4612824603642630896, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}

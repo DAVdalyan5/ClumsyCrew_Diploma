@@ -250,6 +250,9 @@ namespace HeistNSeek.Core.NetworkedCowsins.Editor
             EnsureComponent<CowsinsNetcodeFixups>(player.gameObject);
             EnsureComponent<CowsinsPreEnableGuard>(player.gameObject);
 
+            // Networked health so Cowsins weapon hits apply damage over the network (IDamageable on root).
+            EnsureComponent<NetworkedHealth>(prefabRoot);
+
             // Ensure PlayerDependencies serialized references are wired (prevents CameraEffects NRE).
             WirePlayerDependencies(player.gameObject, prefabRoot);
         }
@@ -450,6 +453,8 @@ namespace HeistNSeek.Core.NetworkedCowsins.Editor
                 report.AppendLine($"   - Root OwnerAuthoritativeNetworkTransform: {(rootNetworkTransform != null ? "✓ Present" : "✗ Missing")}");
                 report.AppendLine($"   - Root NetworkedCowsinsRootSync: {(rootSync != null ? "✓ Present" : "✗ Missing")}");
                 report.AppendLine($"   - Root NetworkedCowsinsPlayerController: {(playerController != null ? "✓ Present" : "✗ Missing")}");
+                var networkedHealth = prefab.GetComponent<NetworkedHealth>();
+                report.AppendLine($"   - Root NetworkedHealth (weapon damage): {(networkedHealth != null ? "✓ Present" : "○ Optional")}");
                 report.AppendLine($"   - Player NetworkObject: {(playerNetworkObject != null ? "⚠ Present (should NOT be on child)" : "✓ Not present")}");
                 report.AppendLine($"   - Player NetworkedCowsinsStateSync: {(stateSync != null ? "✓ Present" : "✗ Missing")}");
                 report.AppendLine($"   - Player CowsinsNetcodeFixups: {(fixups != null ? "✓ Present" : "✗ Missing")}");

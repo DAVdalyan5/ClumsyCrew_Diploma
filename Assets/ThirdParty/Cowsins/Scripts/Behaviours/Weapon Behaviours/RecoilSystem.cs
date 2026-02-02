@@ -37,7 +37,7 @@ namespace cowsins
         public void Tick()
         {
             // Relax back to 0 if weapon is null or the current weapon does not apply recoil
-            if (weapon == null || !weapon.applyRecoil || id.bulletsLeftInMagazine <= 0)
+            if (weapon == null || id == null || !weapon.applyRecoil || id.bulletsLeftInMagazine <= 0)
             {
                 recoilPitchOffset = Mathf.Lerp(recoilPitchOffset, 0, 3 * Time.deltaTime);
                 recoilYawOffset = Mathf.Lerp(recoilYawOffset, 0, 3 * Time.deltaTime);

@@ -58,6 +58,7 @@ namespace cowsins
         }
         public override void CheckSwitchState()
         {
+            if (weaponController.Weapon == null || weaponController.Id == null) return;
             if (inputManager.Shooting)
             {
                 if (weaponController.Weapon.audioSFX.emptyMagShoot != null && weaponController.Id.bulletsLeftInMagazine <= 0 && !holdingEmpty)
@@ -94,11 +95,13 @@ namespace cowsins
 
         private bool CanSwitchToShoot(WeaponController controller)
         {
+            if (controller == null || controller.Weapon == null || controller.Id == null) return false;
             return !(_ctx.holding && controller.Weapon.shootMethod == ShootingMethod.Press) && controller.Id.bulletsLeftInMagazine > 0;
         }
 
         private bool CanSwitchToReload(WeaponController controller)
         {
+            if (controller == null || controller.Weapon == null || controller.Id == null) return false;
             return inputManager.Reloading && (int)controller.Weapon.shootStyle != 2 && controller.Id.bulletsLeftInMagazine < controller.Id.magazineSize && controller.Id.totalBullets > 0
                         || controller.Id.bulletsLeftInMagazine <= 0 && controller.settings.autoReload && (int)controller.Weapon.shootStyle != 2 && controller.Id.bulletsLeftInMagazine < controller.Id.magazineSize && controller.Id.totalBullets > 0;
         }

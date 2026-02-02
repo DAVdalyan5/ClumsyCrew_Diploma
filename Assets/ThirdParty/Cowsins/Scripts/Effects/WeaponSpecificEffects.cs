@@ -1,5 +1,5 @@
 /// <summary>
-/// This script belongs to cowsins� as a part of the cowsins� FPS Engine. All rights reserved. 
+/// This script belongs to cowsinsÂ as a part of the cowsinsÂ´ FPS Engine. All rights reserved. 
 /// </summary>
 using cowsins;
 using UnityEngine;
@@ -111,7 +111,7 @@ namespace cowsins
 
         private void Update()
         {
-            if (!playerControl.IsControllable) return;
+            if (playerControl == null || !playerControl.IsControllable) return;
             sway?.Invoke();
         }
         #region Weapon Sway Methods

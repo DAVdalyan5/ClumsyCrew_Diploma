@@ -103,6 +103,9 @@ Compatible with:
 - Animation controllers
 - UI systems
 
+### Weapons and shooting
+The networked Cowsins controller **supports the FPS engine weapon system** (WeaponController, shooting, reload, aim). Weapons and shooting work locally for the owner. For **networked damage to other players**, add **NetworkedHealth** on the player root (implements Cowsins `IDamageable`); the setup menu can add it automatically. See **WEAPON_SYSTEM_INTEGRATION.md** for details.
+
 ## Network Architecture
 
 ### Ownership Model
