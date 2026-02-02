@@ -53,7 +53,8 @@ namespace cowsins
             // Play the selected random animation
             CowsinsUtilities.ForcePlayAnim(randomAnimation, animator);
 
-            SoundManager.Instance.PlaySound(id.GetFireSFX(), 0, weapon.pitchVariationFiringSFX, true);
+            var fireClip = id.GetFireSFX();
+            if (fireClip != null) SoundManager.Instance.PlaySound(fireClip, 0, weapon.pitchVariationFiringSFX, true);
 
             if (weapon == null) yield break;
 

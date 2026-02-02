@@ -51,7 +51,8 @@ namespace cowsins
             weaponReference.Id = weaponObj.GetComponent<WeaponIdentification>();
 
             weaponEvents.Events.OnEquipWeapon?.Invoke(weaponReference.Id);
-            weaponObj.GetComponentInChildren<WeaponSpecificEffects>().Initialize(context.Dependencies);
+            var weaponEffects = weaponObj.GetComponentInChildren<WeaponSpecificEffects>();
+            if (weaponEffects != null) weaponEffects.Initialize(context.Dependencies);
 
             SoundManager.Instance.PlaySound(weapon.audioSFX.unholster, .1f, 0, true);
 
@@ -78,12 +79,12 @@ namespace cowsins
                 if (weapon_ != null)
                 {
                     weapon_.gameObject.SetActive(false);
-                    weapon_.Animator.enabled = false;
+                    if (weapon_.Animator != null) weapon_.Animator.enabled = false;
                     if (weapon_ == weaponReference.Inventory[weaponReference.CurrentWeaponIndex])
                     {
                         weaponReference.Weapon = weaponReference.Inventory[weaponReference.CurrentWeaponIndex].weapon;
 
-                        weapon_.Animator.enabled = true;
+                        if (weapon_.Animator != null) weapon_.Animator.enabled = true;
                         UnHolster(weapon_.gameObject, true);
                         unholstered = true;
                     }

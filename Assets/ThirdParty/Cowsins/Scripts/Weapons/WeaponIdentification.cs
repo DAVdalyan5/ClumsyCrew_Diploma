@@ -141,7 +141,11 @@ namespace cowsins
             }
         }
 
-        public AudioClip GetFireSFX() => fireSFXs[Random.Range(0, fireSFXs.Length - 1)];
+        public AudioClip GetFireSFX()
+        {
+            if (fireSFXs == null || fireSFXs.Length == 0) return null;
+            return fireSFXs[Random.Range(0, fireSFXs.Length)];
+        }
 
         public Dictionary<AttachmentType, Attachment> GetCurrentAttachments() => currentAttachments;
 

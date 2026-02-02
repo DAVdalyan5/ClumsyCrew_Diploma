@@ -61,7 +61,11 @@ namespace cowsins
                     shellRigidbody.AddForce(shellForce, ForceMode.Impulse);
                 }
             }
-            if (weaponReference.Weapon.timeBetweenShots == 0) SoundManager.Instance.PlaySound(weaponReference.Id.GetFireSFX(), 0, weaponReference.Weapon.pitchVariationFiringSFX, true);
+            if (weaponReference.Weapon.timeBetweenShots == 0)
+            {
+                var clip = weaponReference.Id.GetFireSFX();
+                if (clip != null) SoundManager.Instance.PlaySound(clip, 0, weaponReference.Weapon.pitchVariationFiringSFX, true);
+            }
         }
         private void HandleBulletHoleImpacts(int layer, RaycastHit h)
         {

@@ -125,7 +125,11 @@ namespace cowsins
                 }
             }
             CowsinsUtilities.ForcePlayAnim("shooting", id.Animator);
-            if (weapon.timeBetweenShots > float.Epsilon) SoundManager.Instance.PlaySound(id.GetFireSFX(), 0, weapon.pitchVariationFiringSFX, true);
+            if (weapon.timeBetweenShots > float.Epsilon)
+            {
+                var fireClip = id.GetFireSFX();
+                if (fireClip != null) SoundManager.Instance.PlaySound(fireClip, 0, weapon.pitchVariationFiringSFX, true);
+            }
 
             settings.userEvents.OnShoot.Invoke();
             weaponEvents.Events.OnShootHitscanProjectile?.Invoke();

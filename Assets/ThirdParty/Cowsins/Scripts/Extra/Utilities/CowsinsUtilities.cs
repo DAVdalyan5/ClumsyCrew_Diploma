@@ -27,16 +27,16 @@ namespace cowsins
         }
         public static void PlayAnim(string anim, Animator animator)
         {
-            animator.SetTrigger(anim);
+            if (animator != null) animator.SetTrigger(anim);
         }
 
         public static void ForcePlayAnim(string anim, Animator animator)
         {
-            animator.Play(anim, 0, 0);
+            if (animator != null) animator.Play(anim, 0, 0);
         }
-        public static void StartAnim(string anim, Animator animated) => animated.SetBool(anim, true);
+        public static void StartAnim(string anim, Animator animated) { if (animated != null) animated.SetBool(anim, true); }
 
-        public static void StopAnim(string anim, Animator animated) => animated.SetBool(anim, false);
+        public static void StopAnim(string anim, Animator animated) { if (animated != null) animated.SetBool(anim, false); }
 #if UNITY_EDITOR
         public static void SavePreset(UnityEngine.Object source, string name)
         {

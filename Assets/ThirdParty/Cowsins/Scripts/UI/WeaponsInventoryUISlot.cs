@@ -1,5 +1,5 @@
 /// <summary>
-/// This script belongs to cowsins™ as a part of the cowsins´ FPS Engine. All rights reserved. 
+/// This script belongs to cowsinsï¿½ as a part of the cowsinsï¿½ FPS Engine. All rights reserved. 
 /// </summary>
 using UnityEngine.UI;
 using UnityEngine;
@@ -34,13 +34,13 @@ namespace cowsins
         public void Select()
         {
             transform.localScale = initScale * 1.2f;
-            canvasGroup.alpha = 1;
+            if (canvasGroup != null) canvasGroup.alpha = 1;
         }
 
         public void Deselect()
         {
             transform.localScale = initScale;
-            canvasGroup.alpha = .2f;
+            if (canvasGroup != null) canvasGroup.alpha = .2f;
         }
 
         public void SetWeapon(Weapon_SO newWeapon)

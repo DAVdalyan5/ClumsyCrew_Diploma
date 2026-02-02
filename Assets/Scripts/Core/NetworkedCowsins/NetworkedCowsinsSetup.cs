@@ -255,6 +255,24 @@ namespace HeistNSeek.Core.NetworkedCowsins.Editor
 
             // Ensure PlayerDependencies serialized references are wired (prevents CameraEffects NRE).
             WirePlayerDependencies(player.gameObject, prefabRoot);
+
+            // PvP: include Player layer in weapon hit layer so shots can hit other players
+            IncludePlayerLayerInWeaponHitLayer(player.gameObject);
+        }
+
+        private static void IncludePlayerLayerInWeaponHitLayer(GameObject playerGo)
+        {
+            var wc = playerGo.GetComponent<WeaponController>();
+            if (wc == null) return;
+            int playerLayer = LayerMask.NameToLayer("Player");
+            if (playerLayer < 0) return;
+            var so = new SerializedObject(wc);
+            var hitLayerProp = so.FindProperty("settings.hitLayer.m_Bits");
+            if (hitLayerProp == null) return;
+            int bits = hitLayerProp.intValue;
+            bits |= (1 << playerLayer);
+            hitLayerProp.intValue = bits;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static void CleanupNestedNetworking(GameObject prefabRoot)

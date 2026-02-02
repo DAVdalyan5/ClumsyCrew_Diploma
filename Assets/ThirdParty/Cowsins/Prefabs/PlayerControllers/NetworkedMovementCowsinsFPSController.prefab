@@ -6122,6 +6122,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4612824603642630899, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
+      propertyPath: settings.hitLayer.m_Bits
+      value: 146825
+      objectReference: {fileID: 0}
+    - target: {fileID: 4612824603642630899, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: initialWeapons.Array.size
       value: 0
       objectReference: {fileID: 0}
@@ -7466,6 +7470,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.NetworkedCowsins.NetworkedHealth
   ShowTopMostFoldoutHeaderGroup: 1
   maxHealth: 100
+  logDamageInConsole: 1
 --- !u!4 &1195374612628124357 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4612824603642630896, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}

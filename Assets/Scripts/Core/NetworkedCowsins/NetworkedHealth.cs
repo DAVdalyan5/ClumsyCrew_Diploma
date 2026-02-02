@@ -14,6 +14,8 @@ namespace HeistNSeek.Core.NetworkedCowsins
     {
         [Header("Health")]
         [SerializeField] private float maxHealth = 100f;
+        [Tooltip("When enabled, server logs damage so you can verify PvP in the console.")]
+        [SerializeField] private bool logDamageInConsole;
 
         private NetworkVariable<float> _health = new NetworkVariable<float>(
             100f,
@@ -46,7 +48,10 @@ namespace HeistNSeek.Core.NetworkedCowsins
         {
             if (!IsServer) return;
             float applied = Mathf.Max(0, damage);
-            _health.Value = Mathf.Max(0, _health.Value - applied);
+            float previous = _health.Value;
+            _health.Value = Mathf.Max(0, previous - applied);
+            if (logDamageInConsole && applied > 0)
+                Debug.Log($"[NetworkedHealth] Player (owner {OwnerClientId}) took {applied} damage{(isHeadshot ? " HEADSHOT" : "")}. Health: {previous:F0} -> {_health.Value:F0}");
         }
     }
 }

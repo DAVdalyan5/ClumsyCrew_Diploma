@@ -53,6 +53,7 @@ namespace cowsins
             if (weaponController.Id == null) return;
 
             Animator currentAnimator = weaponController.Id.Animator;
+            if (currentAnimator == null) return;
 
             if (player.IsWallRunning && !weaponBehaviour.IsReloading)
             {
@@ -85,8 +86,9 @@ namespace cowsins
 
         public void StopWalkAndRunMotion()
         {
-            if (weaponController == null) return; 
+            if (weaponController == null || weaponController.Id == null) return;
             Animator weapon = weaponController.Id.Animator;
+            if (weapon == null) return;
             CowsinsUtilities.StopAnim("inspect", weapon);
             CowsinsUtilities.StopAnim("walking", weapon);
             CowsinsUtilities.StopAnim("running", weapon);
@@ -109,25 +111,28 @@ namespace cowsins
         private void OnUnholster(bool prop, bool playAnim)
         {
             var animator = weaponController.Id.GetComponentInChildren<Animator>(true);
-            animator.Rebind();
-            animator.Update(0f);
-            animator.enabled = true;
-            if (playAnim)
-                CowsinsUtilities.PlayAnim("unholster", animator);
-
+            if (animator != null)
+            {
+                animator.Rebind();
+                animator.Update(0f);
+                animator.enabled = true;
+                if (playAnim)
+                    CowsinsUtilities.PlayAnim("unholster", animator);
+            }
             StopWalkAndRunMotion();
             SetParentConstraintSource(weaponController.Id.HeadBone);
         }
 
         private void StartReload()
         {
-            if(weaponController == null) return;
+            if (weaponController == null || weaponController.Id == null) return;
             CowsinsUtilities.PlayAnim("reloading", weaponController.Id.Animator);
         }
 
         #region INSPECT
         public void InitializeInspection()
         {
+            if (weaponController?.Id == null) return;
             WeaponIdentification wiD = weaponController.Id;
             CowsinsUtilities.PlayAnim("inspect", wiD.Animator);
             CowsinsUtilities.StopAnim("finishedInspect", wiD.Animator);
@@ -135,6 +140,7 @@ namespace cowsins
 
         public void DisableInspection()
         {
+            if (weaponController?.Id == null) return;
             WeaponIdentification wID = weaponController.Id;
             CowsinsUtilities.PlayAnim("finishedInspect", wID.Animator);
             CowsinsUtilities.StopAnim("inspect", wID.Animator);

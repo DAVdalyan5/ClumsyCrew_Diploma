@@ -86,3 +86,84 @@ After this, when the owner shoots and the raycast hits another player, Cowsins w
 | Minimal change for networked player-vs-player damage? | Add **NetworkedHealth** (implementing **IDamageable**) on the **root** of the player prefab and run the networked Cowsins setup so the prefab is correctly configured. |
 
 For full multiplayer shooting, implement **NetworkedHealth** as above; then add ClientRpc for FX and optional weapon index sync if needed.
+
+---
+
+## PvP: Shooting and Damaging Other Players
+
+To make shooting work over the network and damage other players (PvP shooter):
+
+### 1. Networked damage (already in place)
+
+- **NetworkedHealth** on the **root** of the player prefab implements Cowsins `IDamageable`.
+- When the shooter’s client hits another player, Cowsins calls `Damage()` on that player’s **NetworkedHealth**; it sends a **ServerRpc** and the server applies damage to the target’s health.
+- Ensure the prefab has **NetworkedHealth**: run **Tools → Networked Cowsins → Setup Selected Cowsins Player Prefab** (it adds `NetworkedHealth` to the root).
+
+### 2. Hit layer: allow hitting other players
+
+Weapon raycasts use **WeaponController → Settings → Hit Layer**. If the **Player** layer is not in that mask, shots will not hit other players.
+
+**Do this on your networked player prefab:**
+
+1. Open the prefab (e.g. `NetworkedMovementCowsinsFPSController`).
+2. Select the **Player** child (the one with `WeaponController`).
+3. In the Inspector, find **Weapon Controller** → **Settings** → **Hit Layer**.
+4. Enable **Player** (and any other layers you want to hit: environment, Enemy, etc.).
+
+Without this, the raycast will ignore other players and PvP damage will not work.
+
+### 3. Player colliders and layer
+
+- Other players must have **colliders** (e.g. capsule on the Player child) so the raycast can hit them.
+- Put those colliders (or their GameObjects) on the **Player** layer so they are included when **Hit Layer** contains Player.
+- Cowsins finds damage via **GatherDamageableParent**: it walks up from the hit collider to the root. **NetworkedHealth** (IDamageable) must be on the **root**, which the setup already does.
+
+**Where to check before play**
+
+- Open your **networked player prefab** (e.g. `NetworkedMovementCowsinsFPSController`).
+- In the hierarchy, select the **Player** child (the one that has **PlayerMovement**, **Rigidbody**, **WeaponController**).
+- On that **Player** GameObject:
+  - There must be a **CapsuleCollider** (Cowsins movement expects it; this is also what other players’ shots hit).
+  - In the Inspector top bar, set **Layer** to **Player** so weapon raycasts can hit it.
+- Root has **NetworkedHealth**; the **Player** child is under the root, so a hit on the capsule resolves to the root’s IDamageable correctly.
+
+### 4. Optional: headshot (Critical / BodyShot)
+
+Cowsins uses tags for damage type:
+
+- **Critical** → headshot (uses weapon’s critical damage multiplier).
+- **BodyShot** → normal body damage.
+
+To use this, add a small collider (e.g. on the head bone) and tag it **Critical**; tag body colliders **BodyShot**. If you don’t tag them, hits use the `else` path and still call `Damage(finalDamage, false)` via `GetComponent<IDamageable>` / **GatherDamageableParent**, so PvP damage works either way.
+
+### 5. Optional: other clients see/hear your shots
+
+Shooting FX (muzzle flash, sound) are local. To show them to other clients:
+
+- Subscribe to **WeaponController.Events.OnShoot** (or **OnShootSpawnEffects**) from a **NetworkBehaviour** on the same root.
+- Send a **ClientRpc** with fire position/direction so non-owner clients spawn FX or play sounds (keep it lightweight).
+
+### PvP checklist
+
+| Step | Action |
+|------|--------|
+| 1 | Run **Tools → Networked Cowsins → Setup Selected Cowsins Player Prefab** so the root has **NetworkedHealth**. |
+| 2 | On the prefab: **Player** child → **Weapon Controller** → **Settings** → **Hit Layer** → include **Player**. |
+| 3 | Ensure other players have colliders on the **Player** layer (or a layer included in Hit Layer). |
+| 4 | (Optional) Add **Critical** / **BodyShot** tags and colliders for headshot vs body. |
+| 5 | (Optional) Add a **ClientRpc** on shoot for muzzle/sound FX for other clients. |
+
+After step 1–3, shooting another player on your client will call their **NetworkedHealth.Damage()**, which applies damage on the server and replicates health to everyone.
+
+### How to verify you're damaging the other player
+
+1. **Console (server/host)**  
+   On the player prefab root, select **NetworkedHealth** and enable **Log Damage In Console**. When someone takes damage, the **server/host** console will show lines like:  
+   `[NetworkedHealth] Player (owner 1) took 25 damage. Health: 100 -> 75`  
+   So you can confirm hits and health changes on the host.
+
+2. **Health UI**  
+   **NetworkedHealth.Health** is a replicated value. Add a UI (e.g. text or bar) that reads `GetComponent<NetworkedHealth>().Health` (or subscribe to the `_health` NetworkVariable’s `OnValueChanged`) so the **damaged player** sees their health go down when hit.
+
+3. **Quick test**  
+   Run as Host + one Client. As host, shoot the client (or as client, shoot the host). With **Log Damage In Console** on, the **host’s** console should show damage lines when you hit the other player. If you never see those lines, check: Hit Layer includes Player, other player’s collider is on Player layer, root has NetworkedHealth.

@@ -1,5 +1,5 @@
 /// <summary>
-/// This script belongs to cowsins™ as a part of the cowsins´ FPS Engine. All rights reserved. 
+/// This script belongs to cowsins? as a part of the cowsins? FPS Engine. All rights reserved. 
 /// </summary>
 using UnityEngine;
 using UnityEngine.Events;
@@ -89,7 +89,7 @@ namespace cowsins
         private void Update()
         {
             // Manage fall damage
-            if (!takesFallDamage || player.IsClimbing || IsDead) return;
+            if (!takesFallDamage || player == null || player.IsClimbing || IsDead) return;
             ManageFallDamage();
         }
         /// <summary>
@@ -98,15 +98,24 @@ namespace cowsins
         /// </summary>
         public void Damage(float _damage, bool isHeadshot)
         {
+            // Forward to networked health when this player is a networked instance (root has NetworkedHealth)
+            var root = transform.root;
+            var networkedHealth = root.GetComponent<HeistNSeek.Core.NetworkedCowsins.NetworkedHealth>();
+            if (networkedHealth != null)
+            {
+                networkedHealth.Damage(_damage, isHeadshot);
+                return;
+            }
+
             // Early return if player is dashing with damage protection
-            if (player.IsDashing && player.DamageProtectionWhileDashing)
+            if (player != null && player.IsDashing && player.DamageProtectionWhileDashing)
                 return;
 
             // Ensure damage is a positive value
             float damage = Mathf.Abs(_damage);
 
             // Trigger damage event
-            userEvents.OnDamage.Invoke();
+            userEvents?.OnDamage?.Invoke();
 
             // Apply damage to shield first
             if (damage <= shield)
