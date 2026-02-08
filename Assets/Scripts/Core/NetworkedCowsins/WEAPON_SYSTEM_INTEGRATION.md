@@ -167,3 +167,31 @@ After step 1–3, shooting another player on your client will call their **Netwo
 
 3. **Quick test**  
    Run as Host + one Client. As host, shoot the client (or as client, shoot the host). With **Log Damage In Console** on, the **host’s** console should show damage lines when you hit the other player. If you never see those lines, check: Hit Layer includes Player, other player’s collider is on Player layer, root has NetworkedHealth.
+
+---
+
+## PvP damage debugging (reference)
+
+If PvP damage stops working, you can add temporary instrumentation that writes to **`.cursor/debug.log`** (NDJSON; include **`clientId=0`** / **`clientId=1`** so you can tell host vs client). The instrumentation that was used to fix the original issue has been removed; below is a reference for the hypotheses that were tested.
+
+### Hypotheses to check (if re-adding logs)
+
+| Id | Hypothesis | Where to look in logs |
+|----|------------|------------------------|
+| **A** | Raycast never hits the other player (wrong layer / no hit) | `HitscanShootStyle.HitscanShot` – if you never see a RAY HIT when shooting at the other player, the hit layer or collider is wrong. |
+| **B** | Hit happens but no `IDamageable` found (wrong hierarchy/tags) | `HitDetectionSystem.Hit` – `damageable=null` or wrong type. |
+| **C** | `PlayerStats.Damage` is called but no `NetworkedHealth` on root | `PlayerStats.Damage` – `hasNetworkedHealth=false`. |
+| **D** | `NetworkedHealth.Damage` is never called or `IsSpawned` is false | `NetworkedHealth.Damage` – check `IsSpawned` and that it’s called. |
+| **E** | ServerRpc not received or not run on server | `NetworkedHealth.RequestTakeDamageServerRpc` – only on server; if you see Damage but no ServerRpc line, RPC isn’t reaching the server. |
+
+### Reproduction steps (to capture logs)
+
+1. **Clear** the log file: delete `.cursor/debug.log` in the project root (or leave it; new lines are appended).
+2. Start **multiplayer play mode** (e.g. ParrelSync or two editor windows).
+3. In the **first** window: start as **Host** and enter the game.
+4. In the **second** window: join as **Client**.
+5. From the **Host** window: move so you can see the other player and **shoot at them several times** (enough to be sure you’re aiming at the other player).
+6. Stop play mode.
+7. Open **`.cursor/debug.log`**: each line is one JSON object. Check for `"message"` containing `clientId=0` (host) or `clientId=1` (client), and the `location` / `hypothesisId` columns above.
+
+From the sequence of log lines you can see: whether the host’s raycast hit something (A), whether HitDetection found a damageable (B), whether PlayerStats forwarded to NetworkedHealth (C), whether NetworkedHealth.Damage ran (D), and whether the server applied damage (E).
