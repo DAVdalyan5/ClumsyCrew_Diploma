@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 687488778277840499}
   - component: {fileID: 8479531378165817822}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: PickupTrigger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -68,9 +68,9 @@ GameObject:
   - component: {fileID: 1008130207557781169}
   - component: {fileID: 2078064478575369638}
   - component: {fileID: 8683954625607138327}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: ItemBase
-  m_TagString: Untagged
+  m_TagString: StealableLoot
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -104,7 +104,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2862619299
+  GlobalObjectIdHash: 3518612443
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -259,7 +259,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1988561502323802502}
   - component: {fileID: 8676654585133340194}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: VisualContainer
   m_TagString: Untagged
   m_Icon: {fileID: 0}

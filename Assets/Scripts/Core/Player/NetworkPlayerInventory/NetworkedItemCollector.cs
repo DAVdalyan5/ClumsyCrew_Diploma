@@ -1,9 +1,8 @@
-﻿using Assets.Scripts.Core.Player;
+using System.Text;
 using Assets.Scripts.Events;
 using Assets.Scripts.Infrastructure.EasyMessageHub;
 using Easy.MessageHub;
 using HeistNSeek.Core.Inventory.NetworkedInventory;
-using System;
 using Unity.Netcode;
 using UnityEngine;
 using VContainer;
@@ -12,18 +11,15 @@ namespace Assets.Scripts.Core.Player.NetworkPlayerInventory
 {
     public class NetworkedItemCollector : NetworkBehaviour
     {
-        [SerializeField] private KeyCode pickupKey = KeyCode.E;
-        [SerializeField] private float pickupRadius = 1.5f;
-        [SerializeField] private float pickupDistance = 1.5f;
+        [Header("Raycast Settings")]
+        [SerializeField] private Camera raycastCamera;
+        [SerializeField] private float interactMaxDistance = 4f;
+        [SerializeField] private LayerMask interactLayerMask;
         [SerializeField] private bool debugVisualization = true;
 
         private IMessageHub _messageHub;
 
-        private Transform _interactOrigin;
-        private Camera _playerCamera;
-        private LayerMask _pickupLayerMask;
-
-        private Vector3 _lastSphereCenter;
+        private RaycastHit _lastHit;
         private bool _lastHitResult;
         private float _debugDrawTime;
 
@@ -35,12 +31,10 @@ namespace Assets.Scripts.Core.Player.NetworkPlayerInventory
 
         private void Awake()
         {
-            _interactOrigin = GetComponentInChildren<InteractionPositionMarker>().transform;
-            _playerCamera = GetComponentInChildren<Camera>();
-
-            // Create layer mask that ignores Player and CollisionDetect layers
-            int layersToIgnore = LayerMask.GetMask("Player", "CollisionDetect");
-            _pickupLayerMask = ~layersToIgnore;
+            if (interactLayerMask == 0)
+            {
+                interactLayerMask = LayerMask.GetMask("Object", "Player");
+            }
 
             _messageHub.SubscribeSafe<InteractEvent>(this, _ => InteractActionPerform());
         }
@@ -49,80 +43,97 @@ namespace Assets.Scripts.Core.Player.NetworkPlayerInventory
         {
             if (!IsOwner) return;
 
-            PerformSpherePickup();
+            PerformRaycastInteraction();
         }
 
-        private Vector3 GetSphereCenter()
+        private void PerformRaycastInteraction()
         {
-            Vector3 origin = _interactOrigin.position;
-            Vector3 lookDirection = _playerCamera != null
-                ? _playerCamera.transform.forward
-                : transform.forward;
+            if (raycastCamera == null) return;
 
-            return origin + lookDirection * pickupDistance;
-        }
+            Vector3 origin = raycastCamera.transform.position;
+            Vector3 direction = raycastCamera.transform.forward;
 
-        private void PerformSpherePickup()
-        {
-            Vector3 sphereCenter = GetSphereCenter();
-
-            // Find all colliders in the pickup sphere, ignoring Player and CollisionDetect layers
-            Collider[] hitColliders = Physics.OverlapSphere(sphereCenter, pickupRadius, _pickupLayerMask);
-
-            ICollectable closestCollectable = null;
-            float closestDistance = float.MaxValue;
-
-            foreach (var collider in hitColliders)
+            if (!Physics.Raycast(origin, direction, out RaycastHit hit, interactMaxDistance, interactLayerMask))
             {
-                var collectable = collider.GetComponentInParent<ICollectable>();
-                if (collectable != null)
+                if (debugVisualization)
                 {
-                    float distance = Vector3.Distance(sphereCenter, collider.transform.position);
-                    if (distance < closestDistance)
-                    {
-                        closestDistance = distance;
-                        closestCollectable = collectable;
-                    }
+                    _lastHitResult = false;
+                    _debugDrawTime = Time.time + 2f;
                 }
+                return;
             }
 
             if (debugVisualization)
             {
-                _lastSphereCenter = sphereCenter;
-                _lastHitResult = closestCollectable != null;
+                _lastHit = hit;
+                _lastHitResult = true;
                 _debugDrawTime = Time.time + 2f;
             }
 
-            if (closestCollectable != null)
+            ulong localClientId = NetworkManager.Singleton.LocalClientId;
+
+            var collectable = hit.collider.GetComponentInParent<ICollectable>();
+            if (collectable != null)
             {
-                ulong localClientId = NetworkManager.Singleton.LocalClientId;
-                closestCollectable.ForcePickup(localClientId);
+                collectable.ForcePickup(localClientId);
+                return;
             }
+
+            var targetInventory = hit.collider.GetComponentInParent<NetworkedPlayerInventory>();
+            if (targetInventory != null && targetInventory.OwnerClientId != localClientId)
+            {
+                PerformPeek(targetInventory);
+            }
+        }
+
+        private void PerformPeek(NetworkedPlayerInventory targetInventory)
+        {
+            if (targetInventory.OwnerClientId == NetworkManager.Singleton.LocalClientId)
+                return;
+
+            var sb = new StringBuilder();
+            sb.Append($"[Peek] Player {targetInventory.OwnerClientId} inventory: ");
+
+            var items = targetInventory.GetAllItems();
+            int count = 0;
+            foreach (var (itemId, amount) in items)
+            {
+                if (count > 0) sb.Append(", ");
+                sb.Append($"{itemId} x{amount}");
+                count++;
+            }
+
+            if (count == 0)
+            {
+                sb.Append("(empty)");
+            }
+
+            Debug.Log(sb.ToString());
         }
 
         private void OnDrawGizmos()
         {
-            if (!debugVisualization) return;
+            if (!debugVisualization || raycastCamera == null) return;
 
-            Vector3 spherePos;
-            if (Time.time < _debugDrawTime)
+            Vector3 origin = raycastCamera.transform.position;
+            Vector3 direction = raycastCamera.transform.forward;
+
+            if (Time.time < _debugDrawTime && _lastHitResult)
             {
-                // Show last pickup attempt position
-                spherePos = _lastSphereCenter;
-                Gizmos.color = _lastHitResult ? Color.green : Color.red;
+                Gizmos.color = Color.green;
+                Gizmos.DrawLine(origin, _lastHit.point);
+                Gizmos.DrawWireSphere(_lastHit.point, 0.1f);
             }
-            else if (_interactOrigin != null && _playerCamera != null)
+            else if (Time.time < _debugDrawTime)
             {
-                // Show current pickup area in front of player
-                spherePos = GetSphereCenter();
-                Gizmos.color = new Color(1f, 1f, 0f, 0.3f);
+                Gizmos.color = Color.red;
+                Gizmos.DrawLine(origin, origin + direction * interactMaxDistance);
             }
             else
             {
-                return;
+                Gizmos.color = new Color(1f, 1f, 0f, 0.3f);
+                Gizmos.DrawLine(origin, origin + direction * interactMaxDistance);
             }
-
-            Gizmos.DrawWireSphere(spherePos, pickupRadius);
         }
     }
 }
