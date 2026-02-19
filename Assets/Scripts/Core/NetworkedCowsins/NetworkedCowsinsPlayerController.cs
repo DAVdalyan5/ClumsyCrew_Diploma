@@ -1,8 +1,10 @@
 using cowsins;
 using Easy.MessageHub;
+using HeistNSeek.Core;
 using Unity.Netcode;
 using UnityEngine;
 using VContainer;
+using VContainer.Unity;
 
 namespace HeistNSeek.Core.NetworkedCowsins
 {
@@ -47,8 +49,7 @@ namespace HeistNSeek.Core.NetworkedCowsins
         public override void OnNetworkSpawn()
         {
             base.OnNetworkSpawn();
-            
-            Debug.Log($"[NetworkedCowsinsPlayerController] Spawned for client {OwnerClientId}, IsOwner: {IsOwner}, IsServer: {IsServer}");
+            EnsureInjectedDependencies();
             
             if (playerMovement == null)
                 playerMovement = GetComponentInChildren<PlayerMovement>(true);
@@ -69,8 +70,56 @@ namespace HeistNSeek.Core.NetworkedCowsins
 
             if (movingTransform == null && playerMovement != null)
                 movingTransform = playerMovement.transform;
-            
+
+            if (IsOwner)
+                WirePusherCamera();
+
             SetupOwnershipBehavior();
+        }
+
+        private void EnsureInjectedDependencies()
+        {
+            if (_messageHub != null)
+                return;
+
+            LifetimeScope scope = FindAnyObjectByType<GameplayLifetimeScope>();
+            if (scope == null)
+                scope = FindAnyObjectByType<LifetimeScope>();
+
+            if (scope != null && scope.Container != null)
+                scope.Container.InjectGameObject(gameObject);
+        }
+
+        private void WirePusherCamera()
+        {
+            var pusher = GetComponentInChildren<CharacterPusher>(true);
+            if (pusher == null) return;
+
+            Camera mainCam = null;
+            var weaponController = playerMovement != null ? playerMovement.GetComponent<WeaponController>() : null;
+            if (weaponController != null && weaponController.MainCamera != null)
+                mainCam = weaponController.MainCamera;
+            if (mainCam == null)
+            {
+                var camTransform = FindChildByName(transform, "Camera");
+                if (camTransform != null)
+                    mainCam = camTransform.GetComponentInChildren<Camera>(true);
+            }
+            if (mainCam != null)
+                pusher.CameraTransform = mainCam.transform;
+        }
+
+        private static Transform FindChildByName(Transform parent, string name)
+        {
+            if (parent == null) return null;
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                var child = parent.GetChild(i);
+                if (child.name == name) return child;
+                var found = FindChildByName(child, name);
+                if (found != null) return found;
+            }
+            return null;
         }
         
         private void SetupOwnershipBehavior()
@@ -174,7 +223,49 @@ namespace HeistNSeek.Core.NetworkedCowsins
         public InputManager GetInputManager() => networkedInputManager?.GetInputManager();
 
         public Transform GetMovingTransform() => movingTransform != null ? movingTransform : transform;
-        
+
+        private Rigidbody GetMovingRigidbody()
+        {
+            var moving = GetMovingTransform();
+            return moving != null ? moving.GetComponent<Rigidbody>() : null;
+        }
+
+        /// <summary>
+        /// Called by the server when this player is pushed by another (e.g. CharacterPusher).
+        /// Applies impulse to the Player child's Rigidbody and replicates to clients.
+        /// </summary>
+        public void ReceivePushFromServer(Vector3 forceVector)
+        {
+            if (!IsServer) return;
+
+            var rb = GetMovingRigidbody();
+            if (rb != null)
+            {
+                rb.AddForce(forceVector, ForceMode.Impulse);
+                ReceivePushClientRpc(forceVector);
+            }
+        }
+
+        [ClientRpc]
+        private void ReceivePushClientRpc(Vector3 forceVector)
+        {
+            if (IsOwner) return;
+
+            var rb = GetMovingRigidbody();
+            if (rb != null)
+                rb.AddForce(forceVector, ForceMode.Impulse);
+        }
+
+        /// <summary>
+        /// Server RPC for self-applied stumble force (e.g. from CowsinsCollisionPushHandler when high-speed impact is detected).
+        /// </summary>
+        [ServerRpc]
+        public void RequestApplyStumbleForceServerRpc(Vector3 forceVector)
+        {
+            if (!IsServer) return;
+            ReceivePushFromServer(forceVector);
+        }
+
         /// <summary>
         /// Teleport player to position (server-authoritative)
         /// </summary>
@@ -208,28 +299,25 @@ namespace HeistNSeek.Core.NetworkedCowsins
         public void ApplyForceServerRpc(Vector3 force, ForceMode forceMode = ForceMode.Force, ServerRpcParams rpcParams = default)
         {
             if (!IsServer) return;
-            
-            var rb = GetComponent<Rigidbody>();
+
+            var rb = GetMovingRigidbody();
             if (rb != null)
             {
                 rb.AddForce(force, forceMode);
                 Debug.Log($"[NetworkedCowsinsPlayerController] Applying force {force} with mode {forceMode}");
-                
-                // Sync force to all clients
                 ApplyForceClientRpc(force, forceMode);
             }
         }
-        
+
         [ClientRpc]
         private void ApplyForceClientRpc(Vector3 force, ForceMode forceMode)
         {
-            if (IsOwner) return; // Owner already had force applied by server
-            
-            var rb = GetComponent<Rigidbody>();
+            if (IsOwner) return;
+
+            var rb = GetMovingRigidbody();
             if (rb != null)
-            {
                 rb.AddForce(force, forceMode);
-            }
         }
+
     }
 }

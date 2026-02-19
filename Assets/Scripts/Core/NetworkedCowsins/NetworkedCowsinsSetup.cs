@@ -1,10 +1,14 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
 using Unity.Netcode;
 using cowsins;
 using Unity.Netcode.Components;
+using HeistNSeek.Core;
+using Assets.Scripts.Core.Player;
+using Assets.Scripts.Core.Player.Character;
 using Object = UnityEngine.Object;
 
 namespace HeistNSeek.Core.NetworkedCowsins.Editor
@@ -258,6 +262,89 @@ namespace HeistNSeek.Core.NetworkedCowsins.Editor
 
             // PvP: include Player layer in weapon hit layer so shots can hit other players
             IncludePlayerLayerInWeaponHitLayer(player.gameObject);
+
+            // Pushing mechanics: CharacterPusher, PushInputBridge, CollisionDetector(s), CowsinsCollisionPushHandler
+            AddPushingMechanics(prefabRoot, player);
+        }
+
+        private static void AddPushingMechanics(GameObject prefabRoot, Transform player)
+        {
+            // CharacterPusher on root (so it is not removed by CleanupNestedNetworking)
+            if (prefabRoot.GetComponent<CharacterPusher>() == null)
+            {
+                var box = EnsureComponent<BoxCollider>(prefabRoot);
+                box.isTrigger = true;
+                box.size = new Vector3(0.5f, 0.5f, 0.5f);
+                box.center = new Vector3(0f, 1f, 0.5f);
+                prefabRoot.AddComponent<CharacterPusher>();
+            }
+
+            // PlayerPusher (child of root) -> PusherPosition with InteractionPositionMarker
+            var playerPusher = FindChildByName(prefabRoot.transform, "PlayerPusher");
+            if (playerPusher == null)
+            {
+                var go = new GameObject("PlayerPusher");
+                go.transform.SetParent(prefabRoot.transform, false);
+                go.transform.localPosition = Vector3.zero;
+                go.transform.localRotation = Quaternion.identity;
+                go.transform.localScale = Vector3.one;
+                playerPusher = go.transform;
+
+                var pusherPosition = new GameObject("PusherPosition");
+                pusherPosition.transform.SetParent(playerPusher, false);
+                pusherPosition.transform.localPosition = new Vector3(0f, 1.5f, 0.5f);
+                pusherPosition.transform.localRotation = Quaternion.identity;
+                pusherPosition.transform.localScale = Vector3.one;
+                pusherPosition.AddComponent<InteractionPositionMarker>();
+            }
+
+            // PushInputBridge on InputManager GameObject
+            var inputManagerGo = FindChildByName(prefabRoot.transform, "InputManager");
+            if (inputManagerGo != null && inputManagerGo.GetComponent<PushInputBridge>() == null)
+                inputManagerGo.gameObject.AddComponent<PushInputBridge>();
+
+            // CollisionDetector(s) under Player
+            var collisionDetectorsParent = FindChildByName(player, "CollisionDetectors");
+            if (collisionDetectorsParent == null)
+            {
+                var go = new GameObject("CollisionDetectors");
+                go.transform.SetParent(player, false);
+                go.transform.localPosition = Vector3.zero;
+                go.transform.localRotation = Quaternion.identity;
+                go.transform.localScale = Vector3.one;
+                collisionDetectorsParent = go.transform;
+            }
+
+            var torsoDetector = FindChildByName(collisionDetectorsParent, "TorsoCollisionDetector");
+            if (torsoDetector == null)
+            {
+                var go = new GameObject("TorsoCollisionDetector");
+                go.transform.SetParent(collisionDetectorsParent, false);
+                go.transform.localPosition = new Vector3(0f, 1f, 0f);
+                go.transform.localRotation = Quaternion.identity;
+                go.transform.localScale = Vector3.one;
+                var cap = go.AddComponent<CapsuleCollider>();
+                cap.isTrigger = true;
+                cap.radius = 0.3f;
+                cap.height = 1.2f;
+                cap.direction = 1;
+                go.AddComponent<CollisionDetector>();
+                torsoDetector = go.transform;
+            }
+
+            // CowsinsCollisionPushHandler on root
+            var handler = prefabRoot.GetComponent<CowsinsCollisionPushHandler>();
+            if (handler == null)
+                handler = prefabRoot.AddComponent<CowsinsCollisionPushHandler>();
+
+            var so = new SerializedObject(handler);
+            var listProp = so.FindProperty("collisionDetectors");
+            if (listProp != null && listProp.arraySize == 0)
+            {
+                listProp.arraySize = 1;
+                listProp.GetArrayElementAtIndex(0).objectReferenceValue = torsoDetector.GetComponent<CollisionDetector>();
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
         }
 
         private static void IncludePlayerLayerInWeaponHitLayer(GameObject playerGo)

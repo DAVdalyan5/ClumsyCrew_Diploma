@@ -271,6 +271,15 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Push"",
+                    ""type"": ""Button"",
+                    ""id"": ""a1b2c3d4-e5f6-7890-abcd-ef1234567890"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -744,6 +753,28 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""Keyboard"",
                     ""action"": ""InventoryFavOpen"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b2c3d4e5-f6a7-8901-bcde-f12345678901"",
+                    ""path"": ""<Keyboard>/v"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard"",
+                    ""action"": ""Push"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c3d4e5f6-a7b8-9012-cdef-123456789012"",
+                    ""path"": ""<Gamepad>/dpad/up"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Push"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1453,6 +1484,7 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
         m_GameControls_InventoryOpen = m_GameControls.FindAction("InventoryOpen", throwIfNotFound: true);
         m_GameControls_InventoryFavOpen = m_GameControls.FindAction("InventoryFavOpen", throwIfNotFound: true);
         m_GameControls_ToggleTipsCanvas = m_GameControls.FindAction("ToggleTipsCanvas", throwIfNotFound: true);
+        m_GameControls_Push = m_GameControls.FindAction("Push", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1570,6 +1602,7 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_GameControls_InventoryOpen;
     private readonly InputAction m_GameControls_InventoryFavOpen;
     private readonly InputAction m_GameControls_ToggleTipsCanvas;
+    private readonly InputAction m_GameControls_Push;
     /// <summary>
     /// Provides access to input actions defined in input action map "GameControls".
     /// </summary>
@@ -1662,6 +1695,10 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @ToggleTipsCanvas => m_Wrapper.m_GameControls_ToggleTipsCanvas;
         /// <summary>
+        /// Provides access to the underlying input action "GameControls/Push".
+        /// </summary>
+        public InputAction @Push => m_Wrapper.m_GameControls_Push;
+        /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
         public InputActionMap Get() { return m_Wrapper.m_GameControls; }
@@ -1747,6 +1784,9 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
             @ToggleTipsCanvas.started += instance.OnToggleTipsCanvas;
             @ToggleTipsCanvas.performed += instance.OnToggleTipsCanvas;
             @ToggleTipsCanvas.canceled += instance.OnToggleTipsCanvas;
+            @Push.started += instance.OnPush;
+            @Push.performed += instance.OnPush;
+            @Push.canceled += instance.OnPush;
         }
 
         /// <summary>
@@ -1818,6 +1858,9 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
             @ToggleTipsCanvas.started -= instance.OnToggleTipsCanvas;
             @ToggleTipsCanvas.performed -= instance.OnToggleTipsCanvas;
             @ToggleTipsCanvas.canceled -= instance.OnToggleTipsCanvas;
+            @Push.started -= instance.OnPush;
+            @Push.performed -= instance.OnPush;
+            @Push.canceled -= instance.OnPush;
         }
 
         /// <summary>
@@ -2263,6 +2306,13 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnToggleTipsCanvas(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Push" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPush(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

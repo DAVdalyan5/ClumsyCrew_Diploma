@@ -6,6 +6,8 @@ using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using VContainer;
+using VContainer.Unity;
+using HeistNSeek.Core.NetworkedCowsins;
 
 namespace HeistNSeek.Core
 {
@@ -27,6 +29,8 @@ namespace HeistNSeek.Core
 
         private Transform pusherPositionTransform;
         private PlayerController ownerPlayerController;
+        private NetworkObject ownNetworkObject;
+        private bool _disableTransformRotationSync;
 
         [Inject]
         public void Init(IMessageHub messageHub)
@@ -37,8 +41,11 @@ namespace HeistNSeek.Core
         private void Awake()
         {
             collider = GetComponent<Collider>();
-            pusherPositionTransform = GetComponentInChildren<InteractionPositionMarker>().transform;
+            var marker = GetComponentInChildren<InteractionPositionMarker>();
+            pusherPositionTransform = marker != null ? marker.transform : transform;
             ownerPlayerController = GetComponentInParent<PlayerController>();
+            ownNetworkObject = GetComponentInParent<NetworkObject>();
+            _disableTransformRotationSync = GetComponent<NetworkedCowsinsPlayerController>() != null;
 
             initialLocalPosition = transform.localPosition;
         }
@@ -47,7 +54,23 @@ namespace HeistNSeek.Core
         {
             if (!IsOwner) return;
 
-            this._messageHub.SubscribeSafe<PushEvent>(this, _ => PerformPush());
+            if (_messageHub == null)
+                TryResolveMessageHubFromScope();
+
+            if (_messageHub == null)
+                return;
+
+            _messageHub.SubscribeSafe<PushEvent>(this, _ => PerformPush());
+        }
+
+        private void TryResolveMessageHubFromScope()
+        {
+            LifetimeScope scope = FindAnyObjectByType<GameplayLifetimeScope>();
+            if (scope == null)
+                scope = FindAnyObjectByType<LifetimeScope>();
+
+            if (scope != null && scope.Container != null)
+                _messageHub = scope.Container.Resolve<IMessageHub>();
         }
 
         private void Update()
@@ -62,8 +85,8 @@ namespace HeistNSeek.Core
         private void FollowCameraRotation()
         {
             if (CameraTransform == null) return;
+            if (_disableTransformRotationSync) return;
 
-            // Match the camera's rotation exactly
             transform.rotation = CameraTransform.rotation;
         }
 
@@ -80,46 +103,60 @@ namespace HeistNSeek.Core
 
         public IEnumerator PerformRaycastPush()
         {
-            //add cooldown
-            //maybe some bug here hoenslty with position but will fix it later
-            //TODO:
             Vector3 pushDirection = CameraTransform != null ? CameraTransform.forward : transform.forward;
 
-            if (CameraTransform != null && Physics.Raycast(pusherPositionTransform.position, pushDirection, out RaycastHit hit, pushDistance))
+            Vector3 origin = pusherPositionTransform != null ? pusherPositionTransform.position : transform.position;
+            if (CameraTransform != null && Physics.Raycast(origin, pushDirection, out RaycastHit hit, pushDistance))
             {
-                var hitPlayerController = hit.collider.GetComponentInParent<PlayerController>();
-
-                // Prevent self-pushing: check if we hit our own player
-                if (hitPlayerController != null && hitPlayerController == ownerPlayerController)
+                if (IsHitSelf(hit))
                 {
-                    Debug.DrawRay(pusherPositionTransform.position, pushDirection * pushDistance, Color.yellow, 2000);
+                    Debug.DrawRay(origin, pushDirection * pushDistance, Color.yellow, 2000);
                     yield return null;
                     yield break;
                 }
 
-                // If we hit another player, trigger their ragdoll via RPC
+                var hitPlayerController = hit.collider.GetComponentInParent<PlayerController>();
                 if (hitPlayerController != null)
                 {
                     Debug.Log($"[CharacterPusher] Hit player: {hitPlayerController.name}, triggering push with force {pushSpeed}");
                     RequestPushPlayerServerRpc(hitPlayerController.NetworkObjectId, pushSpeed);
-                    Debug.DrawRay(pusherPositionTransform.position, pushDirection * pushDistance, Color.red, 2000);
+                    Debug.DrawRay(origin, pushDirection * pushDistance, Color.red, 2000);
                     yield return null;
                     yield break;
                 }
 
-                // For non-player pushables (objects), handle locally
+                var hitCowsinsController = hit.collider.GetComponentInParent<NetworkedCowsinsPlayerController>();
+                if (hitCowsinsController != null)
+                {
+                    var hitNetworkObject = hitCowsinsController.NetworkObject;
+                    if (hitNetworkObject != null && hitNetworkObject.NetworkObjectId != ownNetworkObject?.NetworkObjectId)
+                    {
+                        RequestPushCowsinsPlayerServerRpc(hitNetworkObject.NetworkObjectId, pushSpeed, origin);
+                        Debug.DrawRay(origin, pushDirection * pushDistance, Color.red, 2000);
+                        yield return null;
+                        yield break;
+                    }
+                }
+
                 var pushable = hit.collider.GetComponent<Assets.Scripts.Core.Player.Mechanics.Pushing.IPushable>();
                 pushable?.OnPushed(pushSpeed);
             }
-            Debug.DrawRay(pusherPositionTransform.position, pushDirection * pushDistance, Color.green, 2000);
+            Debug.DrawRay(origin, pushDirection * pushDistance, Color.green, 2000);
 
             yield return null;
+        }
+
+        private bool IsHitSelf(RaycastHit hit)
+        {
+            if (ownNetworkObject == null) return false;
+            var hitRoot = hit.collider.transform.root;
+            var ourRoot = ownNetworkObject.transform.root;
+            return hitRoot == ourRoot || hit.collider.transform.IsChildOf(ownNetworkObject.transform);
         }
 
         [Rpc(SendTo.Server)]
         private void RequestPushPlayerServerRpc(ulong targetNetworkObjectId, float force)
         {
-            // Server finds the target player and tells all clients to enable ragdoll
             if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetworkObjectId, out var targetNetworkObject))
             {
                 var targetPlayerController = targetNetworkObject.GetComponent<PlayerController>();
@@ -128,6 +165,23 @@ namespace HeistNSeek.Core
                     targetPlayerController.TriggerPushRagdoll(force);
                 }
             }
+        }
+
+        [Rpc(SendTo.Server)]
+        private void RequestPushCowsinsPlayerServerRpc(ulong targetNetworkObjectId, float forceMagnitude, Vector3 pushOrigin)
+        {
+            if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetworkObjectId, out var targetNetworkObject))
+                return;
+
+            var targetCowsins = targetNetworkObject.GetComponent<NetworkedCowsinsPlayerController>();
+            if (targetCowsins == null) return;
+
+            Vector3 targetPosition = targetCowsins.GetMovingTransform().position;
+            Vector3 direction = (targetPosition - pushOrigin).normalized;
+            if (direction.sqrMagnitude < 0.01f)
+                direction = Vector3.forward;
+            Vector3 forceVector = direction * forceMagnitude;
+            targetCowsins.ReceivePushFromServer(forceVector);
         }
     }
 }
