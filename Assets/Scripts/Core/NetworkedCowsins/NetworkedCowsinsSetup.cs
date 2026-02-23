@@ -219,6 +219,16 @@ namespace HeistNSeek.Core.NetworkedCowsins.Editor
             if (camera != null) { ownerOnlyProp.InsertArrayElementAtIndex(ownerOnlyProp.arraySize); ownerOnlyProp.GetArrayElementAtIndex(ownerOnlyProp.arraySize - 1).objectReferenceValue = camera.gameObject; }
             if (ui != null) { ownerOnlyProp.InsertArrayElementAtIndex(ownerOnlyProp.arraySize); ownerOnlyProp.GetArrayElementAtIndex(ownerOnlyProp.arraySize - 1).objectReferenceValue = ui.gameObject; }
 
+            // Local player hidden: PlayerGraphics (full body) - owner sees only arms, others see full body
+            var playerGraphics = FindChildByName(prefabRoot.transform, "PlayerGraphics");
+            var localHiddenProp = soPc.FindProperty("localPlayerHiddenObjects");
+            localHiddenProp.arraySize = 0;
+            if (playerGraphics != null)
+            {
+                localHiddenProp.InsertArrayElementAtIndex(localHiddenProp.arraySize);
+                localHiddenProp.GetArrayElementAtIndex(localHiddenProp.arraySize - 1).objectReferenceValue = playerGraphics.gameObject;
+            }
+
             soPc.ApplyModifiedPropertiesWithoutUndo();
 
             // InputManager object (separate child)

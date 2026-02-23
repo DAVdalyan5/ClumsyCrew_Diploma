@@ -28,6 +28,10 @@ namespace HeistNSeek.Core.NetworkedCowsins
         [Header("Owner-only Objects (disable for non-owners)")]
         [Tooltip("These GameObjects will be enabled only on the owning client (camera, UI, local-only audio, etc).")]
         [SerializeField] private GameObject[] ownerOnlyObjects;
+
+        [Header("First-person visibility (hide for local player)")]
+        [Tooltip("These GameObjects (e.g. PlayerGraphics full body) are hidden for the local player so you see only arms/weapons. Other players still see your full body.")]
+        [SerializeField] private GameObject[] localPlayerHiddenObjects;
         
         [Header("Network Settings")]
         [Tooltip("Enable input processing only for owner client")]
@@ -76,6 +80,7 @@ namespace HeistNSeek.Core.NetworkedCowsins
         private void SetupOwnershipBehavior()
         {
             ApplyOwnerOnlyObjects();
+            ApplyLocalPlayerVisibility();
 
             if (!IsOwner)
             {
@@ -149,6 +154,23 @@ namespace HeistNSeek.Core.NetworkedCowsins
             {
                 if (go == null) continue;
                 go.SetActive(active);
+            }
+        }
+
+        /// <summary>
+        /// Hides full body (PlayerGraphics) for local player so they see only arms/weapons.
+        /// Remote players still see the full body.
+        /// </summary>
+        private void ApplyLocalPlayerVisibility()
+        {
+            if (localPlayerHiddenObjects == null) return;
+
+            // For owner: hide body so we see only arms. For non-owner: keep visible (others see our body).
+            bool hideFromSelf = IsOwner;
+            foreach (var go in localPlayerHiddenObjects)
+            {
+                if (go == null) continue;
+                go.SetActive(!hideFromSelf);
             }
         }
         
