@@ -8229,7 +8229,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 581361915
+  GlobalObjectIdHash: 88982089
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -8322,6 +8322,8 @@ MonoBehaviour:
   ownerOnlyObjects:
   - {fileID: 1195374612638355300}
   - {fileID: 1195374611263023442}
+  localPlayerHiddenObjects:
+  - {fileID: 7110316827693849693}
   ownerOnlyInput: 1
   ownerOnlyPhysics: 1
 --- !u!114 &6124408511337917785
