@@ -4,6 +4,7 @@ using Easy.MessageHub;
 using Unity.Netcode;
 using UnityEngine;
 using VContainer;
+using VContainer.Unity;
 
 namespace HeistNSeek.Core.NetworkedCowsins
 {
@@ -29,9 +30,28 @@ namespace HeistNSeek.Core.NetworkedCowsins
             _playerController = GetComponent<NetworkedCowsinsPlayerController>();
         }
 
+        /// <summary>
+        /// Resolves IMessageHub from a LifetimeScope when injection hasn't run yet (e.g. client-spawned networked prefabs).
+        /// </summary>
+        private void EnsureMessageHubResolved()
+        {
+            if (_messageHub != null) return;
+
+            LifetimeScope scope = FindAnyObjectByType<global::BootstrapLifetimeScope>();
+            if (scope == null)
+                scope = FindAnyObjectByType<LifetimeScope>();
+            if (scope != null)
+            {
+                _messageHub = scope.Container.Resolve<IMessageHub>();
+            }
+        }
+
         private void Update()
         {
             if (!IsOwner) return;
+
+            EnsureMessageHubResolved();
+            if (_messageHub == null) return;
 
             if (_inputManager == null)
             {
