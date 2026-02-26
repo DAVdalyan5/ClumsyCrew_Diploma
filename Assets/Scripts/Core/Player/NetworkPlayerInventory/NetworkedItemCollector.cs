@@ -1,5 +1,5 @@
-using System.Text;
 using Assets.Scripts.Events;
+using HeistNSeek.Events;
 using Assets.Scripts.Infrastructure.EasyMessageHub;
 using Easy.MessageHub;
 using HeistNSeek.Core.Inventory.NetworkedInventory;
@@ -73,8 +73,12 @@ namespace Assets.Scripts.Core.Player.NetworkPlayerInventory
 
             Vector3 origin = raycastCamera.transform.position;
             Vector3 direction = raycastCamera.transform.forward;
+            ulong localClientId = NetworkManager.Singleton.LocalClientId;
 
-            if (!Physics.Raycast(origin, direction, out RaycastHit hit, interactMaxDistance, interactLayerMask))
+            var hits = Physics.RaycastAll(origin, direction, interactMaxDistance, interactLayerMask);
+            var hit = GetFirstValidHit(hits, localClientId);
+
+            if (!hit.HasValue)
             {
                 if (debugVisualization)
                 {
@@ -86,25 +90,39 @@ namespace Assets.Scripts.Core.Player.NetworkPlayerInventory
 
             if (debugVisualization)
             {
-                _lastHit = hit;
+                _lastHit = hit.Value;
                 _lastHitResult = true;
                 _debugDrawTime = Time.time + 2f;
             }
 
-            ulong localClientId = NetworkManager.Singleton.LocalClientId;
-
-            var collectable = hit.collider.GetComponentInParent<ICollectable>();
+            var collectable = hit.Value.collider.GetComponentInParent<ICollectable>();
             if (collectable != null)
             {
                 collectable.ForcePickup(localClientId);
                 return;
             }
 
-            var targetInventory = hit.collider.GetComponentInParent<NetworkedPlayerInventory>();
+            var targetInventory = hit.Value.collider.GetComponentInParent<NetworkedPlayerInventory>();
             if (targetInventory != null && targetInventory.OwnerClientId != localClientId)
             {
                 PerformPeek(targetInventory);
             }
+        }
+
+        /// <summary>
+        /// Skips hits on the local player's colliders so we can interact with objects/players in front of us.
+        /// </summary>
+        private RaycastHit? GetFirstValidHit(RaycastHit[] hits, ulong localClientId)
+        {
+            foreach (var h in hits)
+            {
+                var inventory = h.collider.GetComponentInParent<NetworkedPlayerInventory>();
+                if (inventory != null && inventory.OwnerClientId == localClientId)
+                    continue;
+
+                return h;
+            }
+            return null;
         }
 
         private void PerformPeek(NetworkedPlayerInventory targetInventory)
@@ -112,24 +130,7 @@ namespace Assets.Scripts.Core.Player.NetworkPlayerInventory
             if (targetInventory.OwnerClientId == NetworkManager.Singleton.LocalClientId)
                 return;
 
-            var sb = new StringBuilder();
-            sb.Append($"[Peek] Player {targetInventory.OwnerClientId} inventory: ");
-
-            var items = targetInventory.GetAllItems();
-            int count = 0;
-            foreach (var (itemId, amount) in items)
-            {
-                if (count > 0) sb.Append(", ");
-                sb.Append($"{itemId} x{amount}");
-                count++;
-            }
-
-            if (count == 0)
-            {
-                sb.Append("(empty)");
-            }
-
-            Debug.Log(sb.ToString());
+            _messageHub.Publish(new PeekEvent(targetInventory));
         }
 
         private void OnDrawGizmos()

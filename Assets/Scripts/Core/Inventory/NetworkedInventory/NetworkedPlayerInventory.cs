@@ -151,7 +151,7 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
         /// <summary>
         /// Server-side: Add item to inventory
         /// </summary>
-        private void ServerAddItem(string itemId, int amount)
+        internal void ServerAddItem(string itemId, int amount)
         {
             if (!IsServer) return;
 
@@ -197,7 +197,7 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
         /// <summary>
         /// Server-side: Remove item from inventory
         /// </summary>
-        private void ServerRemoveItem(string itemId, int amount)
+        internal void ServerRemoveItem(string itemId, int amount)
         {
             if (!IsServer) return;
 
@@ -340,6 +340,61 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
             {
                 yield return (slot.ItemId.ToString(), slot.Amount);
             }
+        }
+
+        /// <summary>
+        /// Request to steal an item from another player's inventory.
+        /// Called by the local player (the stealer). Server-authoritative.
+        /// </summary>
+        public void RequestStealFrom(NetworkedPlayerInventory target, string itemId, int amount = 1)
+        {
+            if (!IsOwner) return;
+            if (target == null) return;
+            if (target.OwnerClientId == OwnerClientId) return; // Cannot steal from self
+
+            RequestStealFromServerRpc(target.OwnerClientId, itemId, amount);
+        }
+
+        [ServerRpc]
+        private void RequestStealFromServerRpc(ulong targetOwnerClientId, string itemId, int amount, ServerRpcParams rpcParams = default)
+        {
+            if (!IsServer) return;
+
+            ulong requesterClientId = rpcParams.Receive.SenderClientId;
+            if (requesterClientId == targetOwnerClientId) return;
+
+            var targetInventory = FindPlayerInventory(targetOwnerClientId);
+            var requesterInventory = FindPlayerInventory(requesterClientId);
+
+            if (targetInventory == null || requesterInventory == null) return;
+
+            int available = targetInventory.GetItemCount(itemId);
+            int toSteal = Mathf.Min(amount, available);
+            if (toSteal <= 0) return;
+
+            targetInventory.ServerRemoveItem(itemId, toSteal);
+            requesterInventory.ServerAddItem(itemId, toSteal);
+
+            Debug.Log($"[NetworkedPlayerInventory] Server: Stole {toSteal}x {itemId} from {targetOwnerClientId} to {requesterClientId}");
+        }
+
+        private static NetworkedPlayerInventory FindPlayerInventory(ulong clientId)
+        {
+            return FindByOwnerClientId(clientId);
+        }
+
+        /// <summary>
+        /// Find a player's inventory by their network client ID.
+        /// </summary>
+        public static NetworkedPlayerInventory FindByOwnerClientId(ulong clientId)
+        {
+            var players = FindObjectsByType<NetworkedPlayerInventory>(FindObjectsSortMode.None);
+            foreach (var player in players)
+            {
+                if (player.OwnerClientId == clientId)
+                    return player;
+            }
+            return null;
         }
 
         /// <summary>
