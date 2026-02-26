@@ -111,7 +111,7 @@ namespace HeistNSeek.Core.NetworkedCowsins
             float magnitude = (effectiveSpeed - detector.HighSpeedThreshold) * stumbleImpulseScale;
             Vector3 forceVector = direction * magnitude;
             _lastStumbleTime = Time.unscaledTime;
-
+            Debug.Log("WE LOST THE FUCKIN BALANCE !!!!");
             // TODO: Activate networked ragdoll here and apply forceVector to ragdoll rigidbodies.
         }
 
