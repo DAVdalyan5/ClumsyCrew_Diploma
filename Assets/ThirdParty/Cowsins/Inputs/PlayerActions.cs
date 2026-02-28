@@ -280,6 +280,15 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ResetBalance"",
+                    ""type"": ""Button"",
+                    ""id"": ""313b160b-c62d-4131-b4a5-d9a36b62246e"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -775,6 +784,17 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""Gamepad"",
                     ""action"": ""Push"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""66b30694-73a2-4ab3-891a-afd9dfca7396"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ResetBalance"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1485,6 +1505,7 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
         m_GameControls_InventoryFavOpen = m_GameControls.FindAction("InventoryFavOpen", throwIfNotFound: true);
         m_GameControls_ToggleTipsCanvas = m_GameControls.FindAction("ToggleTipsCanvas", throwIfNotFound: true);
         m_GameControls_Push = m_GameControls.FindAction("Push", throwIfNotFound: true);
+        m_GameControls_ResetBalance = m_GameControls.FindAction("ResetBalance", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1603,6 +1624,7 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_GameControls_InventoryFavOpen;
     private readonly InputAction m_GameControls_ToggleTipsCanvas;
     private readonly InputAction m_GameControls_Push;
+    private readonly InputAction m_GameControls_ResetBalance;
     /// <summary>
     /// Provides access to input actions defined in input action map "GameControls".
     /// </summary>
@@ -1699,6 +1721,10 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @Push => m_Wrapper.m_GameControls_Push;
         /// <summary>
+        /// Provides access to the underlying input action "GameControls/ResetBalance".
+        /// </summary>
+        public InputAction @ResetBalance => m_Wrapper.m_GameControls_ResetBalance;
+        /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
         public InputActionMap Get() { return m_Wrapper.m_GameControls; }
@@ -1787,6 +1813,9 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
             @Push.started += instance.OnPush;
             @Push.performed += instance.OnPush;
             @Push.canceled += instance.OnPush;
+            @ResetBalance.started += instance.OnResetBalance;
+            @ResetBalance.performed += instance.OnResetBalance;
+            @ResetBalance.canceled += instance.OnResetBalance;
         }
 
         /// <summary>
@@ -1861,6 +1890,9 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
             @Push.started -= instance.OnPush;
             @Push.performed -= instance.OnPush;
             @Push.canceled -= instance.OnPush;
+            @ResetBalance.started -= instance.OnResetBalance;
+            @ResetBalance.performed -= instance.OnResetBalance;
+            @ResetBalance.canceled -= instance.OnResetBalance;
         }
 
         /// <summary>
@@ -2313,6 +2345,13 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnPush(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "ResetBalance" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnResetBalance(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

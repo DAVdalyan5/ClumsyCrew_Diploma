@@ -173,15 +173,27 @@ namespace HeistNSeek.Core
             if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetworkObjectId, out var targetNetworkObject))
                 return;
 
+            var targetRagdoll = targetNetworkObject.GetComponent<NetworkedCowsinsRagdollController>();
+            if (targetRagdoll != null)
+            {
+                Vector3 targetPosition = targetNetworkObject.GetComponent<NetworkedCowsinsPlayerController>()?.GetMovingTransform()?.position ?? targetNetworkObject.transform.position;
+                Vector3 direction = (targetPosition - pushOrigin).normalized;
+                if (direction.sqrMagnitude < 0.01f)
+                    direction = Vector3.forward;
+                Vector3 forceVector = direction * forceMagnitude;
+                targetRagdoll.TriggerPushRagdoll(forceVector);
+                return;
+            }
+
             var targetCowsins = targetNetworkObject.GetComponent<NetworkedCowsinsPlayerController>();
             if (targetCowsins == null) return;
 
-            Vector3 targetPosition = targetCowsins.GetMovingTransform().position;
-            Vector3 direction = (targetPosition - pushOrigin).normalized;
-            if (direction.sqrMagnitude < 0.01f)
-                direction = Vector3.forward;
-            Vector3 forceVector = direction * forceMagnitude;
-            targetCowsins.ReceivePushFromServer(forceVector);
+            Vector3 targetPosition2 = targetCowsins.GetMovingTransform().position;
+            Vector3 direction2 = (targetPosition2 - pushOrigin).normalized;
+            if (direction2.sqrMagnitude < 0.01f)
+                direction2 = Vector3.forward;
+            Vector3 forceVector2 = direction2 * forceMagnitude;
+            targetCowsins.ReceivePushFromServer(forceVector2);
         }
     }
 }

@@ -275,6 +275,99 @@ namespace HeistNSeek.Core.NetworkedCowsins.Editor
 
             // Pushing mechanics: CharacterPusher, PushInputBridge, CollisionDetector(s), CowsinsCollisionPushHandler
             AddPushingMechanics(prefabRoot, player);
+
+            // Ragdoll + model migration: RioRagdoll, NetworkedCowsinsRagdollController, ResetBalanceInputBridge
+            AddRagdollMechanics(prefabRoot, player);
+        }
+
+        private static void AddRagdollMechanics(GameObject prefabRoot, Transform player)
+        {
+            const string RioRagdollPath = "Assets/Prefabs/HalfBaked/RioRagdoll.prefab";
+            var rioPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(RioRagdollPath);
+            if (rioPrefab == null)
+            {
+                Debug.LogWarning($"[NetworkedCowsinsSetup] RioRagdoll prefab not found at {RioRagdollPath}. Add ragdoll manually.");
+                return;
+            }
+
+            var existingRio = FindChildByName(prefabRoot.transform, "RioRagdoll");
+            GameObject rioInstance;
+            if (existingRio != null)
+            {
+                rioInstance = existingRio.gameObject;
+            }
+            else
+            {
+                rioInstance = (GameObject)PrefabUtility.InstantiatePrefab(rioPrefab);
+                if (rioInstance == null) return;
+                rioInstance.transform.SetParent(prefabRoot.transform, false);
+                rioInstance.transform.localPosition = Vector3.zero;
+                rioInstance.transform.localRotation = Quaternion.identity;
+                rioInstance.transform.localScale = Vector3.one;
+            }
+
+            var ragdollController = EnsureComponent<NetworkedCowsinsRagdollController>(prefabRoot);
+            var soRagdoll = new SerializedObject(ragdollController);
+
+            soRagdoll.FindProperty("ragdollHierarchyPart").objectReferenceValue = rioInstance;
+
+            var positionRoot = FindChildByName(rioInstance.transform, "Hips")
+                ?? FindChildByName(rioInstance.transform, "Pelvis")
+                ?? FindChildByName(rioInstance.transform, "Spine")
+                ?? FindChildByName(rioInstance.transform, "Root");
+            if (positionRoot == null)
+            {
+                var firstRb = rioInstance.GetComponentInChildren<Rigidbody>();
+                positionRoot = firstRb != null ? firstRb.transform : rioInstance.transform;
+            }
+            soRagdoll.FindProperty("ragdollPositionRoot").objectReferenceValue = positionRoot;
+
+            var detectors = prefabRoot.GetComponentsInChildren<CollisionDetector>();
+            if (detectors != null && detectors.Length > 0)
+            {
+                var listProp = soRagdoll.FindProperty("collisionDetectors");
+                listProp.ClearArray();
+                foreach (var d in detectors)
+                {
+                    listProp.InsertArrayElementAtIndex(listProp.arraySize);
+                    listProp.GetArrayElementAtIndex(listProp.arraySize - 1).objectReferenceValue = d;
+                }
+            }
+
+            soRagdoll.ApplyModifiedPropertiesWithoutUndo();
+
+            var playerGraphics = FindChildByName(prefabRoot.transform, "PlayerGraphics");
+            if (playerGraphics != null)
+            {
+                var soPc = new SerializedObject(prefabRoot.GetComponent<NetworkedCowsinsPlayerController>());
+                var localHiddenProp = soPc.FindProperty("localPlayerHiddenObjects");
+                if (localHiddenProp != null)
+                {
+                    bool hasRio = false;
+                    for (int i = 0; i < localHiddenProp.arraySize; i++)
+                    {
+                        var elem = localHiddenProp.GetArrayElementAtIndex(i);
+                        if (elem.objectReferenceValue == rioInstance) { hasRio = true; break; }
+                    }
+                    if (!hasRio)
+                    {
+                        localHiddenProp.InsertArrayElementAtIndex(localHiddenProp.arraySize);
+                        localHiddenProp.GetArrayElementAtIndex(localHiddenProp.arraySize - 1).objectReferenceValue = rioInstance;
+                        soPc.ApplyModifiedPropertiesWithoutUndo();
+                    }
+                }
+            }
+
+            var inputManagerGo = FindChildByName(prefabRoot.transform, "InputManager");
+            if (inputManagerGo != null && inputManagerGo.GetComponent<ResetBalanceInputBridge>() == null)
+                inputManagerGo.gameObject.AddComponent<ResetBalanceInputBridge>();
+
+            // PlayerRigidbodyImpactDetector: listens to Player's main collider OnCollisionEnter.
+            // Body-part trigger detectors are inside the capsule and never reach obstacles; this is the primary path.
+            if (player != null && player.GetComponent<PlayerRigidbodyImpactDetector>() == null)
+                player.gameObject.AddComponent<PlayerRigidbodyImpactDetector>();
+
+            Debug.Log("[NetworkedCowsinsSetup] Ragdoll mechanics added.");
         }
 
         private static void AddPushingMechanics(GameObject prefabRoot, Transform player)
@@ -313,7 +406,7 @@ namespace HeistNSeek.Core.NetworkedCowsins.Editor
             if (inputManagerGo != null && inputManagerGo.GetComponent<PushInputBridge>() == null)
                 inputManagerGo.gameObject.AddComponent<PushInputBridge>();
 
-            // CollisionDetector(s) under Player
+            // CollisionDetector(s) – one per body part, parented to Animator bones so they move with the character
             var collisionDetectorsParent = FindChildByName(player, "CollisionDetectors");
             if (collisionDetectorsParent == null)
             {
@@ -325,36 +418,211 @@ namespace HeistNSeek.Core.NetworkedCowsins.Editor
                 collisionDetectorsParent = go.transform;
             }
 
-            var torsoDetector = FindChildByName(collisionDetectorsParent, "TorsoCollisionDetector");
-            if (torsoDetector == null)
-            {
-                var go = new GameObject("TorsoCollisionDetector");
-                go.transform.SetParent(collisionDetectorsParent, false);
-                go.transform.localPosition = new Vector3(0f, 1f, 0f);
-                go.transform.localRotation = Quaternion.identity;
-                go.transform.localScale = Vector3.one;
-                var cap = go.AddComponent<CapsuleCollider>();
-                cap.isTrigger = true;
-                cap.radius = 0.3f;
-                cap.height = 1.2f;
-                cap.direction = 1;
-                go.AddComponent<CollisionDetector>();
-                torsoDetector = go.transform;
-            }
+            var animator = FindAnimatorForCollisionDetectors(prefabRoot);
+            var animatorInfo = animator != null
+                ? $"{animator.gameObject.name} (avatar={animator.avatar?.name ?? "null"}, isHuman={animator.isHuman})"
+                : "null";
+            Debug.Log($"[NetworkedCowsinsSetup] Selected Animator for bones: {animatorInfo}");
+            EnsureBodyPartCollisionDetectors(prefabRoot.transform, collisionDetectorsParent, animator);
 
-            // CowsinsCollisionPushHandler on root
+            // CowsinsCollisionPushHandler on root – wire all detectors (they may be under bones or fallback parent)
             var handler = prefabRoot.GetComponent<CowsinsCollisionPushHandler>();
             if (handler == null)
                 handler = prefabRoot.AddComponent<CowsinsCollisionPushHandler>();
 
+            var detectors = prefabRoot.GetComponentsInChildren<CollisionDetector>();
             var so = new SerializedObject(handler);
             var listProp = so.FindProperty("collisionDetectors");
-            if (listProp != null && listProp.arraySize == 0)
+            if (listProp != null)
             {
-                listProp.arraySize = 1;
-                listProp.GetArrayElementAtIndex(0).objectReferenceValue = torsoDetector.GetComponent<CollisionDetector>();
+                listProp.ClearArray();
+                foreach (var d in detectors)
+                {
+                    listProp.InsertArrayElementAtIndex(listProp.arraySize);
+                    listProp.GetArrayElementAtIndex(listProp.arraySize - 1).objectReferenceValue = d;
+                }
                 so.ApplyModifiedPropertiesWithoutUndo();
             }
+
+            Debug.Log($"[NetworkedCowsinsSetup] Collision detectors summary: {detectors.Length} total. Parent hierarchy:");
+            foreach (var d in detectors)
+            {
+                if (d != null)
+                    Debug.Log($"  - {d.name} -> {GetTransformPath(d.transform.parent)}");
+            }
+        }
+
+        private static Animator FindAnimatorForCollisionDetectors(GameObject prefabRoot)
+        {
+            var allAnimators = prefabRoot.GetComponentsInChildren<Animator>(true);
+            Animator best = null;
+            foreach (var anim in allAnimators)
+            {
+                if (anim == null || anim.avatar == null) continue;
+                if (anim.isHuman)
+                {
+                    best = anim;
+                    break;
+                }
+                if (best == null) best = anim;
+            }
+            if (best == null && allAnimators.Length > 0)
+                Debug.Log($"[NetworkedCowsinsSetup] No Animator with Humanoid avatar. Found: {string.Join(", ", System.Array.ConvertAll(allAnimators, a => a != null ? $"{a.gameObject.name}(avatar={a.avatar?.name ?? "null"})" : "null"))}");
+            return best;
+        }
+
+        private static void EnsureBodyPartCollisionDetectors(Transform prefabRoot, Transform fallbackParent, Animator animator)
+        {
+            RemoveArmDetectors(prefabRoot);
+            EnsureHeadCollisionDetector(prefabRoot, fallbackParent, animator);
+            EnsureTorsoCollisionDetector(prefabRoot, fallbackParent, animator);
+            EnsureLegCollisionDetector(prefabRoot, fallbackParent, animator, "LeftLegCollisionDetector", HumanBodyBones.LeftUpperLeg, new Vector3(-0.12f, 0.5f, 0.1f));
+            EnsureLegCollisionDetector(prefabRoot, fallbackParent, animator, "RightLegCollisionDetector", HumanBodyBones.RightUpperLeg, new Vector3(0.12f, 0.5f, 0.1f));
+        }
+
+        private static void RemoveArmDetectors(Transform prefabRoot)
+        {
+            foreach (var name in new[] { "LeftArmCollisionDetector", "RightArmCollisionDetector" })
+            {
+                var existing = FindChildByName(prefabRoot, name);
+                if (existing != null)
+                {
+                    Object.DestroyImmediate(existing.gameObject);
+                    Debug.Log($"[NetworkedCowsinsSetup] Removed arm detector: {name}");
+                }
+            }
+        }
+
+        private static Transform GetBoneTransformOrFallback(Animator animator, HumanBodyBones bone)
+        {
+            if (animator == null || animator.avatar == null) return null;
+            try
+            {
+                return animator.GetBoneTransform(bone);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static void EnsureHeadCollisionDetector(Transform prefabRoot, Transform fallbackParent, Animator animator)
+        {
+            const string name = "HeadCollisionDetector";
+            var existing = FindChildByName(prefabRoot, name);
+            var bone = GetBoneTransformOrFallback(animator, HumanBodyBones.Head);
+            var parent = bone != null ? bone : fallbackParent;
+            var localPos = bone != null ? Vector3.zero : new Vector3(0f, 1.5f, 0.08f);
+
+            var parentPath = GetTransformPath(parent);
+            Debug.Log($"[NetworkedCowsinsSetup] {name}: bone={(bone != null ? GetTransformPath(bone) : "null")}, parent={parentPath}, existing={existing != null}");
+
+            if (existing != null)
+            {
+                Debug.Log($"[NetworkedCowsinsSetup] {name}: already exists, skipping (preserving manual position)");
+                return;
+            }
+
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = localPos;
+            go.transform.localRotation = Quaternion.identity;
+            go.transform.localScale = Vector3.one;
+
+            var col = go.AddComponent<SphereCollider>();
+            col.isTrigger = true;
+            col.radius = 0.15f;
+
+            AddDetectorRigidbody(go);
+            go.AddComponent<CollisionDetector>();
+            Debug.Log($"[NetworkedCowsinsSetup] {name}: created under {parentPath}");
+        }
+
+        private static void EnsureTorsoCollisionDetector(Transform prefabRoot, Transform fallbackParent, Animator animator)
+        {
+            const string name = "TorsoCollisionDetector";
+            var existing = FindChildByName(prefabRoot, name);
+            var bone = GetBoneTransformOrFallback(animator, HumanBodyBones.Chest)
+                ?? GetBoneTransformOrFallback(animator, HumanBodyBones.Spine);
+            var parent = bone != null ? bone : fallbackParent;
+            var localPos = bone != null ? Vector3.zero : new Vector3(0f, 1f, 0f);
+
+            var parentPath = GetTransformPath(parent);
+            Debug.Log($"[NetworkedCowsinsSetup] {name}: bone={(bone != null ? GetTransformPath(bone) : "null")}, parent={parentPath}, existing={existing != null}");
+
+            if (existing != null)
+            {
+                Debug.Log($"[NetworkedCowsinsSetup] {name}: already exists, skipping (preserving manual position)");
+                return;
+            }
+
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = localPos;
+            go.transform.localRotation = Quaternion.identity;
+            go.transform.localScale = Vector3.one;
+
+            var col = go.AddComponent<CapsuleCollider>();
+            col.isTrigger = true;
+            col.radius = 0.3f;
+            col.height = 1.2f;
+            col.direction = 1;
+
+            AddDetectorRigidbody(go);
+            go.AddComponent<CollisionDetector>();
+            Debug.Log($"[NetworkedCowsinsSetup] {name}: created under {parentPath}");
+        }
+
+        private static void EnsureLegCollisionDetector(Transform prefabRoot, Transform fallbackParent, Animator animator,
+            string name, HumanBodyBones bone, Vector3 fallbackLocalPos)
+        {
+            var existing = FindChildByName(prefabRoot, name);
+            var boneTransform = GetBoneTransformOrFallback(animator, bone);
+            var parent = boneTransform != null ? boneTransform : fallbackParent;
+            var localPos = boneTransform != null ? Vector3.zero : fallbackLocalPos;
+
+            var parentPath = GetTransformPath(parent);
+            Debug.Log($"[NetworkedCowsinsSetup] {name}: bone={(boneTransform != null ? GetTransformPath(boneTransform) : "null")}, parent={parentPath}, existing={existing != null}");
+
+            if (existing != null)
+            {
+                Debug.Log($"[NetworkedCowsinsSetup] {name}: already exists, skipping (preserving manual position)");
+                return;
+            }
+
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = localPos;
+            go.transform.localRotation = Quaternion.identity;
+            go.transform.localScale = Vector3.one;
+
+            var col = go.AddComponent<CapsuleCollider>();
+            col.isTrigger = true;
+            col.radius = 0.08f;
+            col.height = 0.5f;
+            col.direction = 1;
+
+            AddDetectorRigidbody(go);
+            go.AddComponent<CollisionDetector>();
+            Debug.Log($"[NetworkedCowsinsSetup] {name}: created under {parentPath}");
+        }
+
+        private static void ReparentDetectorToBone(Transform detector, Transform newParent, Vector3 localPos)
+        {
+            if (detector.parent == newParent && (detector.localPosition - localPos).sqrMagnitude < 0.0001f)
+                return;
+            detector.SetParent(newParent, false);
+            detector.localPosition = localPos;
+            detector.localRotation = Quaternion.identity;
+            detector.localScale = Vector3.one;
+        }
+
+        private static void AddDetectorRigidbody(GameObject go)
+        {
+            var rb = go.AddComponent<Rigidbody>();
+            rb.mass = 0.0000001f;
+            rb.isKinematic = true;
+            rb.useGravity = false;
         }
 
         private static void IncludePlayerLayerInWeaponHitLayer(GameObject playerGo)
@@ -488,6 +756,19 @@ namespace HeistNSeek.Core.NetworkedCowsins.Editor
             var c = go.GetComponent<T>();
             if (c == null) return;
             Object.DestroyImmediate(c, true);
+        }
+
+        private static string GetTransformPath(Transform t)
+        {
+            if (t == null) return "null";
+            var path = t.name;
+            var p = t.parent;
+            while (p != null)
+            {
+                path = p.name + "/" + path;
+                p = p.parent;
+            }
+            return path;
         }
 
         private static Transform FindChildByName(Transform root, string name)

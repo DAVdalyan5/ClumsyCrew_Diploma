@@ -6,9 +6,9 @@ using UnityEngine;
 namespace HeistNSeek.Core.NetworkedCowsins
 {
     /// <summary>
-    /// Subscribes to CollisionDetector(s) on the Cowsins player and applies a stumble force
-    /// when high-speed impact is detected (Rigidbody-based, no ragdoll).
-    /// Only active for the owning client; applies force via server RPC.
+    /// Subscribes to CollisionDetector(s) on the Cowsins player and triggers ragdoll
+    /// when high-speed impact is detected.
+    /// Only active for the owning client; applies via server RPC.
     /// </summary>
     public class CowsinsCollisionPushHandler : MonoBehaviour
     {
@@ -16,13 +16,14 @@ namespace HeistNSeek.Core.NetworkedCowsins
         [Tooltip("Collision detectors to subscribe to (e.g. torso, head).")]
         [SerializeField] private List<CollisionDetector> collisionDetectors = new List<CollisionDetector>();
 
-        [Header("Stumble")]
-        [Tooltip("Scale applied to the stumble impulse magnitude when threshold is exceeded.")]
-        [SerializeField] private float stumbleImpulseScale = 1f;
-        [Tooltip("Minimum seconds between stumble force applications.")]
-        [SerializeField] private float stumbleCooldownSeconds = 0.2f;
+        [Header("Ragdoll Impact")]
+        [Tooltip("Scale applied to the force magnitude when threshold is exceeded.")]
+        [SerializeField] private float impactForceScale = 1f;
+        [Tooltip("Minimum seconds between ragdoll triggers.")]
+        [SerializeField] private float impactCooldownSeconds = 0.2f;
 
         private NetworkedCowsinsPlayerController _controller;
+        private NetworkedCowsinsRagdollController _ragdollController;
         private readonly List<System.IDisposable> _subscriptions = new List<System.IDisposable>();
         private float _lastStumbleTime;
         private Vector3 _lastMovingPosition;
@@ -32,6 +33,7 @@ namespace HeistNSeek.Core.NetworkedCowsins
         private void Start()
         {
             _controller = GetComponentInParent<NetworkedCowsinsPlayerController>();
+            _ragdollController = GetComponentInParent<NetworkedCowsinsRagdollController>();
             if (_controller == null || !_controller.IsOwner)
                 return;
 
@@ -102,17 +104,18 @@ namespace HeistNSeek.Core.NetworkedCowsins
 
             if (effectiveSpeed <= detector.HighSpeedThreshold)
                 return;
-            if (Time.unscaledTime - _lastStumbleTime < stumbleCooldownSeconds)
+            if (Time.unscaledTime - _lastStumbleTime < impactCooldownSeconds)
                 return;
 
             Vector3 direction = planarVelocity.sqrMagnitude > 0.01f
                 ? -planarVelocity.normalized
                 : -_controller.transform.forward;
-            float magnitude = (effectiveSpeed - detector.HighSpeedThreshold) * stumbleImpulseScale;
+            float magnitude = (effectiveSpeed - detector.HighSpeedThreshold) * impactForceScale;
             Vector3 forceVector = direction * magnitude;
             _lastStumbleTime = Time.unscaledTime;
-            Debug.Log("WE LOST THE FUCKIN BALANCE !!!!");
-            // TODO: Activate networked ragdoll here and apply forceVector to ragdoll rigidbodies.
+
+            if (_ragdollController != null)
+                _ragdollController.TriggerRagdollFromImpactServerRpc(forceVector, effectiveSpeed);
         }
 
         private Rigidbody GetMovingRigidbody()

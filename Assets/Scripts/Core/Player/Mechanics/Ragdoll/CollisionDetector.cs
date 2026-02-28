@@ -37,7 +37,7 @@ namespace Assets.Scripts.Core.Player.Character
             //maybe have a more rebust way of handling ths but whatever.
             this.onCollisionAction = onCollision;
             return cachedCollider.OnTriggerEnterAsObservable()
-                                 .Subscribe(collision =>  onCollision?.Invoke(collision, this));
+                                 .Subscribe(collision => onCollision?.Invoke(collision, this));
         }
 
         public void OnPushed(float force)

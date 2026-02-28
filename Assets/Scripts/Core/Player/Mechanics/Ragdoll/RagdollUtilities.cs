@@ -1,4 +1,4 @@
-﻿using Assets.Scripts.Runtime.Helpers;
+using Assets.Scripts.Runtime.Helpers;
 using System.Linq;
 using UnityEngine;
 
@@ -37,6 +37,28 @@ namespace Assets.Scripts.Core.Character
             }
 
             return rigidbodies.All(rb => !rb.isKinematic) && !animator.enabled;
+        }
+
+        /// <summary>
+        /// Applies force to the ragdoll's root Rigidbody (typically pelvis).
+        /// </summary>
+        /// <param name="ragdollRoot">Root GameObject of the ragdoll hierarchy.</param>
+        /// <param name="force">Force vector to apply.</param>
+        /// <param name="mode">Force mode (default: Impulse).</param>
+        /// <param name="preferredBone">Optional specific Rigidbody to use; if null, uses first non-kinematic in hierarchy.</param>
+        public static void ApplyForceToRagdoll(GameObject ragdollRoot, Vector3 force, ForceMode mode = ForceMode.Impulse, Rigidbody preferredBone = null)
+        {
+            if (ragdollRoot == null) return;
+
+            var target = preferredBone;
+            if (target == null)
+            {
+                var rigidbodies = ragdollRoot.GetComponentsInChildren<Rigidbody>();
+                if (rigidbodies.IsNullOrEmpty()) return;
+                target = rigidbodies[0];
+            }
+
+            target.AddForce(force, mode);
         }
     }
 }
