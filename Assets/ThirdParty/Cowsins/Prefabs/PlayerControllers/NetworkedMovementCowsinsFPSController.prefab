@@ -8789,6 +8789,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4612824604642224938, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5786591709513546180}
+    - targetCorrespondingSourceObject: {fileID: 4612824604642224938, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8663168438305194760}
     - targetCorrespondingSourceObject: {fileID: 4612824603642630890, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1308802268738642336}
@@ -8816,6 +8819,11 @@ GameObject:
 --- !u!20 &1195374611354653283 stripped
 Camera:
   m_CorrespondingSourceObject: {fileID: 4612824605049336406, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
+  m_PrefabInstance: {fileID: 5805941918662991925}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1195374611354653308 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4612824605049336393, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
   m_PrefabInstance: {fileID: 5805941918662991925}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &1195374611476548382 stripped
@@ -9112,6 +9120,27 @@ MonoBehaviour:
   - {fileID: 4282352193024570991}
   - {fileID: 7583276800732078128}
   - {fileID: 937229558777723856}
+--- !u!114 &8663168438305194760
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1195374611476548383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3224b05d8731c9c44a653ac3c7baa6a3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.NetworkedCowsins.RagdollCameraEffect
+  ShowTopMostFoldoutHeaderGroup: 1
+  cameraTransform: {fileID: 1195374611354653308}
+  fallPitchAmount: 100
+  fallPitchDuration: 1.2
+  fallRollWobble: 8
+  wobbleSpeed: 10
+  wobbleDuration: 0.5
+  impactShakeAmount: 0.4
+  recoverySpeed: 12
 --- !u!4 &1195374612628124357 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4612824603642630896, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}

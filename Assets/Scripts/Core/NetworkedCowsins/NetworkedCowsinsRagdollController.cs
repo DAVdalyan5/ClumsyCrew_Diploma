@@ -1,6 +1,7 @@
 using Assets.Scripts.Core.Character;
 using Assets.Scripts.Core.Player.Character;
 using Assets.Scripts.Infrastructure.EasyMessageHub;
+using cowsins;
 using HeistNSeek.Core;
 using HeistNSeek.Events;
 using Easy.MessageHub;
@@ -192,6 +193,9 @@ namespace HeistNSeek.Core.NetworkedCowsins
                 var pm = _playerController.GetPlayerMovement();
                 if (pm != null)
                     pm.enabled = false;
+
+                if (IsOwner)
+                    pm?.GetComponent<PlayerControl>()?.LoseControl();
             }
 
             var moving = _playerController != null ? _playerController.GetMovingTransform() : transform;
@@ -208,7 +212,10 @@ namespace HeistNSeek.Core.NetworkedCowsins
             {
                 var pm = _playerController.GetPlayerMovement();
                 if (pm != null)
+                {
                     pm.enabled = true;
+                    pm.GetComponent<PlayerControl>()?.CheckIfCanGrantControl();
+                }
             }
 
             var moving = _playerController != null ? _playerController.GetMovingTransform() : transform;

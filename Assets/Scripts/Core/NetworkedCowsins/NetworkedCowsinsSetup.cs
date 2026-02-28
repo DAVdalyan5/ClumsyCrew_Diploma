@@ -362,6 +362,10 @@ namespace HeistNSeek.Core.NetworkedCowsins.Editor
             if (inputManagerGo != null && inputManagerGo.GetComponent<ResetBalanceInputBridge>() == null)
                 inputManagerGo.gameObject.AddComponent<ResetBalanceInputBridge>();
 
+            // RagdollCameraEffect: falling camera tilt when local player goes ragdoll
+            var ragdollCamFx = EnsureComponent<RagdollCameraEffect>(prefabRoot);
+            WireRagdollCameraEffect(ragdollCamFx, prefabRoot, player);
+
             // PlayerRigidbodyImpactDetector: listens to Player's main collider OnCollisionEnter.
             // Body-part trigger detectors are inside the capsule and never reach obstacles; this is the primary path.
             if (player != null && player.GetComponent<PlayerRigidbodyImpactDetector>() == null)
@@ -695,6 +699,23 @@ namespace HeistNSeek.Core.NetworkedCowsins.Editor
 
             // Lightweight summary in console for visibility during setup.
             Debug.Log($"[NetworkedCowsinsSetup] Cleanup nested networking: removed {removedNetworkObjects} child NetworkObject(s), {removedNetworkBehaviours} child NetworkBehaviour(s), {removedNetworkTransforms} child NetworkTransform(s).");
+        }
+
+        private static void WireRagdollCameraEffect(RagdollCameraEffect effect, GameObject prefabRoot, Transform player)
+        {
+            if (effect == null) return;
+
+            var pm = player != null ? player.GetComponent<PlayerMovement>() : prefabRoot.GetComponentInChildren<PlayerMovement>(true);
+            var cam = pm != null && pm.playerSettings.playerCam != null
+                ? pm.playerSettings.playerCam
+                : FindChildByName(prefabRoot.transform, "Camera");
+
+            if (cam != null)
+            {
+                var so = new SerializedObject(effect);
+                so.FindProperty("cameraTransform").objectReferenceValue = cam;
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
         }
 
         private static void WirePlayerDependencies(GameObject playerGo, GameObject prefabRoot)
