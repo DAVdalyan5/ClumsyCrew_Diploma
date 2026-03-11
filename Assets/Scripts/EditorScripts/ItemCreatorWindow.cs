@@ -14,7 +14,7 @@ namespace HeistNSeek.Editor
     public class ItemCreatorWindow : EditorWindow
     {
         // ── Paths ────────────────────────────────────────────────────────────
-        private const string ItemBasePrefabPath = "Assets/Prefabs/Items/ItemBase.prefab";
+        private const string ItemBasePrefabPath = "Assets/Prefabs/Items/Base/ItemBase.prefab";
         private const string DefaultPrefabFolder = "Assets/Prefabs/Items";
         private const string DefaultSOFolder     = "Assets/SO/Items";
 
@@ -44,9 +44,8 @@ namespace HeistNSeek.Editor
         private ItemDataSO _existingSO = null;
 
         // ── Visual ───────────────────────────────────────────────────────────
-        private Mesh _mesh = null;
-        private Material _material = null;
-        private Vector3 _meshScale = Vector3.one;
+        private GameObject _modelPrefab = null;
+        private Vector3    _meshScale   = Vector3.one;
 
         // ── NetworkedItem settings ───────────────────────────────────────────
         private string _playerTag = "Player";
@@ -93,13 +92,13 @@ namespace HeistNSeek.Editor
             else
                 DrawExistingSOFields();
 
-            // ── Visual Mesh ──────────────────────────────────────────────────
+            // ── Visual Model ─────────────────────────────────────────────────
             EditorGUILayout.Space(4);
             DrawSection("Visual (optional)");
-            _mesh = (Mesh)EditorGUILayout.ObjectField("Mesh", _mesh, typeof(Mesh), false);
-            _material = (Material)EditorGUILayout.ObjectField("Material", _material, typeof(Material), false);
-            if (_mesh != null)
-                _meshScale = EditorGUILayout.Vector3Field("Mesh Scale", _meshScale);
+            _modelPrefab = (GameObject)EditorGUILayout.ObjectField(
+                "Model", _modelPrefab, typeof(GameObject), false);
+            if (_modelPrefab != null)
+                _meshScale = EditorGUILayout.Vector3Field("Scale", _meshScale);
 
             // ── NetworkedItem Settings ───────────────────────────────────────
             EditorGUILayout.Space(4);
@@ -248,22 +247,20 @@ namespace HeistNSeek.Editor
                 {
                     so2.FindProperty("visualRoot").objectReferenceValue = visualContainer.gameObject;
 
-                    // Add mesh if provided
-                    if (_mesh != null)
+                    // Instantiate the full model under VisualContainer
+                    if (_modelPrefab != null)
                     {
-                        var meshGO = new GameObject("Mesh");
-                        meshGO.transform.SetParent(visualContainer, false);
-                        meshGO.transform.localScale = _meshScale;
+                        var modelInstance = (GameObject)PrefabUtility.InstantiatePrefab(_modelPrefab);
+                        modelInstance.transform.SetParent(visualContainer, false);
+                        modelInstance.transform.localPosition = Vector3.zero;
+                        modelInstance.transform.localRotation = Quaternion.identity;
+                        modelInstance.transform.localScale    = _meshScale;
 
-                        var mf = meshGO.AddComponent<MeshFilter>();
-                        mf.sharedMesh = _mesh;
-
-                        var mr = meshGO.AddComponent<MeshRenderer>();
-                        if (_material != null)
-                            mr.sharedMaterial = _material;
-
-                        so2.FindProperty("meshFilter").objectReferenceValue = mf;
-                        so2.FindProperty("meshRenderer").objectReferenceValue = mr;
+                        // Wire the first MeshFilter/MeshRenderer found into NetworkedItem
+                        var mf = modelInstance.GetComponentInChildren<MeshFilter>(true);
+                        var mr = modelInstance.GetComponentInChildren<MeshRenderer>(true);
+                        if (mf != null) so2.FindProperty("meshFilter").objectReferenceValue  = mf;
+                        if (mr != null) so2.FindProperty("meshRenderer").objectReferenceValue = mr;
                     }
                 }
 
