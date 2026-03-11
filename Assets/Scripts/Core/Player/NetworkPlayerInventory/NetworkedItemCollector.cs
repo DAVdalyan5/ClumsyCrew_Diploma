@@ -18,6 +18,10 @@ namespace Assets.Scripts.Core.Player.NetworkPlayerInventory
         [SerializeField] private LayerMask interactLayerMask;
         [SerializeField] private bool debugVisualization = true;
 
+        [Header("Sphere Pickup Settings")]
+        [SerializeField] private float pickupSphereRadius = 0.5f;
+        [SerializeField] private LayerMask itemLayerMask;
+
         private IMessageHub _messageHub;
 
         private RaycastHit _lastHit;
@@ -75,37 +79,59 @@ namespace Assets.Scripts.Core.Player.NetworkPlayerInventory
             Vector3 direction = raycastCamera.transform.forward;
             ulong localClientId = NetworkManager.Singleton.LocalClientId;
 
+            // Layer-masked raycast for direct interactable hits
             var hits = Physics.RaycastAll(origin, direction, interactMaxDistance, interactLayerMask);
             var hit = GetFirstValidHit(hits, localClientId);
 
-            if (!hit.HasValue)
+            if (hit.HasValue)
             {
                 if (debugVisualization)
                 {
-                    _lastHitResult = false;
+                    _lastHit = hit.Value;
+                    _lastHitResult = true;
                     _debugDrawTime = Time.time + 2f;
                 }
+
+                var collectable = hit.Value.collider.GetComponentInParent<ICollectable>();
+                if (collectable != null)
+                {
+                    collectable.ForcePickup(localClientId);
+                    return;
+                }
+
+                var targetInventory = hit.Value.collider.GetComponentInParent<NetworkedPlayerInventory>();
+                if (targetInventory != null && targetInventory.OwnerClientId != localClientId)
+                {
+                    PerformPeek(targetInventory);
+                    return;
+                }
+
+                // Hit an interactable-layer object but it's not an item or player — sphere fallback
+                TryPickupNearbyItem(hit.Value.point, localClientId);
                 return;
             }
 
+            // No interactable hit — raycast against all geometry to find surface point (skip local player)
+            var surfaceHits = Physics.RaycastAll(origin, direction, interactMaxDistance);
+            var surfaceHit = GetFirstValidHit(surfaceHits, localClientId);
+            if (surfaceHit.HasValue)
+            {
+                if (debugVisualization)
+                {
+                    _lastHit = surfaceHit.Value;
+                    _lastHitResult = true;
+                    _debugDrawTime = Time.time + 2f;
+                }
+
+                TryPickupNearbyItem(surfaceHit.Value.point, localClientId);
+                return;
+            }
+
+            // Nothing hit at all
             if (debugVisualization)
             {
-                _lastHit = hit.Value;
-                _lastHitResult = true;
+                _lastHitResult = false;
                 _debugDrawTime = Time.time + 2f;
-            }
-
-            var collectable = hit.Value.collider.GetComponentInParent<ICollectable>();
-            if (collectable != null)
-            {
-                collectable.ForcePickup(localClientId);
-                return;
-            }
-
-            var targetInventory = hit.Value.collider.GetComponentInParent<NetworkedPlayerInventory>();
-            if (targetInventory != null && targetInventory.OwnerClientId != localClientId)
-            {
-                PerformPeek(targetInventory);
             }
         }
 
@@ -123,6 +149,30 @@ namespace Assets.Scripts.Core.Player.NetworkPlayerInventory
                 return h;
             }
             return null;
+        }
+
+        private void TryPickupNearbyItem(Vector3 center, ulong localClientId)
+        {
+            LayerMask mask = itemLayerMask != 0 ? itemLayerMask : interactLayerMask;
+            var colliders = Physics.OverlapSphere(center, pickupSphereRadius, mask);
+
+            ICollectable closest = null;
+            float closestDist = float.MaxValue;
+
+            foreach (var col in colliders)
+            {
+                var item = col.GetComponentInParent<ICollectable>();
+                if (item == null) continue;
+
+                float dist = Vector3.Distance(center, col.transform.position);
+                if (dist < closestDist)
+                {
+                    closestDist = dist;
+                    closest = item;
+                }
+            }
+
+            closest?.ForcePickup(localClientId);
         }
 
         private void PerformPeek(NetworkedPlayerInventory targetInventory)
@@ -145,6 +195,9 @@ namespace Assets.Scripts.Core.Player.NetworkPlayerInventory
                 Gizmos.color = Color.green;
                 Gizmos.DrawLine(origin, _lastHit.point);
                 Gizmos.DrawWireSphere(_lastHit.point, 0.1f);
+
+                Gizmos.color = new Color(0f, 1f, 1f, 0.15f);
+                Gizmos.DrawWireSphere(_lastHit.point, pickupSphereRadius);
             }
             else if (Time.time < _debugDrawTime)
             {
