@@ -15,7 +15,7 @@ namespace HeistNSeek.Editor
     {
         private const string PrefabsPath = "Assets/Prefabs/UI";
 
-        [MenuItem("HeistNSeek/Setup Peek Inventory (Create Prefabs + Add to Scene)")]
+        [MenuItem("HeistNSeek/Develper Tools/Setup Peek Inventory (Create Prefabs + Add to Scene)")]
         public static void SetupPeekInventory()
         {
             CreatePrefabs();
@@ -25,7 +25,7 @@ namespace HeistNSeek.Editor
             Debug.Log("[PeekInventoryPrefabCreator] Peek Inventory setup complete. Save the scene.");
         }
 
-        [MenuItem("HeistNSeek/Create Peek Inventory Prefabs")]
+        [MenuItem("HeistNSeek/Develper Tools/Create Peek Inventory Prefabs")]
         public static void CreatePrefabs()
         {
             EnsureDirectoryExists();
@@ -36,7 +36,7 @@ namespace HeistNSeek.Editor
             Debug.Log("[PeekInventoryPrefabCreator] Prefabs created at " + PrefabsPath);
         }
 
-        [MenuItem("HeistNSeek/Add Peek Inventory Popup to Scene")]
+        [MenuItem("HeistNSeek/Develper Tools/Add Peek Inventory Popup to Scene")]
         public static void AddPopupToScene()
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabsPath}/PeekInventoryPopup.prefab");
