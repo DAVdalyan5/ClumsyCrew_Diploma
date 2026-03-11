@@ -1,14 +1,19 @@
 using Assets.Scripts.Core.Player.Mechanics.Pushing;
 using R3;
 using R3.Triggers;
+using NaughtyAttributes;
 using System;
 using UnityEngine;
 
 namespace Assets.Scripts.Core.Player.Character
 {
+    /// <summary>
+    /// obsolete?
+    /// </summary>
     [RequireComponent(typeof(Collider))]
     public class CollisionDetector : MonoBehaviour, IPushable
     {
+        [NaughtyAttributes.InfoBox("This is obsolete, disable unless needed")]
         private Collider cachedCollider;
 
         [Header("Detection Parameters")]

@@ -100,3 +100,5 @@ InitTestScene*.unity*
 
 # Added library once again to make sure :)
 Library/
+/Assets/_Recovery
+/Assets/_Recovery.meta

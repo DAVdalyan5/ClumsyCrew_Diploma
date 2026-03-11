@@ -1,3 +1,6 @@
+using R3;
+using R3.Triggers;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -19,6 +22,8 @@ namespace HeistNSeek.Core.NetworkedCowsins
         [SerializeField] private float impactForceScale = 1f;
         [Tooltip("Minimum seconds between ragdoll triggers.")]
         [SerializeField] private float impactCooldownSeconds = 0.2f;
+        [Tooltip("Colliders to capture ragdoll triggers")]
+        [SerializeField] private List<Collider> collidersToCapture;
 
         private NetworkedCowsinsRagdollController _ragdollController;
         private NetworkedCowsinsPlayerController _playerController;
@@ -30,16 +35,19 @@ namespace HeistNSeek.Core.NetworkedCowsins
             _playerController = GetComponentInParent<NetworkedCowsinsPlayerController>();
             if (_playerController != null && !_playerController.IsOwner)
                 enabled = false;
+
+            collidersToCapture.ForEach(c => c.OnCollisionEnterAsObservable().Subscribe(CollisionEntered));
         }
 
-        private void OnCollisionEnter(Collision collision)
+        private void CollisionEntered(Collision collision)
         {
             if (_ragdollController == null || _playerController == null || !_playerController.IsOwner)
                 return;
             if (collision.transform.IsChildOf(_playerController.transform))
                 return;
 
-            float impactSpeed = collision.relativeVelocity.magnitude;
+            var zeroVerticalVector = new Vector3(1, 0f, 1);
+            float impactSpeed = Vector3.Scale(collision.relativeVelocity, zeroVerticalVector).magnitude;
             if (impactSpeed <= highSpeedThreshold)
                 return;
             if (Time.unscaledTime - _lastImpactTime < impactCooldownSeconds)

@@ -18,7 +18,9 @@ using VContainer;
 
 namespace Assets.Scripts.Core.Player
 {
-    //TODO: fix stucking in the wall
+    /// <summary>
+    /// OBSOLETE? This was the original player controller that handled movement, balance, and ragdoll triggering.
+    /// </summary>
     public class PlayerController : NetworkBehaviour
     {
         private readonly CompositeDisposable disposables = new CompositeDisposable();
