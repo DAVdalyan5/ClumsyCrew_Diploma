@@ -2794,6 +2794,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.Inventory.NetworkedInventory.ItemRegistryInitializer
   items:
   - {fileID: 11400000, guid: ff659c3bb3270f4489dae3e10f36c73b, type: 2}
+  - {fileID: 11400000, guid: b332ccd80dd37a34ca2fac9bf500ac3d, type: 2}
+  - {fileID: 11400000, guid: eedde21a909736f4cb761ad91efcedaf, type: 2}
+  - {fileID: 11400000, guid: f7fb070ae44f9e04e971b2d56aab153f, type: 2}
   loadFromResources: 0
   resourcesPath: Items
   dontDestroyOnLoad: 1
@@ -2949,6 +2952,71 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 429518724}
   m_CullTransparentMesh: 1
+--- !u!1001 &475099346
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 216147759340882876, guid: c23d0f64187b05543b7d398716615cce, type: 3}
+      propertyPath: m_Name
+      value: Toilet
+      objectReference: {fileID: 0}
+    - target: {fileID: 1697175852664228319, guid: c23d0f64187b05543b7d398716615cce, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -2.1744647
+      objectReference: {fileID: 0}
+    - target: {fileID: 1697175852664228319, guid: c23d0f64187b05543b7d398716615cce, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.17
+      objectReference: {fileID: 0}
+    - target: {fileID: 1697175852664228319, guid: c23d0f64187b05543b7d398716615cce, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -16.993065
+      objectReference: {fileID: 0}
+    - target: {fileID: 1697175852664228319, guid: c23d0f64187b05543b7d398716615cce, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1697175852664228319, guid: c23d0f64187b05543b7d398716615cce, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1697175852664228319, guid: c23d0f64187b05543b7d398716615cce, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1697175852664228319, guid: c23d0f64187b05543b7d398716615cce, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1697175852664228319, guid: c23d0f64187b05543b7d398716615cce, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1697175852664228319, guid: c23d0f64187b05543b7d398716615cce, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1697175852664228319, guid: c23d0f64187b05543b7d398716615cce, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6208136830651602333, guid: c23d0f64187b05543b7d398716615cce, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 2656760520
+      objectReference: {fileID: 0}
+    - target: {fileID: 6208136830651602333, guid: c23d0f64187b05543b7d398716615cce, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 738732265
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c23d0f64187b05543b7d398716615cce, type: 3}
 --- !u!1 &492914141
 GameObject:
   m_ObjectHideFlags: 0
@@ -11196,3 +11264,4 @@ SceneRoots:
   - {fileID: 1343490192}
   - {fileID: 416910419}
   - {fileID: 1237631691}
+  - {fileID: 475099346}

@@ -1,7 +1,9 @@
 #if UNITY_EDITOR
 using Assets.Scripts.Core.Inventory;
 using Assets.Scripts.Core.Inventory.Models;
+using HeistNSeek.Core.Inventory.NetworkedInventory;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace HeistNSeek.Editor
@@ -16,11 +18,11 @@ namespace HeistNSeek.Editor
         // ── Paths ────────────────────────────────────────────────────────────
         private const string ItemBasePrefabPath = "Assets/Prefabs/Items/Base/ItemBase.prefab";
         private const string DefaultPrefabFolder = "Assets/Prefabs/Items";
-        private const string DefaultSOFolder     = "Assets/SO/Items";
+        private const string DefaultSOFolder = "Assets/SO/Items";
 
         // ── Save paths ───────────────────────────────────────────────────────
         private string _prefabSaveFolder = DefaultPrefabFolder;
-        private string _soSaveFolder     = DefaultSOFolder;
+        private string _soSaveFolder = DefaultSOFolder;
 
         // ── Prefab name ──────────────────────────────────────────────────────
         private string _prefabName = "NewItem";
@@ -45,12 +47,17 @@ namespace HeistNSeek.Editor
 
         // ── Visual ───────────────────────────────────────────────────────────
         private GameObject _modelPrefab = null;
-        private Vector3    _meshScale   = Vector3.one;
+        private Vector3 _meshScale = Vector3.one;
 
         // ── NetworkedItem settings ───────────────────────────────────────────
         private string _playerTag = "Player";
-        private bool _autoPickup = true;
+        private bool _autoPickup = false;
         private float _pickupCooldown = 0.5f;
+        private float _pickupTriggerScale = 1.5f;
+
+        // ── Item Registry ───────────────────────────────────────────────────
+        private ItemRegistryInitializer _registryInitializer = null;
+        private bool _addToRegistry = true;
 
         // ── UI state ─────────────────────────────────────────────────────────
         private Vector2 _scroll;
@@ -63,6 +70,13 @@ namespace HeistNSeek.Editor
         {
             var window = GetWindow<ItemCreatorWindow>("Item Creator");
             window.minSize = new Vector2(380, 560);
+            window.TryFindRegistryInScene();
+        }
+
+        private void TryFindRegistryInScene()
+        {
+            if (_registryInitializer == null)
+                _registryInitializer = FindFirstObjectByType<ItemRegistryInitializer>(FindObjectsInactive.Include);
         }
 
         // ────────────────────────────────────────────────────────────────────
@@ -106,6 +120,24 @@ namespace HeistNSeek.Editor
             _playerTag = EditorGUILayout.TextField("Player Tag", _playerTag);
             _autoPickup = EditorGUILayout.Toggle("Auto Pickup", _autoPickup);
             _pickupCooldown = EditorGUILayout.FloatField("Pickup Cooldown", _pickupCooldown);
+            _pickupTriggerScale = EditorGUILayout.Slider("Trigger Size Multiplier", _pickupTriggerScale, 1f, 3f);
+
+            // ── Item Registry ─────────────────────────────────────────────────
+            EditorGUILayout.Space(4);
+            DrawSection("Item Registry");
+            _addToRegistry = EditorGUILayout.Toggle("Add to Registry", _addToRegistry);
+            if (_addToRegistry)
+            {
+                EditorGUILayout.BeginHorizontal();
+                _registryInitializer = (ItemRegistryInitializer)EditorGUILayout.ObjectField(
+                    "Registry", _registryInitializer, typeof(ItemRegistryInitializer), true);
+                if (GUILayout.Button("Find", GUILayout.Width(44)))
+                    TryFindRegistryInScene();
+                EditorGUILayout.EndHorizontal();
+
+                if (_registryInitializer == null)
+                    EditorGUILayout.HelpBox("No ItemRegistryInitializer assigned. Open the scene containing it or assign manually.", MessageType.Warning);
+            }
 
             // ── Create Button ────────────────────────────────────────────────
             EditorGUILayout.Space(8);
@@ -230,6 +262,9 @@ namespace HeistNSeek.Editor
             PrefabUtility.UnpackPrefabInstance(instance, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
             instance.name = _prefabName;
 
+            // Reset root position so the saved prefab starts at origin, not the ItemBase's baked scene position
+            instance.transform.position = Vector3.zero;
+
             // Wire up NetworkedItem fields via SerializedObject
             var networkedItem = instance.GetComponent("NetworkedItem") as MonoBehaviour;
             if (networkedItem != null)
@@ -254,13 +289,23 @@ namespace HeistNSeek.Editor
                         modelInstance.transform.SetParent(visualContainer, false);
                         modelInstance.transform.localPosition = Vector3.zero;
                         modelInstance.transform.localRotation = Quaternion.identity;
-                        modelInstance.transform.localScale    = _meshScale;
+                        modelInstance.transform.localScale = _meshScale;
+
+                        // Reset all child transforms to zero — FBX imports often have
+                        // baked position offsets from the 3D modeling software
+                        foreach (Transform child in modelInstance.transform)
+                        {
+                            child.localPosition = Vector3.zero;
+                        }
 
                         // Wire the first MeshFilter/MeshRenderer found into NetworkedItem
                         var mf = modelInstance.GetComponentInChildren<MeshFilter>(true);
                         var mr = modelInstance.GetComponentInChildren<MeshRenderer>(true);
-                        if (mf != null) so2.FindProperty("meshFilter").objectReferenceValue  = mf;
+                        if (mf != null) so2.FindProperty("meshFilter").objectReferenceValue = mf;
                         if (mr != null) so2.FindProperty("meshRenderer").objectReferenceValue = mr;
+
+                        // Fit colliders to the model
+                        FitCollidersToModel(instance, modelInstance);
                     }
                 }
 
@@ -286,7 +331,17 @@ namespace HeistNSeek.Editor
             EditorGUIUtility.PingObject(created);
             Selection.activeObject = created;
 
+            // Add SO to ItemRegistryInitializer
+            if (_addToRegistry && _registryInitializer != null)
+            {
+                AddToRegistry(so);
+            }
+
             _statusMessage = $"'{_prefabName}.prefab' created successfully!";
+            if (_addToRegistry && _registryInitializer != null)
+                _statusMessage += " Added to ItemRegistry.";
+            else if (_addToRegistry && _registryInitializer == null)
+                _statusMessage += " (Warning: no registry found, item not added to registry)";
             Debug.Log($"[ItemCreator] {_statusMessage}");
         }
 
@@ -379,6 +434,93 @@ namespace HeistNSeek.Editor
                 folder = defaultPath;
 
             EditorGUILayout.EndHorizontal();
+        }
+
+        private void FitCollidersToModel(GameObject itemRoot, GameObject modelInstance)
+        {
+            // If the model already has a collider, use its bounds for the trigger
+            // but leave the root collider alone (the model's own collider handles physics)
+            var modelCollider = modelInstance.GetComponentInChildren<Collider>(true);
+            if (modelCollider != null)
+            {
+                // Model has its own collider — remove the default root BoxCollider
+                // and just size the pickup trigger around the existing collider bounds
+                var rootCollider = itemRoot.GetComponent<BoxCollider>();
+                if (rootCollider != null)
+                    DestroyImmediate(rootCollider);
+
+                var triggerObj = itemRoot.transform.Find("PickupTrigger");
+                if (triggerObj != null)
+                {
+                    var triggerCollider = triggerObj.GetComponent<BoxCollider>();
+                    if (triggerCollider != null)
+                    {
+                        var bounds = modelCollider.bounds;
+                        // Convert bounds to item root local space
+                        var center = itemRoot.transform.InverseTransformPoint(bounds.center);
+                        var size = bounds.size; // world size (assuming uniform scale)
+                        triggerCollider.center = center;
+                        triggerCollider.size = size * _pickupTriggerScale;
+                    }
+                }
+                return;
+            }
+
+            // No collider on model — calculate bounds from renderers
+            var renderers = modelInstance.GetComponentsInChildren<Renderer>(true);
+            if (renderers.Length == 0) return;
+
+            var totalBounds = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++)
+                totalBounds.Encapsulate(renderers[i].bounds);
+
+            // Convert bounds center to item root local space
+            var localCenter = itemRoot.transform.InverseTransformPoint(totalBounds.center);
+            var worldSize = totalBounds.size;
+
+            // Size the physics collider on the root to match the model
+            var rootBox = itemRoot.GetComponent<BoxCollider>();
+            if (rootBox != null)
+            {
+                rootBox.center = localCenter;
+                rootBox.size = worldSize;
+            }
+
+            // Size the pickup trigger to be larger
+            var pickup = itemRoot.transform.Find("PickupTrigger");
+            if (pickup != null)
+            {
+                var triggerBox = pickup.GetComponent<BoxCollider>();
+                if (triggerBox != null)
+                {
+                    // PickupTrigger is a child, convert center to its local space
+                    var triggerCenter = pickup.InverseTransformPoint(totalBounds.center);
+                    triggerBox.center = triggerCenter;
+                    triggerBox.size = worldSize * _pickupTriggerScale;
+                }
+            }
+        }
+
+        private void AddToRegistry(ItemDataSO itemData)
+        {
+            var serializedRegistry = new SerializedObject(_registryInitializer);
+            var itemsProp = serializedRegistry.FindProperty("items");
+
+            // Check if already in the list
+            for (int i = 0; i < itemsProp.arraySize; i++)
+            {
+                if (itemsProp.GetArrayElementAtIndex(i).objectReferenceValue == itemData)
+                    return;
+            }
+
+            int newIndex = itemsProp.arraySize;
+            itemsProp.InsertArrayElementAtIndex(newIndex);
+            itemsProp.GetArrayElementAtIndex(newIndex).objectReferenceValue = itemData;
+            serializedRegistry.ApplyModifiedProperties();
+            EditorUtility.SetDirty(_registryInitializer);
+
+            // Mark the scene dirty so the change is saved
+            EditorSceneManager.MarkSceneDirty(_registryInitializer.gameObject.scene);
         }
 
         private void SetError(string msg)
