@@ -46,6 +46,10 @@ namespace cowsins
         {
             if (weapon == null || h.collider == null) return;
 
+            // Don't process hits on the shooter's own colliders (prevents self-damage and wrong bullet hole placement)
+            if (IsHitOnShooter(h.collider.transform))
+                return;
+
             settings.userEvents.OnHit?.Invoke();
             weaponEvents.Events.OnInstantiateBulletHoleImpact?.Invoke(layer, h);
 
@@ -71,6 +75,14 @@ namespace cowsins
                 var damageable = h.collider.GetComponent<IDamageable>();
                 damageable?.Damage(finalDamage, false);
             }
+        }
+
+        private bool IsHitOnShooter(Transform hitTransform)
+        {
+            if (context?.Transform == null) return false;
+            var shooterRoot = context.Transform;
+            while (shooterRoot.parent != null) shooterRoot = shooterRoot.parent;
+            return hitTransform == shooterRoot || hitTransform.IsChildOf(shooterRoot);
         }
 
         private float GetDistanceDamageReduction(Transform target)

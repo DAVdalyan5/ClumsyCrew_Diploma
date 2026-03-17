@@ -108,7 +108,7 @@ namespace cowsins
             Vector3 dir = CowsinsUtilities.GetSpreadDirection(spread, mainCamera);
             Ray ray = new Ray(mainCamera.transform.position, dir);
 
-            if (Physics.Raycast(ray, out hit, weapon.bulletRange, hitLayer))
+            if (Physics.Raycast(ray, out hit, weapon.bulletRange, hitLayer, QueryTriggerInteraction.Ignore))
             {
                 float dmg = id.damage * multipliers.DamageMultiplier;
                 weaponEvents.Events.OnHit?.Invoke(hit.collider.gameObject.layer, dmg, hit, true);
@@ -118,7 +118,7 @@ namespace cowsins
                 Ray newRay = new Ray(hit.point, ray.direction);
                 RaycastHit newHit;
 
-                if (Physics.Raycast(newRay, out newHit, id.penetrationAmount, hitLayer))
+                if (Physics.Raycast(newRay, out newHit, id.penetrationAmount, hitLayer, QueryTriggerInteraction.Ignore))
                 {
                     if (hitObj != newHit.collider.transform)
                     {
