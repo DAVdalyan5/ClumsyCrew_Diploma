@@ -28,8 +28,8 @@ namespace HeistNSeek.Core.Enemy.States
                 return;
             }
 
-            var player = _enemy.Player;
-            if (player == null)
+            var target = _enemy.CurrentTarget;
+            if (target == null)
             {
                 _enemy.TransitionToPatrol();
                 return;
@@ -61,10 +61,10 @@ namespace HeistNSeek.Core.Enemy.States
                 return;
             }
 
-            var player = _enemy.Player;
-            if (player != null && _enemy.IsInMeleeAttackRange())
+            var target = _enemy.CurrentTarget;
+            if (target != null && _enemy.IsInMeleeAttackRange())
             {
-                _enemy.PublishEnemyAttack(player);
+                _enemy.PublishEnemyAttack(target);
                 _enemy.KillPlayer();
             }
         }

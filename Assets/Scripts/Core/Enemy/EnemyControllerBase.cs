@@ -1,7 +1,6 @@
 using Easy.MessageHub;
 using HeistNSeek.Core.Enemy.Events;
 using HeistNSeek.Core.Enemy.States;
-using HeistNSeek.Core.Player;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
@@ -27,12 +26,11 @@ namespace HeistNSeek.Core.Enemy
         protected NetworkedEnemyHealth _health;
         protected IEnemyState _currentState;
         protected IMessageHub _messageHub;
-        protected IPlayerProvider _playerProvider;
         private bool _didHandleDeath;
 
         public NavMeshAgent Agent => _agent;
         public Transform Transform => transform;
-        public Transform Player => _playerProvider?.GetPlayer();
+        public Transform CurrentTarget { get; set; }
         public float DetectionRange => detectionRange;
         public float MeleeAttackRange => meleeAttackRange;
         public float AttackRange => attackRange;
@@ -47,11 +45,28 @@ namespace HeistNSeek.Core.Enemy
         public EnemyWeaponShooter WeaponShooter => weaponShooter;
 
         [Inject]
-        protected void Construct(IMessageHub messageHub, IPlayerProvider playerProvider)
+        protected void Construct(IMessageHub messageHub)
         {
             _messageHub = messageHub;
-            _playerProvider = playerProvider;
         }
+
+        /// <summary>Called by EnemyDetectionTrigger when a player enters the detection zone.</summary>
+        public void OnPlayerDetected(Transform target)
+        {
+            CurrentTarget = target;
+            PublishPlayerSpotted(target);
+            OnPlayerDetectedInternal();
+        }
+
+        /// <summary>Called by EnemyDetectionTrigger when all players leave the detection zone.</summary>
+        public void OnAllPlayersLeft()
+        {
+            CurrentTarget = null;
+            OnAllPlayersLeftInternal();
+        }
+
+        protected virtual void OnPlayerDetectedInternal() { }
+        protected virtual void OnAllPlayersLeftInternal() { }
 
         protected virtual void Awake()
         {
@@ -104,56 +119,47 @@ namespace HeistNSeek.Core.Enemy
             return networkManager.IsServer;
         }
 
-        public bool CanDetectPlayer()
-        {
-            var player = Player;
-            if (player == null) return false;
-
-            float distance = Vector3.Distance(transform.position, player.position);
-            return distance <= detectionRange;
-        }
-
         public bool IsInMeleeAttackRange()
         {
-            var player = Player;
-            if (player == null) return false;
+            var target = CurrentTarget;
+            if (target == null) return false;
 
-            float distance = Vector3.Distance(transform.position, player.position);
+            float distance = Vector3.Distance(transform.position, target.position);
             return distance <= meleeAttackRange;
         }
 
         public bool IsInAttackRange()
         {
-            var player = Player;
-            if (player == null) return false;
+            var target = CurrentTarget;
+            if (target == null) return false;
 
-            float distance = Vector3.Distance(transform.position, player.position);
+            float distance = Vector3.Distance(transform.position, target.position);
             return distance <= attackRange;
         }
 
         public bool IsInShootRange()
         {
-            var player = Player;
-            if (player == null) return false;
+            var target = CurrentTarget;
+            if (target == null) return false;
 
-            float distance = Vector3.Distance(transform.position, player.position);
+            float distance = Vector3.Distance(transform.position, target.position);
             return distance <= shootRange;
         }
 
         public void KillPlayer()
         {
             Debug.Log("[Enemy] Player killed!");
-            _messageHub.Publish(new PlayerKilledEvent(this));
+            _messageHub?.Publish(new PlayerKilledEvent(this));
         }
 
         public void PublishPlayerSpotted(Transform player)
         {
-            _messageHub.Publish(new PlayerSpottedEvent(this, player));
+            _messageHub?.Publish(new PlayerSpottedEvent(this, player));
         }
 
         public void PublishEnemyAttack(Transform target)
         {
-            _messageHub.Publish(new EnemyAttackEvent(this, target));
+            _messageHub?.Publish(new EnemyAttackEvent(this, target));
         }
 
         public void StopEnemy()

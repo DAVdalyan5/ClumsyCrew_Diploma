@@ -3,7 +3,6 @@ using Assets.Scripts.Runtime.Core;
 using Easy.MessageHub;
 using HeistNSeek.Core;
 using HeistNSeek.Core.Inventory.SessionInventory;
-using HeistNSeek.Core.Player;
 using HeistNSeek.UI;
 using NaughtyAttributes;
 using StarterAssets;

@@ -26,8 +26,8 @@ namespace HeistNSeek.Core.Enemy.States
                 return;
             }
 
-            var player = _enemy.Player;
-            if (player == null)
+            var target = _enemy.CurrentTarget;
+            if (target == null)
             {
                 _enemy.TransitionToPatrol();
                 return;
@@ -39,18 +39,12 @@ namespace HeistNSeek.Core.Enemy.States
                 return;
             }
 
-            if (!_enemy.CanDetectPlayer())
-            {
-                _enemy.TransitionToPatrol();
-                return;
-            }
-
             if (_enemy.WeaponShooter != null && _enemy.IsInShootRange())
             {
                 _enemy.WeaponShooter.TryShoot();
             }
 
-            _enemy.Agent.SetDestination(player.position);
+            _enemy.Agent.SetDestination(target.position);
         }
 
         public void Exit()

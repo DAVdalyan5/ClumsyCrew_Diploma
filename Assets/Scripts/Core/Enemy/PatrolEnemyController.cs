@@ -58,5 +58,15 @@ namespace HeistNSeek.Core.Enemy
         {
             ChangeState(_attackState);
         }
+
+        protected override void OnPlayerDetectedInternal()
+        {
+            TransitionToChase();
+        }
+
+        protected override void OnAllPlayersLeftInternal()
+        {
+            TransitionToPatrol();
+        }
     }
 }

@@ -33,12 +33,13 @@ namespace HeistNSeek.Core.Enemy.Editor
                 AddEnemyWeaponController(root);
                 AddEnemyWeaponShooter(root);
                 WireWeaponShooterToController(root);
+                AddDetectionTrigger(root);
 
                 GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
                 if (prefab != null)
                 {
                     Debug.Log($"[EnemyPrefabSetup] Created prefab at {PrefabPath}");
-                    EditorUtility.DisplayDialog("Success", $"Patrol enemy prefab created at:\n{PrefabPath}\n\nNext steps:\n1. Add to NetworkManager's Network Prefabs list\n2. Assign Weapon_SO (e.g. Pistol, Rifle) to EnemyWeaponController\n3. Set hitLayer to include Player layer\n4. Assign patrol waypoints in scene\n5. Bake NavMesh", "OK");
+                    EditorUtility.DisplayDialog("Success", $"Patrol enemy prefab created at:\n{PrefabPath}\n\nNext steps:\n1. Add to NetworkManager's Network Prefabs list\n2. Assign Weapon_SO (e.g. Pistol, Rifle) to EnemyWeaponController\n3. Set hitLayer to include Player layer\n4. Assign patrol waypoints in scene\n5. Bake NavMesh\n6. DetectionTrigger child handles player detection (trigger-based)", "OK");
                     Selection.activeObject = prefab;
                     EditorGUIUtility.PingObject(prefab);
                 }
@@ -187,6 +188,68 @@ namespace HeistNSeek.Core.Enemy.Editor
             cam.enabled = false;
             cam.clearFlags = CameraClearFlags.Nothing;
             cam.cullingMask = 0;
+        }
+
+        private static void AddDetectionTrigger(GameObject root)
+        {
+            if (FindChildByName(root.transform, "DetectionTrigger") != null)
+                return;
+
+            var go = new GameObject("DetectionTrigger");
+            go.transform.SetParent(root.transform, false);
+            go.transform.localPosition = Vector3.zero;
+            go.transform.localRotation = Quaternion.identity;
+            go.transform.localScale = Vector3.one;
+
+            var patrol = root.GetComponent<PatrolEnemyController>();
+            float radius = patrol != null ? 10f : 10f; // detectionRange default
+            if (patrol != null)
+            {
+                var so = new SerializedObject(patrol);
+                var rangeProp = so.FindProperty("detectionRange");
+                if (rangeProp != null)
+                    radius = rangeProp.floatValue;
+            }
+
+            var capsule = go.AddComponent<CapsuleCollider>();
+            capsule.isTrigger = true;
+            capsule.radius = radius;
+            capsule.height = radius * 2f;
+            capsule.direction = 1; // Y-axis
+            capsule.center = Vector3.zero;
+
+            go.AddComponent<EnemyDetectionTrigger>();
+        }
+
+        [MenuItem("Tools/Enemy/Add Detection Trigger to Patrol Enemy")]
+        public static void AddDetectionTriggerToExistingPrefab()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+            if (prefab == null)
+            {
+                EditorUtility.DisplayDialog("Error", $"Patrol enemy prefab not found at {PrefabPath}", "OK");
+                return;
+            }
+
+            var path = AssetDatabase.GetAssetPath(prefab);
+            var contents = PrefabUtility.LoadPrefabContents(path);
+            try
+            {
+                if (FindChildByName(contents.transform, "DetectionTrigger") != null)
+                {
+                    EditorUtility.DisplayDialog("Info", "DetectionTrigger already exists on PatrolEnemy prefab.", "OK");
+                    return;
+                }
+
+                AddDetectionTrigger(contents);
+                PrefabUtility.SaveAsPrefabAsset(contents, path);
+                EditorUtility.DisplayDialog("Success", "DetectionTrigger added to PatrolEnemy prefab.", "OK");
+            }
+            finally
+            {
+                if (contents != null)
+                    PrefabUtility.UnloadPrefabContents(contents);
+            }
         }
 
         private static void AddEnemyBody(GameObject root)

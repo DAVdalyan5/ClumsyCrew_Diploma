@@ -43,11 +43,11 @@ namespace HeistNSeek.Core.Enemy
             if (Time.time - _lastShootTime < shootInterval)
                 return;
 
-            var player = enemyController?.Player;
-            if (player == null)
+            var target = enemyController?.CurrentTarget;
+            if (target == null)
                 return;
 
-            weaponController.AimAt(player);
+            weaponController.AimAt(target);
             weaponController.Shoot();
             _lastShootTime = Time.time;
         }

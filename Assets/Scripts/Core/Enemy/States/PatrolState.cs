@@ -33,17 +33,6 @@ namespace HeistNSeek.Core.Enemy.States
                 return;
             }
 
-            if (_enemy.CanDetectPlayer())
-            {
-                var player = _enemy.Player;
-                if (player != null)
-                {
-                    _enemy.PublishPlayerSpotted(player);
-                }
-                _enemy.TransitionToChase();
-                return;
-            }
-
             if (!HasValidPatrolPoints()) return;
 
             if (HasReachedDestination())
