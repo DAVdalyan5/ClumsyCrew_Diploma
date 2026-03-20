@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using Assets.Scripts.Core.Inventory.Models;
+using Assets.Scripts.Helpers;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -21,7 +23,7 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
 
         [Header("Network Item Prefab")]
         [Tooltip("The networked item prefab with NetworkedItem component")]
-        [SerializeField] private GameObject networkedItemPrefab;
+        [SerializeField] private List<GameObject> networkedItemLootPrefabs; //the issue is this
 
         // Track all spawned items for cleanup
         private readonly Dictionary<ulong, NetworkedItem> _spawnedItems = new();
@@ -46,6 +48,8 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
             if (IsServer)
             {//the pre placed items are not visible on non host.
                 RegisterSceneItems();
+                var sceneLootPrefabs = this.NetworkManager.NetworkConfig.Prefabs.Prefabs.Where(p => p.Prefab.HasComponent<NetworkedItem>());
+                networkedItemLootPrefabs = sceneLootPrefabs.Select(p => p.Prefab).ToList();
             }
         }
 
@@ -131,7 +135,7 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
             Vector3 spawnPosition = position + scatterOffset + Vector3.up * spawnHeightOffset;
 
             // Determine which prefab to use
-            GameObject prefabToSpawn = networkedItemPrefab;
+            GameObject prefabToSpawn = networkedItemLootPrefabs.FirstOrDefault(i => itemId == i.name);
             if (prefabToSpawn == null)
             {
                 Debug.LogError("[NetworkedItemSpawnManager] No networked item prefab assigned!");
