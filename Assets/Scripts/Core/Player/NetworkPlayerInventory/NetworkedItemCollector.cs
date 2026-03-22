@@ -22,11 +22,18 @@ namespace Assets.Scripts.Core.Player.NetworkPlayerInventory
         [SerializeField] private float pickupSphereRadius = 0.5f;
         [SerializeField] private LayerMask itemLayerMask;
 
+        [Header("Hold to Pickup")]
+        [SerializeField] private float holdDuration = 1.5f;
+
         private IMessageHub _messageHub;
 
         private RaycastHit _lastHit;
         private bool _lastHitResult;
         private float _debugDrawTime;
+
+        private ICollectable _pendingTarget;
+        private float _holdTimer;
+        private bool _isHolding;
 
         [Inject]
         public void Init(IMessageHub messageHub)
@@ -44,13 +51,11 @@ namespace Assets.Scripts.Core.Player.NetworkPlayerInventory
             EnsureMessageHubResolved();
             if (_messageHub != null)
             {
-                _messageHub.SubscribeSafe<InteractEvent>(this, _ => InteractActionPerform());
+                _messageHub.SubscribeSafe<InteractEvent>(this, _ => OnInteractStarted());
+                _messageHub.SubscribeSafe<InteractReleasedEvent>(this, _ => OnInteractReleased());
             }
         }
 
-        /// <summary>
-        /// Resolves IMessageHub from a LifetimeScope when injection hasn't run yet (e.g. client-spawned networked prefabs).
-        /// </summary>
         private void EnsureMessageHubResolved()
         {
             if (_messageHub != null) return;
@@ -64,11 +69,39 @@ namespace Assets.Scripts.Core.Player.NetworkPlayerInventory
             }
         }
 
-        private void InteractActionPerform()
+        private void Update()
+        {
+            if (!IsOwner || !_isHolding) return;
+
+            _holdTimer += Time.deltaTime;
+            if (_holdTimer >= holdDuration)
+            {
+                ulong localClientId = NetworkManager.Singleton.LocalClientId;
+                _pendingTarget.ForcePickup(localClientId);
+                CancelHold();
+            }
+        }
+
+        private void OnInteractStarted()
         {
             if (!IsOwner) return;
 
             PerformRaycastInteraction();
+        }
+
+        private void OnInteractReleased()
+        {
+            if (!IsOwner) return;
+            if (_isHolding)
+                CancelHold();
+        }
+
+        private void CancelHold()
+        {
+            _isHolding = false;
+            _holdTimer = 0f;
+            _pendingTarget = null;
+            _messageHub?.Publish(new InteractHoldCanceledEvent());
         }
 
         private void PerformRaycastInteraction()
@@ -79,7 +112,6 @@ namespace Assets.Scripts.Core.Player.NetworkPlayerInventory
             Vector3 direction = raycastCamera.transform.forward;
             ulong localClientId = NetworkManager.Singleton.LocalClientId;
 
-            // Layer-masked raycast for direct interactable hits
             var hits = Physics.RaycastAll(origin, direction, interactMaxDistance, interactLayerMask);
             var hit = GetFirstValidHit(hits, localClientId);
 
@@ -95,7 +127,7 @@ namespace Assets.Scripts.Core.Player.NetworkPlayerInventory
                 var collectable = hit.Value.collider.GetComponentInParent<ICollectable>();
                 if (collectable != null)
                 {
-                    collectable.ForcePickup(localClientId);
+                    StartHold(collectable);
                     return;
                 }
 
@@ -106,12 +138,10 @@ namespace Assets.Scripts.Core.Player.NetworkPlayerInventory
                     return;
                 }
 
-                // Hit an interactable-layer object but it's not an item or player — sphere fallback
                 TryPickupNearbyItem(hit.Value.point, localClientId);
                 return;
             }
 
-            // No interactable hit — raycast against all geometry to find surface point (skip local player)
             var surfaceHits = Physics.RaycastAll(origin, direction, interactMaxDistance);
             var surfaceHit = GetFirstValidHit(surfaceHits, localClientId);
             if (surfaceHit.HasValue)
@@ -127,7 +157,6 @@ namespace Assets.Scripts.Core.Player.NetworkPlayerInventory
                 return;
             }
 
-            // Nothing hit at all
             if (debugVisualization)
             {
                 _lastHitResult = false;
@@ -135,9 +164,14 @@ namespace Assets.Scripts.Core.Player.NetworkPlayerInventory
             }
         }
 
-        /// <summary>
-        /// Skips hits on the local player's colliders so we can interact with objects/players in front of us.
-        /// </summary>
+        private void StartHold(ICollectable target)
+        {
+            _pendingTarget = target;
+            _holdTimer = 0f;
+            _isHolding = true;
+            _messageHub?.Publish(new InteractHoldStartEvent(holdDuration));
+        }
+
         private RaycastHit? GetFirstValidHit(RaycastHit[] hits, ulong localClientId)
         {
             foreach (var h in hits)
@@ -172,7 +206,8 @@ namespace Assets.Scripts.Core.Player.NetworkPlayerInventory
                 }
             }
 
-            closest?.ForcePickup(localClientId);
+            if (closest != null)
+                StartHold(closest);
         }
 
         private void PerformPeek(NetworkedPlayerInventory targetInventory)

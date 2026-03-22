@@ -18,6 +18,7 @@ namespace HeistNSeek.Core.NetworkedCowsins
         private IMessageHub _messageHub;
         private InputManager _inputManager;
         private NetworkedCowsinsPlayerController _playerController;
+        private bool _isHolding;
 
         [Inject]
         public void Init(IMessageHub messageHub)
@@ -61,7 +62,14 @@ namespace HeistNSeek.Core.NetworkedCowsins
 
             if (_inputManager.StartInteraction)
             {
+                _isHolding = true;
                 _messageHub.Publish(new InteractEvent());
+            }
+
+            if (_isHolding && !_inputManager.Interacting)
+            {
+                _isHolding = false;
+                _messageHub.Publish(new InteractReleasedEvent());
             }
         }
     }

@@ -97,6 +97,7 @@ namespace HeistNSeek.Core.Player
             jumpAction.performed += ctx => messageHub.Publish(new JumpEvent());
             resetBalanceAction.performed += ctx => messageHub.Publish(new ResetBalanceEvent());
             interactAction.performed += ctx => messageHub.Publish(new InteractEvent());
+            interactAction.canceled += ctx => messageHub.Publish(new InteractReleasedEvent());
             pushAction.performed += ctx => messageHub.Publish(new PushEvent());
         }
 
