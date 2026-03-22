@@ -321,7 +321,7 @@ namespace HeistNSeek.Core.NetworkedCowsins
         public void ApplyForceServerRpc(Vector3 force, ForceMode forceMode = ForceMode.Force, ServerRpcParams rpcParams = default)
         {
             if (!IsServer) return;
-
+            
             var rb = GetMovingRigidbody();
             if (rb != null)
             {
