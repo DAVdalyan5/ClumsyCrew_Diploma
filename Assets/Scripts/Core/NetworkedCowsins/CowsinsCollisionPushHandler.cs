@@ -1,6 +1,7 @@
 using Assets.Scripts.Core.Player.Character;
 using System.Collections.Generic;
 using Unity.Netcode;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace HeistNSeek.Core.NetworkedCowsins
@@ -86,6 +87,20 @@ namespace HeistNSeek.Core.NetworkedCowsins
             _subscriptions.Clear();
         }
 
+        /// <summary>
+        /// The logic: compute the direction from the player's center to the other collider's center — if that direction dot
+        /// Vector3.down > 0.5f (more than ~60° pointing downward), it's underneath the player and treated as ground, so the
+        /// impact is skipped.
+        /// The 0.5f threshold means only things that are clearly below you are ignored.A wall to the side will have a near-zero
+        /// or negative dot product with Vector3.down and will still trigger ragdoll normally.
+        /// </summary>
+        private static bool IsBelowPlayer(Collider other, Transform playerTransform)
+        {
+            //this not used, but couuld be if needed.
+            Vector3 toOther = other.bounds.center - playerTransform.position;
+            return Vector3.Dot(toOther.normalized, Vector3.down) > 0.5f;
+        }
+
         private void OnCollisionDetected(Collider other, CollisionDetector detector)
         {
             if (other == null || detector == null)
@@ -94,6 +109,8 @@ namespace HeistNSeek.Core.NetworkedCowsins
                 return;
             if (other.transform.IsChildOf(_controller.transform))
                 return; // Ignore own colliders; they can spam trigger callbacks.
+            if (other.CompareTag("Ground"))
+                return;
 
             var rb = GetMovingRigidbody();
             if (rb == null) return;
@@ -126,3 +143,28 @@ namespace HeistNSeek.Core.NetworkedCowsins
         }
     }
 }
+
+//pushHandler detects when a player runs into a wall or obstacle � it watches the body-part trigger zones and checks
+//  "was I moving fast enough when this trigger fired?"
+
+//  rbImpactDet detects the physics collision itself � Unity's physics engine tells you the exact relative velocity at the
+//   moment of impact, which is the "true" collision force.
+
+//  ---
+//  In practice:
+
+//  -pushHandler is imprecise � trigger colliders don't give you collision force data, so it has to estimate speed by
+//  sampling position every frame. It can fire even if you lightly brush a wall while moving fast, because it only checks
+//  "were you moving fast" not "did the impact actually stop you hard."
+//  - rbImpactDet is precise � collision.relativeVelocity is the actual physics impulse, so it only fires when something
+//  genuinely hit hard. It's the "correct" way to detect impact damage.
+
+//  ---
+//  Why both exist:
+
+//  The trigger-based approach (pushHandler / CollisionDetector) was the original system, designed around body-part
+//  hitboxes. The rbImpactDet was added later as a comment in the file says � "body-part trigger colliders are inside the
+//  main capsule and never reach obstacles (the capsule hits first)" � meaning the trigger body parts are buried inside
+//  the character and physically can never touch a wall because the outer capsule collider blocks it first. So pushHandler
+//   probably barely ever fires from environmental collisions; it's mainly useful for the IPushable / OnPushed() path
+//  (when another player pushes you via raycast)

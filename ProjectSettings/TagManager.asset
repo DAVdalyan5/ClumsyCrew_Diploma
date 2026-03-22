@@ -12,6 +12,7 @@ TagManager:
   - BodyShot
   - CinemachineTarget
   - StealableLoot
+  - Ground
   layers:
   - Default
   - TransparentFX
