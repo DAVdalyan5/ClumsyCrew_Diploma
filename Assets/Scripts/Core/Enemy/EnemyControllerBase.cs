@@ -22,11 +22,20 @@ namespace HeistNSeek.Core.Enemy
         [SerializeField] protected float shootRange = 15f;
         [SerializeField] protected float attackCooldown = 1f;
 
+        [Header("Combat")]
+        [SerializeField] protected EnemyCombatMode combatMode = EnemyCombatMode.Melee;
+        [Tooltip("NavMesh stopping distance while chasing in Ranged mode. 0 = use 65% of Shoot Range.")]
+        [SerializeField] protected float rangedCombatStoppingDistance;
+
+        [Header("Ranged Combat")]
+        [SerializeField] protected EnemyWeaponShooter weaponShooter;
+
         protected NavMeshAgent _agent;
         protected NetworkedEnemyHealth _health;
         protected IEnemyState _currentState;
         protected IMessageHub _messageHub;
         private bool _didHandleDeath;
+        private float _cachedDefaultStoppingDistance;
 
         public NavMeshAgent Agent => _agent;
         public Transform Transform => transform;
@@ -38,11 +47,9 @@ namespace HeistNSeek.Core.Enemy
         public float AttackCooldown => attackCooldown;
         public bool IsDead => _health != null && _health.IsDead;
         public bool IsAlive => !IsDead;
-
-        [Header("Ranged Combat")]
-        [SerializeField] protected EnemyWeaponShooter weaponShooter;
-
         public EnemyWeaponShooter WeaponShooter => weaponShooter;
+        public EnemyCombatMode CombatMode => combatMode;
+        public bool UsesMeleeContactAttack => combatMode == EnemyCombatMode.Melee;
 
         [Inject]
         protected void Construct(IMessageHub messageHub)
@@ -72,6 +79,26 @@ namespace HeistNSeek.Core.Enemy
         {
             _agent = GetComponent<NavMeshAgent>();
             _health = GetComponent<NetworkedEnemyHealth>();
+            if (_agent != null)
+                _cachedDefaultStoppingDistance = _agent.stoppingDistance;
+        }
+
+        public void ApplyChaseEngagementStoppingDistance()
+        {
+            if (_agent == null || combatMode != EnemyCombatMode.Ranged)
+                return;
+
+            float stopDist = rangedCombatStoppingDistance > 0f
+                ? rangedCombatStoppingDistance
+                : shootRange * 0.65f;
+            _agent.stoppingDistance = Mathf.Max(0.5f, stopDist);
+        }
+
+        public void RestoreDefaultStoppingDistance()
+        {
+            if (_agent == null)
+                return;
+            _agent.stoppingDistance = _cachedDefaultStoppingDistance;
         }
 
         protected virtual void Start()

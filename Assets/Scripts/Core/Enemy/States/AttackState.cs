@@ -17,6 +17,12 @@ namespace HeistNSeek.Core.Enemy.States
 
         public void Enter()
         {
+            if (!_enemy.UsesMeleeContactAttack)
+            {
+                _enemy.TransitionToChase();
+                return;
+            }
+
             _enemy.StopEnemy();
             _attackTimer = 0f;
         }
@@ -32,6 +38,12 @@ namespace HeistNSeek.Core.Enemy.States
             if (target == null)
             {
                 _enemy.TransitionToPatrol();
+                return;
+            }
+
+            if (!_enemy.UsesMeleeContactAttack)
+            {
+                _enemy.TransitionToChase();
                 return;
             }
 
@@ -56,7 +68,7 @@ namespace HeistNSeek.Core.Enemy.States
 
         private void PerformAttack()
         {
-            if (_enemy.IsDead)
+            if (_enemy.IsDead || !_enemy.UsesMeleeContactAttack)
             {
                 return;
             }

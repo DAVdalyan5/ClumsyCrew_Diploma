@@ -31,8 +31,10 @@ namespace HeistNSeek.Core.Enemy.Editor
                 AddEnemyBody(root);
                 AddNetworkedEnemyHealth(root);
                 AddEnemyWeaponController(root);
+                AddEnemyShootEffectsNet(root);
                 AddEnemyWeaponShooter(root);
                 WireWeaponShooterToController(root);
+                SetPatrolEnemyRangedDefaults(root);
                 AddDetectionTrigger(root);
 
                 GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
@@ -108,6 +110,26 @@ namespace HeistNSeek.Core.Enemy.Editor
             }
         }
 
+        private static void SetPatrolEnemyRangedDefaults(GameObject root)
+        {
+            var patrol = root.GetComponent<PatrolEnemyController>();
+            if (patrol == null)
+                return;
+
+            var so = new SerializedObject(patrol);
+            var modeProp = so.FindProperty("combatMode");
+            if (modeProp != null)
+                modeProp.enumValueIndex = (int)EnemyCombatMode.Ranged;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            var agent = root.GetComponent<NavMeshAgent>();
+            if (agent != null)
+            {
+                agent.stoppingDistance = 6f;
+                EditorUtility.SetDirty(root);
+            }
+        }
+
         private static void AddNetworkedEnemyHealth(GameObject root)
         {
             var health = root.GetComponent<NetworkedEnemyHealth>();
@@ -124,6 +146,12 @@ namespace HeistNSeek.Core.Enemy.Editor
                     so.FindProperty("ragdollPositionRoot").objectReferenceValue = hips;
                 so.ApplyModifiedPropertiesWithoutUndo();
             }
+        }
+
+        private static void AddEnemyShootEffectsNet(GameObject root)
+        {
+            if (root.GetComponent<EnemyShootEffectsNet>() == null)
+                root.AddComponent<EnemyShootEffectsNet>();
         }
 
         private static void AddEnemyWeaponController(GameObject root)
