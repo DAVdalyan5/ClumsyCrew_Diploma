@@ -249,14 +249,17 @@ namespace cowsins
             alreadyInteracted = true;
             // Perform any interaction you may like
             // Please note that classes that inherit from interactable can override the virtual void Interact()
-            highlightedInteractable.Interact(this.transform);
+            // Weapon pickup (SwapWeapons) calls SelectWeapon -> OnSelectWeapon -> ResetInteractable(), which nulls highlightedInteractable while Interact() is still running; keep a local ref for cleanup.
+            Interactable interactableForCleanup = highlightedInteractable;
+            interactableForCleanup.Interact(this.transform);
             // Prevent from spamming but let the user interact again
             Invoke(nameof(ResetInteractTimer), interactInterval);
             
             Events.OnPerformInteraction?.Invoke();  
 
             // Manage UI
-            highlightedInteractable.Unhighlight();
+            if (interactableForCleanup)
+                interactableForCleanup.Unhighlight();
             highlightedInteractable = null;
 
             userEvents.OnFinishInteraction.Invoke(); // Call our event

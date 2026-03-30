@@ -220,7 +220,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3552753225
+  GlobalObjectIdHash: 1626493411
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -318,6 +318,8 @@ MonoBehaviour:
   attackRange: 1.5
   shootRange: 15
   attackCooldown: 1
+  combatMode: 0
+  rangedCombatStoppingDistance: 0
   weaponShooter: {fileID: 6100980254071331061}
   patrolPoints: []
   idleDuration: 0
@@ -335,8 +337,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.Enemy.NetworkedEnemyHealth
   ShowTopMostFoldoutHeaderGroup: 1
-  maxHealth: 100
+  maxHealth: 10
   logDamageInConsole: 0
+  deathHealthThreshold: 0
   ragdollHierarchyPart: {fileID: 7350895356176112558}
   ragdollPositionRoot: {fileID: 9035564681262162400}
 --- !u!114 &8502995289638888007
@@ -356,6 +359,8 @@ MonoBehaviour:
   hitLayer:
     serializedVersion: 2
     m_Bits: 131072
+  firePoints: []
+  weaponShootAnimator: {fileID: 0}
 --- !u!114 &6100980254071331061
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -371,63 +376,6 @@ MonoBehaviour:
   weaponController: {fileID: 8502995289638888007}
   enemyController: {fileID: 2323850828964568185}
   shootInterval: 0.5
---- !u!1001 &5330973008559904270
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 2978546604620115166}
-    m_Modifications:
-    - target: {fileID: 3456736833312558496, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
-      propertyPath: m_Name
-      value: RioRagdoll
-      objectReference: {fileID: 0}
-    - target: {fileID: 7058936870215236470, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7058936870215236470, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7058936870215236470, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7058936870215236470, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7058936870215236470, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7058936870215236470, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7058936870215236470, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7058936870215236470, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7058936870215236470, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7058936870215236470, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
 --- !u!1 &8887776665554443331
 GameObject:
   m_ObjectHideFlags: 0
@@ -500,6 +448,63 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   playerTag: Player
+--- !u!1001 &5330973008559904270
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 2978546604620115166}
+    m_Modifications:
+    - target: {fileID: 3456736833312558496, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
+      propertyPath: m_Name
+      value: RioRagdoll
+      objectReference: {fileID: 0}
+    - target: {fileID: 7058936870215236470, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7058936870215236470, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7058936870215236470, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7058936870215236470, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7058936870215236470, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7058936870215236470, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7058936870215236470, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7058936870215236470, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7058936870215236470, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7058936870215236470, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
 --- !u!4 &2885974051111480696 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7058936870215236470, guid: bcdffb20a2e95984c855afa9784923fb, type: 3}
