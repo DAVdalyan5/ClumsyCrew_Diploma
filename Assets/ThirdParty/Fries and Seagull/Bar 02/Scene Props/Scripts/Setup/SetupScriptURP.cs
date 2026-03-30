@@ -81,7 +81,7 @@ namespace Seagull.Bar_02.SceneProps.Setup {
         
         [MenuItem("Tools/Fries/Bar 02/Setup Universal Rendering Pipeline", priority = 2)]
         public static void setup1() {
-            RenderPipelineAsset currentRP = GraphicsSettings.renderPipelineAsset;
+            RenderPipelineAsset currentRP = GraphicsSettings.defaultRenderPipeline;
             if (currentRP == null) {
                 Debug.LogError("Current Render Pipeline is not URP");
                 return;
