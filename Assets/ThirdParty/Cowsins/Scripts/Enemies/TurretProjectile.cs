@@ -37,7 +37,7 @@ namespace cowsins
             if (!IsValidTarget(other)) return;
 
             if (targetType == Turret.TargetType.Player && other.TryGetComponent<PlayerStats>(out var player))
-                player.Damage(damage, false);
+                player.Damage(damage, false, Vector3.zero);
 
             if (targetType == Turret.TargetType.Enemies && other.TryGetComponent<IDamageable>(out var dmg))
                 dmg.Damage(damage, false);

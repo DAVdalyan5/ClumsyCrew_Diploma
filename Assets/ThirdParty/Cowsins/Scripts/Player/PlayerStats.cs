@@ -96,14 +96,14 @@ namespace cowsins
         /// Our Player Stats is IDamageable, which means it can be damaged
         /// If so, call this method to damage the player
         /// </summary>
-        public void Damage(float _damage, bool isHeadshot)
+        public void Damage(float _damage, bool isHeadshot, Vector3 pos)
         {
             // Forward to networked health when this player is a networked instance (root has NetworkedHealth)
             var root = transform.root;
             var networkedHealth = root.GetComponent<HeistNSeek.Core.NetworkedCowsins.NetworkedHealth>();
             if (networkedHealth != null)
             {
-                networkedHealth.Damage(_damage, isHeadshot);
+                networkedHealth.Damage(_damage, isHeadshot, pos);
                 return;
             }
 
@@ -234,7 +234,7 @@ namespace cowsins
                 float heightDifference = noNullHeight - currentHeight;
 
                 // If the height difference is enough, apply damage
-                if (heightDifference > minimumHeightDifferenceToApplyDamage) Damage(heightDifference * fallDamageMultiplier, false);
+                if (heightDifference > minimumHeightDifferenceToApplyDamage) Damage(heightDifference * fallDamageMultiplier, false, Vector3.zero);
 
                 // Reset height
                 currentFallHeight = null;

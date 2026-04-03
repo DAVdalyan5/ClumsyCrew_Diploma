@@ -1,5 +1,7 @@
 using Assets.Scripts.Core.Player;
+using Assets.Scripts.Events;
 using Cinemachine;
+using Easy.MessageHub;
 using HeistNSeek.Core;
 using Unity.Netcode;
 using UnityEngine;
@@ -55,6 +57,10 @@ namespace Assets.Scripts.Runtime.Core
                 playerFollowCamera.Follow = followTransform;
                 pusher.CameraTransform = mainCamera.transform;
             }
+
+            // Notify UI systems (e.g. damage indicators) that the local player is ready.
+            var messageHub = _container?.Resolve<IMessageHub>();
+            messageHub?.Publish(new LocalPlayerSpawnedEvent(mainCamera, transform));
         }
 
         private void SetupPusherCameraRpc()

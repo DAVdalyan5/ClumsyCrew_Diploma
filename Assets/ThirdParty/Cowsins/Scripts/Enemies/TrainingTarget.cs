@@ -15,11 +15,11 @@ namespace cowsins
             base.Start();
         }
 
-        public override void Damage(float damage, bool isHeadshot)
+        public override void Damage(float damage, bool isHeadshot, Vector3 pos)
         {
             if (isDead) return;
             animator.Play("Target_Hit");
-            base.Damage(damage, isHeadshot);
+            base.Damage(damage, isHeadshot, pos);
         }
         public override void Die()
         {

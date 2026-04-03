@@ -71,7 +71,7 @@ namespace HeistNSeek.Core.Enemy
             RagdollUtilities.ToggleRagdoll(ragdollHierarchyPart, false);
         }
 
-        public void Damage(float damage, bool isHeadshot)
+        public void Damage(float damage, bool isHeadshot, Vector3 pos)
         {
             if (!IsSpawned || _isDead) return;
             RequestTakeDamageServerRpc(damage, isHeadshot);

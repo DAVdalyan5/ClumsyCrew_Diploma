@@ -41,7 +41,7 @@ namespace cowsins
         }
 
         // Handle damage, have in mind that this is also IDamageable
-        public void Damage(float damage, bool isHeadshot)
+        public void Damage(float damage, bool isHeadshot, Vector3 pos)
         {
             health -= damage;
             if (health <= 0) health = 0;

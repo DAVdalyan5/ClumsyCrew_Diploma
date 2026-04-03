@@ -92,7 +92,7 @@ namespace cowsins
         /// <summary>
         /// Since it is IDamageable, it can take damage, if a shot is landed, damage the enemy
         /// </summary>
-        public virtual void Damage(float _damage, bool isHeadshot)
+        public virtual void Damage(float _damage, bool isHeadshot, Vector3 pos)
         {
             if (isDead) return;
 

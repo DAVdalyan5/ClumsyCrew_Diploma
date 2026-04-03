@@ -1,5 +1,6 @@
 using System.Globalization;
 using cowsins;
+using HeistNSeek.Core.NetworkedCowsins;
 using UnityEngine;
 
 namespace HeistNSeek.Core.Enemy
@@ -208,22 +209,38 @@ namespace HeistNSeek.Core.Enemy
         {
             var hitTransform = hit.collider.transform;
             float finalDamage = damage * GetDistanceDamageReduction(hitTransform);
+            Vector3 myPos = transform.position;
+
+            IDamageable damageable;
+            float dmg;
+            bool headshot;
 
             if (hitTransform.CompareTag("Critical"))
             {
-                var damageable = CowsinsUtilities.GatherDamageableParent(hitTransform);
-                damageable?.Damage(finalDamage * weaponData.criticalDamageMultiplier, true);
+                damageable = CowsinsUtilities.GatherDamageableParent(hitTransform);
+                dmg = finalDamage * weaponData.criticalDamageMultiplier;
+                headshot = true;
             }
             else if (hitTransform.CompareTag("BodyShot"))
             {
-                var damageable = CowsinsUtilities.GatherDamageableParent(hitTransform);
-                damageable?.Damage(finalDamage, false);
+                damageable = CowsinsUtilities.GatherDamageableParent(hitTransform);
+                dmg = finalDamage;
+                headshot = false;
             }
             else
             {
-                var damageable = hit.collider.GetComponent<IDamageable>();
-                damageable?.Damage(finalDamage, false);
+                damageable = hit.collider.GetComponent<IDamageable>();
+                dmg = finalDamage;
+                headshot = false;
             }
+
+            // Use the enemy-specific path so the server knows the actual attacker position.
+            // The generic Damage() path resolves position from SenderClientId, which is
+            // wrong for server-side NPCs (the sender would be the server, not the enemy).
+            if (damageable is HeistNSeek.Core.NetworkedCowsins.NetworkedHealth nh)
+                nh.DamageFromAttacker(dmg, headshot, myPos);
+            else
+                damageable?.Damage(dmg, headshot, myPos);
         }
 
         private float GetDistanceDamageReduction(Transform target)
