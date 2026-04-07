@@ -115,6 +115,9 @@ namespace HeistNSeek.Core.Enemy
 
         private void UpdateCurrentTargetAndNotify()
         {
+            if (_controller == null || !_controller.IsAlive)
+                return;
+
             _playersInRange.RemoveWhere(t => t == null);
             var newTarget = GetClosestPlayerInRange();
 

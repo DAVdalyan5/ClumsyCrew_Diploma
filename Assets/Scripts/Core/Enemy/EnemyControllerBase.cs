@@ -213,6 +213,18 @@ namespace HeistNSeek.Core.Enemy
             }
         }
 
+        /// <summary>
+        /// Safe NavMesh usage when the agent may be disabled, off-mesh, or shut down after death.
+        /// </summary>
+        public bool TrySetAgentDestination(Vector3 worldDestination)
+        {
+            if (_agent == null || !_agent.isActiveAndEnabled || !_agent.isOnNavMesh)
+                return false;
+
+            _agent.SetDestination(worldDestination);
+            return true;
+        }
+
         public void SetInitialPosition(Vector3 position)
         {
             if (_agent != null && _agent.isActiveAndEnabled)
@@ -229,6 +241,9 @@ namespace HeistNSeek.Core.Enemy
 
         protected void ChangeState(IEnemyState newState)
         {
+            if (IsDead)
+                return;
+
             _currentState?.Exit();
             _currentState = newState;
             _currentState?.Enter();

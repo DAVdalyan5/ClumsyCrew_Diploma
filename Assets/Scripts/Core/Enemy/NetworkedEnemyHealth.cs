@@ -104,6 +104,8 @@ namespace HeistNSeek.Core.Enemy
                 return;
 
             _isDead = true;
+            // Dedicated server never runs ClientRpc locally; shut down NavMesh/AI here so no stray state transitions hit SetDestination.
+            DisableAI();
             TriggerDeathClientRpc();
         }
 

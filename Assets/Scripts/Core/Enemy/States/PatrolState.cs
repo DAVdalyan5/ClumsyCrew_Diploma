@@ -17,6 +17,9 @@ namespace HeistNSeek.Core.Enemy.States
 
         public void Enter()
         {
+            if (_enemy.IsDead)
+                return;
+
             _enemy.ResumeEnemy();
             _currentPatrolPointIndex = 0;
 
@@ -71,7 +74,7 @@ namespace HeistNSeek.Core.Enemy.States
             var target = points[_currentPatrolPointIndex];
             if (target != null)
             {
-                _enemy.Agent.SetDestination(target.position);
+                _enemy.TrySetAgentDestination(target.position);
             }
         }
     }
