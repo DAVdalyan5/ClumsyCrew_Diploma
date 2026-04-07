@@ -324,6 +324,9 @@ MonoBehaviour:
   patrolPoints: []
   idleDuration: 0
   patrolArrivalThreshold: 0.5
+  searchDuration: 20
+  searchRadius: 40
+  searchPointPauseDuration: 2.5
 --- !u!114 &6537370271696848322
 MonoBehaviour:
   m_ObjectHideFlags: 0

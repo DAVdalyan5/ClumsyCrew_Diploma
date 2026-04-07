@@ -40,6 +40,8 @@ namespace HeistNSeek.Core.Enemy
         public NavMeshAgent Agent => _agent;
         public Transform Transform => transform;
         public Transform CurrentTarget { get; set; }
+        public Vector3 LastKnownPlayerPosition { get; private set; }
+        public bool HasEverSeenPlayer { get; private set; }
         public float DetectionRange => detectionRange;
         public float MeleeAttackRange => meleeAttackRange;
         public float AttackRange => attackRange;
@@ -61,6 +63,8 @@ namespace HeistNSeek.Core.Enemy
         public void OnPlayerDetected(Transform target)
         {
             CurrentTarget = target;
+            HasEverSeenPlayer = true;
+            LastKnownPlayerPosition = target.position;
             PublishPlayerSpotted(target);
             OnPlayerDetectedInternal();
         }
@@ -68,6 +72,8 @@ namespace HeistNSeek.Core.Enemy
         /// <summary>Called by EnemyDetectionTrigger when all players leave the detection zone.</summary>
         public void OnAllPlayersLeft()
         {
+            if (CurrentTarget != null)
+                LastKnownPlayerPosition = CurrentTarget.position;
             CurrentTarget = null;
             OnAllPlayersLeftInternal();
         }
@@ -229,9 +235,11 @@ namespace HeistNSeek.Core.Enemy
 
         protected void ChangeState(IEnemyState newState)
         {
+            var prevName = _currentState?.GetType().Name ?? "None";
             _currentState?.Exit();
             _currentState = newState;
             _currentState?.Enter();
+            Debug.Log($"[EnemyState] {gameObject.name}: {prevName} -> {newState?.GetType().Name ?? "None"}");
         }
 
         protected virtual void OnDrawGizmosSelected()
