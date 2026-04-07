@@ -19,13 +19,11 @@ namespace HeistNSeek.Core
         [Header("Push Settings")]
         [SerializeField] private float pushSpeed = 10f;
         [SerializeField] private float pushDistance = 3f;
-        [SerializeField] private float returnSpeed = 5f;
 
         private IMessageHub _messageHub;
 
         private new Collider collider;
         private Vector3 initialLocalPosition;
-        private bool isPushing = false;
 
         private Transform pusherPositionTransform;
         private PlayerController ownerPlayerController;

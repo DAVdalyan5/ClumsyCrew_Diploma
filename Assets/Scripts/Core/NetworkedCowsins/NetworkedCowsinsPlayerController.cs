@@ -28,7 +28,8 @@ namespace HeistNSeek.Core.NetworkedCowsins
         [SerializeField] private Transform movingTransform;
 
         [Header("Owner-only Objects (disable for non-owners)")]
-        [Tooltip("These GameObjects will be enabled only on the owning client (camera, UI, local-only audio, etc).")]
+        [Tooltip("These GameObjects will be enabled only on the owning client (camera, UI, local-only audio, etc). " +
+                 "The Cowsins camera rig includes the only AudioListener per client; Main scene uses SceneFallbackAudioListener until the local player spawns.")]
         [SerializeField] private GameObject[] ownerOnlyObjects;
 
         [Header("First-person visibility (hide for local player)")]
@@ -79,6 +80,9 @@ namespace HeistNSeek.Core.NetworkedCowsins
                 WirePusherCamera();
 
             SetupOwnershipBehavior();
+
+            if (IsOwner && PoolManager.Instance == null)
+                Debug.LogError("[NetworkedCowsinsPlayerController] PoolManager.Instance is null. Assign CowsinsSessionServices prefab on GameplayLifetimeScope so session services spawn before players.");
         }
 
         private void EnsureInjectedDependencies()
@@ -291,8 +295,8 @@ namespace HeistNSeek.Core.NetworkedCowsins
         /// <summary>
         /// Teleport player to position (server-authoritative)
         /// </summary>
-        [ServerRpc(RequireOwnership = false)]
-        public void TeleportPlayerServerRpc(Vector3 position, ServerRpcParams rpcParams = default)
+        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+        public void TeleportPlayerServerRpc(Vector3 position)
         {
             if (!IsServer) return;
             
@@ -317,8 +321,8 @@ namespace HeistNSeek.Core.NetworkedCowsins
         /// <summary>
         /// Apply force to player (server-authoritative)
         /// </summary>
-        [ServerRpc(RequireOwnership = false)]
-        public void ApplyForceServerRpc(Vector3 force, ForceMode forceMode = ForceMode.Force, ServerRpcParams rpcParams = default)
+        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+        public void ApplyForceServerRpc(Vector3 force, ForceMode forceMode = ForceMode.Force)
         {
             if (!IsServer) return;
             

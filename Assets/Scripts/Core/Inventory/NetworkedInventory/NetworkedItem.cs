@@ -273,18 +273,12 @@ namespace HeistNSeek.Core.Inventory.NetworkedInventory
             }
         }
 
-        //private void Update()
-        //{
-        //    // Only the local player can trigger pickup with key
-        //    if (!autoPickup && _playerInRange && !_isPickedUp.Value)
-        //    {
-        //        //change to input system
-        //        if (Input.GetKeyDown(pickupKey))
-        //        {
-        //            ExecutePickup();
-        //        }
-        //    }
-        //}
+        private void Update()
+        {
+            if (autoPickup || !_playerInRange || _isPickedUp.Value) return;
+            if (Input.GetKeyDown(pickupKey))
+                ExecutePickup();
+        }
 
         public void ExecutePickup()
         {

@@ -107,7 +107,9 @@ namespace HeistNSeek.UI.PeekInventory
                 }
             }
 
-            _uiController = UIController.Instance;
+            _uiController = localPlayer.GetComponentInChildren<UIController>(true);
+            if (_uiController == null)
+                _uiController = UIController.Instance;
         }
 
         private void ShowPopup()

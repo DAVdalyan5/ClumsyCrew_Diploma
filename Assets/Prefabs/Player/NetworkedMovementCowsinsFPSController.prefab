@@ -5786,14 +5786,6 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 17
       objectReference: {fileID: 0}
-    - target: {fileID: 2998051602686989831, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
-      propertyPath: m_Name
-      value: GeneralManagers
-      objectReference: {fileID: 0}
-    - target: {fileID: 2998051602686989831, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
-      propertyPath: m_Layer
-      value: 17
-      objectReference: {fileID: 0}
     - target: {fileID: 3107821436141451959, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: m_Layer
       value: 17
@@ -8601,7 +8593,8 @@ PrefabInstance:
     - {fileID: 5174029695855361062, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
     - {fileID: 4635499744410864489, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
     - {fileID: 4612824603844780550, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 2998051602686989831, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 4612824604642224939, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       insertIndex: -1
@@ -8664,6 +8657,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4612824604642224938, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8663168438305194760}
+    - targetCorrespondingSourceObject: {fileID: 4612824604642224938, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8712639485920481736}
+    - targetCorrespondingSourceObject: {fileID: 4612824604642224938, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8712639485920481737}
     - targetCorrespondingSourceObject: {fileID: 4612824603642630890, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1308802268738642336}
@@ -8818,6 +8817,33 @@ MonoBehaviour:
   - {fileID: 4067789209094731521}
   ownerOnlyInput: 1
   ownerOnlyPhysics: 1
+--- !u!114 &8712639485920481736
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1195374611476548383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1e2d3c4b5a6978890a1b2c3d4e5f679, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.NetworkedCowsins.NetworkedCowsinsProgression
+  ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &8712639485920481737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1195374611476548383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9f8d7c6b5a4938271605f4e3d2c1b0a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.NetworkedCowsins.NetworkedCowsinsRemoteFireSfx
+  audioOrigin: {fileID: 0}
+  weaponController: {fileID: 0}
 --- !u!114 &6124408511337917785
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -18,11 +18,13 @@ namespace HeistNSeek.Core
         private IObjectResolver container;
         private GameObject playerSpawnerPrefab;
         private GameObject networkedItemSpawnManager;
+        private GameObject cowsinsSessionServicesPrefab;
 
         public GameplayEntryPoint(EntryPointParameters parameters)
         {
             this.playerSpawnerPrefab = parameters.PlayerSpawnerPrefab;
             this.networkedItemSpawnManager = parameters.NetworkedItemSpawnManager;
+            this.cowsinsSessionServicesPrefab = parameters.CowsinsSessionServicesPrefab;
         }
 
         [Inject]
@@ -33,7 +35,23 @@ namespace HeistNSeek.Core
 
         public void Start()
         {
+            EnsureCowsinsSessionServices();
             NetworkManager.Singleton.OnServerStarted += () => OnServerStarted();
+        }
+
+        private static GameObject _cowsinsSessionServicesInstance;
+
+        private void EnsureCowsinsSessionServices()
+        {
+            if (_cowsinsSessionServicesInstance != null)
+                return;
+            if (cowsinsSessionServicesPrefab == null)
+            {
+                Debug.LogError("[GameplayEntryPoint] Cowsins session services prefab is not assigned on GameplayLifetimeScope.");
+                return;
+            }
+
+            _cowsinsSessionServicesInstance = container.Instantiate(cowsinsSessionServicesPrefab, Vector3.zero, Quaternion.identity, null);
         }
 
         private void OnServerStarted()
@@ -65,11 +83,13 @@ namespace HeistNSeek.Core
     {
         public GameObject PlayerSpawnerPrefab { get; }
         public GameObject NetworkedItemSpawnManager { get; }
+        public GameObject CowsinsSessionServicesPrefab { get; }
 
-        public EntryPointParameters(GameObject playerSpawnerPrefab, GameObject networkedItemSpawnManager)
+        public EntryPointParameters(GameObject playerSpawnerPrefab, GameObject networkedItemSpawnManager, GameObject cowsinsSessionServicesPrefab)
         {
             PlayerSpawnerPrefab = playerSpawnerPrefab;
             NetworkedItemSpawnManager = networkedItemSpawnManager;
+            CowsinsSessionServicesPrefab = cowsinsSessionServicesPrefab;
         }
     }
 }

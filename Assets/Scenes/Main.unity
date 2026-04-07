@@ -11822,6 +11822,7 @@ MonoBehaviour:
   playerSpawnerPrefab: {fileID: 78505982812229185, guid: 5873d64c02e199346a56927145c3b3ec, type: 3}
   scatterConfigSO: {fileID: 11400000, guid: 3b84e00c514ab43489986757786a7ae3, type: 2}
   networkedItemSpawnManager: {fileID: 2043999773559601908, guid: 34702a674c1d9594db4242b64456849c, type: 3}
+  cowsinsSessionServicesPrefab: {fileID: 2998051602686989831, guid: c3d4e5f6a7b8490a9b8c7d6e5f403120, type: 3}
 --- !u!1 &1988654260
 GameObject:
   m_ObjectHideFlags: 0
@@ -13086,10 +13087,64 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1386521083}
   m_SourcePrefab: {fileID: 100100000, guid: 34291881a1be6834283ed9c6f4db87dd, type: 3}
+--- !u!1 &8410029935510010001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8410029935510010002}
+  - component: {fileID: 8410029935510010003}
+  - component: {fileID: 8410029935510010004}
+  m_Layer: 0
+  m_Name: SceneFallbackAudioListener
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8410029935510010002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8410029935510010001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!81 &8410029935510010003
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8410029935510010001}
+  m_Enabled: 1
+--- !u!114 &8410029935510010004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8410029935510010001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8e3f7c2d1944b6e8f0a1b2c3d4e5f60, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.NetworkedCowsins.LocalPlayerAudioListenerHandoff
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
+  - {fileID: 8410029935510010002}
   - {fileID: 1024269454}
   - {fileID: 1986291060}
   - {fileID: 5621467973323244006}
