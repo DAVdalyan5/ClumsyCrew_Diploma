@@ -17,6 +17,9 @@ namespace HeistNSeek.Core.Enemy.States
 
         public void Enter()
         {
+            if (_enemy.IsDead)
+                return;
+
             _enemy.ResumeEnemy();
             _enemy.ApplyChaseEngagementStoppingDistance();
         }
@@ -58,7 +61,7 @@ namespace HeistNSeek.Core.Enemy.States
                 _enemy.WeaponShooter.TryShoot();
             }
 
-            _enemy.Agent.SetDestination(target.position);
+            _enemy.TrySetAgentDestination(target.position);
         }
 
         public void Exit()

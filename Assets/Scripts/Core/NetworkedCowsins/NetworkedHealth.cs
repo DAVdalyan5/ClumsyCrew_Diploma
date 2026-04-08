@@ -87,8 +87,8 @@ namespace HeistNSeek.Core.NetworkedCowsins
             RequestTakeDamageServerRpc(damage, isHeadshot, attackerWorldPosition, true);
         }
 
-        [ServerRpc(RequireOwnership = false)]
-        private void RequestTakeDamageServerRpc(float damage, bool isHeadshot, Vector3 providedAttackerPos, bool useProvidedPos, ServerRpcParams rpcParams = default)
+        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+        private void RequestTakeDamageServerRpc(float damage, bool isHeadshot)
         {
             if (!IsServer) return;
 

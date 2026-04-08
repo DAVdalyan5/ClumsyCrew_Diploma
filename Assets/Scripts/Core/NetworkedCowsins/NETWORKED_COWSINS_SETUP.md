@@ -183,6 +183,37 @@ Use Unity's Netcode Profiler to monitor:
 - Ownership transfers
 - Synchronization issues
 
+## Session services (PoolManager, SoundManager, economy UI mirrors)
+
+Cowsins expects global `PoolManager` and `SoundManager` (and `CoinManager` / `ExperienceManager` for HUD). Those no longer live under each player prefab.
+
+1. **Prefab**: `Assets/Prefabs/Networked/CowsinsSessionServices.prefab` — contains pool, sound, coin/XP mirrors (for local HUD only), `AddonManager`, and `CowsinsSingletonLifetimeGuard` (clears static singletons when destroyed).
+2. **Gameplay scene**: On `GameplayLifetimeScope` (Main scene), assign **Cowsins Session Services Prefab**. `GameplayEntryPoint` instantiates it once per machine when gameplay starts (before server spawner work), so clients also get a local pool/sound manager.
+3. **Player prefab**: `NetworkedMovementCowsinsFPSController` variant removes embedded `GeneralManagers` via `m_RemovedGameObjects` so duplicate singleton races do not occur.
+4. **Optional**: Menu **Tools → HeistNSeek → Build Cowsins Session Services Prefab** regenerates the asset from Cowsins `CowsinsFPSController` if needed. **Tools → HeistNSeek → Verify Networked Cowsins Prefabs** checks assignment and stripped player hierarchy.
+
+## Per-player coins and XP (`NetworkedCowsinsProgression`)
+
+Server-authoritative `NetworkVariable` values on the player root mirror into the session `CoinManager` / `ExperienceManager` **on the owning client only** so `UIController` keeps working. Use `ServerAddCoins`, `ServerTrySpendCoins`, `ServerAddExperience`, etc. from server-side gameplay code. Cowsins pickups that call `CoinManager` directly still need to be routed through this behaviour for correct multiplayer (not done automatically).
+
+## Observer weapon SFX (`NetworkedCowsinsRemoteFireSfx`)
+
+Replicates fire/reload sounds to non-owners using `SoundManager.PlaySoundAtPosition` at an approximate weapon origin. Footsteps and other movement SFX are not fully replicated yet; extend `NetworkedCowsinsStateSync` or add animation/RPC hooks if you need them.
+
+## AudioListener and 3D world audio vs voice chat
+
+- **One listener per client**: The Cowsins `Main Camera` under the `Camera` hierarchy includes Unity’s `AudioListener`. `NetworkedCowsinsPlayerController.ownerOnlyObjects` enables that hierarchy only for the **owning** client, so each machine has a single active listener at the local player’s head. Remote player instances keep their camera rig **disabled** on your machine; you still hear their **world** sounds when your client plays spatialized `AudioSource` clips (e.g. RPC-driven SFX such as `NetworkedCowsinsRemoteFireSfx`).
+- **Pre-spawn warnings**: Before the local player spawns, there would otherwise be no listener in the scene. **Main** includes a root object `SceneFallbackAudioListener` with `AudioListener` + `LocalPlayerAudioListenerHandoff`, which keeps the fallback enabled until `NetworkManager.LocalClient.PlayerObject` has an active listener, then turns the fallback off in `LateUpdate` to avoid duplicate listeners. Dedicated server-only processes (`IsServer && !IsClient`) keep the fallback disabled.
+- **Voice chat** (Vivox, Unity Voice, etc.) is **not** driven by `AudioListener`; it uses the voice SDK’s capture/playback path. Do not expect multiplayer voice to “just work” from scene audio alone.
+
+## Verification checklist (two clients)
+
+- [ ] One `CowsinsSessionServices` instance per machine; no `GeneralManagers` under spawned players.
+- [ ] Shooting: remote player fire/reload audible at plausible 3D position.
+- [ ] HUD coins/XP: each client only sees their own values after server grants (test with `NetworkedCowsinsProgression` server methods).
+- [ ] Peek inventory still unlocks mouse via local `UIController`.
+- [ ] Console: no repeated “no audio listeners” spam; with local player spawned, Hierarchy shows exactly one enabled `AudioListener` (player camera), fallback off.
+
 ## Conclusion
 The networked Cowsins controller provides:
 - Ownership-based input processing

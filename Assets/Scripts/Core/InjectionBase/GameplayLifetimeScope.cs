@@ -19,30 +19,25 @@ public class GameplayLifetimeScope : LifetimeScope
     [SerializeField] private GameObject playerSpawnerPrefab;
     [SerializeField] private ScatterConfigSO scatterConfigSO;
     [SerializeField] private GameObject networkedItemSpawnManager;
-
-    private LifetimeScope _parentScope;
+    [SerializeField] private GameObject cowsinsSessionServicesPrefab;
 
     protected override void Awake()
     {
-        // Find BootstrapLifetimeScope in the scene (should exist as DontDestroyOnLoad)
-        _parentScope = FindAnyObjectByType<BootstrapLifetimeScope>();
-        if (_parentScope == null)
-        {
-            Debug.LogWarning($"[GameplayLifetimeScope] BootstrapLifetimeScope not found. This scope will be root.");
-        }
-        else
-        {
-            Debug.Log($"[GameplayLifetimeScope] Parent scope set to BootstrapLifetimeScope.");
-        }
-
         base.Awake();
+
+        if (Parent is BootstrapLifetimeScope)
+            Debug.Log("[GameplayLifetimeScope] Parent scope set to BootstrapLifetimeScope.");
+        else if (Parent != null)
+            Debug.Log($"[GameplayLifetimeScope] Parent scope set to {Parent.GetType().Name}.");
+        else
+            Debug.LogWarning("[GameplayLifetimeScope] BootstrapLifetimeScope not found. This scope will be root.");
     }
 
     protected override void Configure(IContainerBuilder builder)
     {
         builder.RegisterInstance(scatterConfigSO);
 
-        builder.RegisterEntryPoint<GameplayEntryPoint>(Lifetime.Singleton).WithParameter(new EntryPointParameters(playerSpawnerPrefab, networkedItemSpawnManager));
+        builder.RegisterEntryPoint<GameplayEntryPoint>(Lifetime.Singleton).WithParameter(new EntryPointParameters(playerSpawnerPrefab, networkedItemSpawnManager, cowsinsSessionServicesPrefab));
     }
 
     #region Helper Methods

@@ -258,9 +258,10 @@ namespace HeistNSeek.Core.NetworkedCowsins
             }
         }
         
-        private void OnDestroy()
+        public override void OnDestroy()
         {
             CleanupTestObjects();
+            base.OnDestroy();
         }
     }
 }

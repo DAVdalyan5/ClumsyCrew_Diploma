@@ -77,8 +77,8 @@ namespace HeistNSeek.Core.Enemy
             RequestTakeDamageServerRpc(damage, isHeadshot);
         }
 
-        [ServerRpc(RequireOwnership = false)]
-        private void RequestTakeDamageServerRpc(float damage, bool isHeadshot, ServerRpcParams rpcParams = default)
+        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+        private void RequestTakeDamageServerRpc(float damage, bool isHeadshot)
         {
             if (!IsServer || _isDead) return;
 
@@ -104,6 +104,8 @@ namespace HeistNSeek.Core.Enemy
                 return;
 
             _isDead = true;
+            // Dedicated server never runs ClientRpc locally; shut down NavMesh/AI here so no stray state transitions hit SetDestination.
+            DisableAI();
             TriggerDeathClientRpc();
         }
 
