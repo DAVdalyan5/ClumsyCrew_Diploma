@@ -88,7 +88,12 @@ namespace HeistNSeek.Core.NetworkedCowsins
         }
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-        private void RequestTakeDamageServerRpc(float damage, bool isHeadshot)
+        private void RequestTakeDamageServerRpc(
+            float damage,
+            bool isHeadshot,
+            Vector3 providedAttackerPos,
+            bool useProvidedPos,
+            ServerRpcParams serverRpcParams = default)
         {
             if (!IsServer) return;
 
@@ -110,7 +115,7 @@ namespace HeistNSeek.Core.NetworkedCowsins
             else
             {
                 // Player-vs-player: resolve shooter position from SenderClientId.
-                ulong shooterClientId = rpcParams.Receive.SenderClientId;
+                ulong shooterClientId = serverRpcParams.Receive.SenderClientId;
                 if (NetworkManager.Singleton.ConnectedClients.TryGetValue(shooterClientId, out var shooterClient)
                     && shooterClient.PlayerObject != null)
                 {
