@@ -164,15 +164,17 @@ namespace Assets.Scripts.Core.Player
 
         private void HandleHighSpeedImpact(Collider collision, CollisionDetector detector)
         {
-            float currentSpeed = characterController.CurrentSpeed >= 0 ? 1 : characterController.CurrentSpeed;
+            // Use actual character speed - only trigger on genuine high-speed impacts
+            float currentSpeed = characterController.CurrentSpeed;
             float effectiveSpeed = currentSpeed * detector.ImpactMultiplier;
 
-            Debug.Log($"[PlayerController] Collision detected on {detector.name} with {collision.name} - Speed: {currentSpeed}, Effective: {effectiveSpeed}, Threshold: {detector.HighSpeedThreshold}", collision);
+            Debug.Log($"[PlayerController] Collision detected on {detector.name} with {collision.name} - Speed: {currentSpeed:F2}, Effective: {effectiveSpeed:F2}, Threshold: {detector.HighSpeedThreshold}", collision);
 
+            // Only trigger balance loss on actual high-speed impacts, not incidental touches
             if (effectiveSpeed > detector.HighSpeedThreshold)
             {
                 this.CurrentBalanceInfo.IsBalanced = false;
-                Debug.Log($"[CharacterBalancer] Balance lost! Impact speed: {effectiveSpeed}");
+                Debug.Log($"[CharacterBalancer] Balance lost! Impact speed: {effectiveSpeed:F2}");
                 OnBalanceLostRpc(effectiveSpeed);
             }
         }

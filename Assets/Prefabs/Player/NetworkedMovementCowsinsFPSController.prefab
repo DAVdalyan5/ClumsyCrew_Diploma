@@ -5488,19 +5488,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 769944203667683379, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 769944203667683379, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 769944203667683379, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 66.5375
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 769944203667683379, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -184.625
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 786675132690271868, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: m_Layer
@@ -7840,19 +7840,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5340907046727738671, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5340907046727738671, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5340907046727738671, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 66.5375
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5340907046727738671, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -116.174995
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5533968687585049584, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: m_Layer
@@ -8240,19 +8240,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8319191050099741185, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8319191050099741185, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8319191050099741185, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 66.5375
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8319191050099741185, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -47.725
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8359238665063607823, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: m_Layer
@@ -8719,7 +8719,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 581361915
+  GlobalObjectIdHash: 88982089
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -8817,33 +8817,6 @@ MonoBehaviour:
   - {fileID: 4067789209094731521}
   ownerOnlyInput: 1
   ownerOnlyPhysics: 1
---- !u!114 &8712639485920481736
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1195374611476548383}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f1e2d3c4b5a6978890a1b2c3d4e5f679, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.NetworkedCowsins.NetworkedCowsinsProgression
-  ShowTopMostFoldoutHeaderGroup: 1
---- !u!114 &8712639485920481737
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1195374611476548383}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e9f8d7c6b5a4938271605f4e3d2c1b0a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.NetworkedCowsins.NetworkedCowsinsRemoteFireSfx
-  audioOrigin: {fileID: 0}
-  weaponController: {fileID: 0}
 --- !u!114 &6124408511337917785
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8929,6 +8902,7 @@ MonoBehaviour:
   itemLayerMask:
     serializedVersion: 2
     m_Bits: 0
+  holdDuration: 1.5
 --- !u!114 &9059837651824169574
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8980,7 +8954,6 @@ MonoBehaviour:
   CameraTransform: {fileID: 0}
   pushSpeed: 10
   pushDistance: 3
-  returnSpeed: 5
 --- !u!114 &7990870154970456521
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9000,7 +8973,6 @@ MonoBehaviour:
   - {fileID: 0}
   impactForceScale: 1
   impactCooldownSeconds: 0.2
-  fallingVelocityThreshold: 2
 --- !u!114 &5786591709513546180
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9044,6 +9016,34 @@ MonoBehaviour:
   wobbleDuration: 0.5
   impactShakeAmount: 0.4
   recoverySpeed: 12
+--- !u!114 &8712639485920481736
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1195374611476548383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1e2d3c4b5a6978890a1b2c3d4e5f679, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.NetworkedCowsins.NetworkedCowsinsProgression
+  ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &8712639485920481737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1195374611476548383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9f8d7c6b5a4938271605f4e3d2c1b0a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.NetworkedCowsins.NetworkedCowsinsRemoteFireSfx
+  ShowTopMostFoldoutHeaderGroup: 1
+  audioOrigin: {fileID: 0}
+  weaponController: {fileID: 0}
 --- !u!4 &1195374612628124357 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4612824603642630896, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
@@ -9119,7 +9119,6 @@ MonoBehaviour:
   - {fileID: 2508515695517881997}
   - {fileID: 1537038301020433084}
   - {fileID: 432567372657008469}
-  fallingVelocityThreshold: 2
 --- !u!1 &1195374612638355300 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4612824603648159569, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}

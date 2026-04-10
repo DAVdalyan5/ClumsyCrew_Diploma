@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 328432537749625398}
   - component: {fileID: 6855587266865313832}
   m_Layer: 6
-  m_Name: PlayerCapsule
+  m_Name: PlayerCapsule(ODL DEPRICATED)
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

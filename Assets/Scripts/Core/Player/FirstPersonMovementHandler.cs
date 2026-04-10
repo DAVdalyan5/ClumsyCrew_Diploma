@@ -42,12 +42,14 @@ namespace HeistNSeek.Core.Player
         [Header("Player Grounded")]
         [Tooltip("If the character is grounded or not. Not part of the CharacterController built in grounded check")]
         public bool Grounded = true;
-        [Tooltip("Useful for rough ground")]
-        public float GroundedOffset = -0.14f;
+        [Tooltip("How far below the player position to check for ground (positive value = below feet)")]
+        public float GroundedOffset = 0.14f;
         [Tooltip("The radius of the grounded check. Should match the radius of the CharacterController")]
         public float GroundedRadius = 0.5f;
         [Tooltip("What layers the character uses as ground")]
         public LayerMask GroundLayers;
+        [Tooltip("Time in seconds the player can still jump after leaving the ground (coyote time)")]
+        public float CoyoteTime = 0.15f;
 
         [Header("Cinemachine")]
         [Tooltip("The follow target set in the Cinemachine Virtual Camera that the camera will follow")]
@@ -70,7 +72,9 @@ namespace HeistNSeek.Core.Player
         private float _terminalVelocity = 53.0f;
         private float _jumpTimeoutDelta;
         private float _fallTimeoutDelta;
+        private float _coyoteTimeCounter;
         private float _speed;
+        private bool _wasGroundedLastFrame;
 
         public float CurrentSpeed => _speed;
 
@@ -122,6 +126,8 @@ namespace HeistNSeek.Core.Player
 
             _jumpTimeoutDelta = JumpTimeout;
             _fallTimeoutDelta = FallTimeout;
+            _coyoteTimeCounter = 0f;
+            _wasGroundedLastFrame = true;
         }
 
         private void RegisterEvents()
@@ -147,8 +153,33 @@ namespace HeistNSeek.Core.Player
 
         private void HandleGroundCheck()
         {
+            // Sphere position is below the player's feet (offset is positive, placed downward)
             Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z);
-            Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers, QueryTriggerInteraction.Ignore);
+            bool groundedThisFrame = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers, QueryTriggerInteraction.Ignore);
+
+            // Track coyote time - allows jumping shortly after leaving ground
+            if (groundedThisFrame)
+            {
+                _coyoteTimeCounter = CoyoteTime;
+            }
+            else
+            {
+                _coyoteTimeCounter -= Time.deltaTime;
+            }
+
+            // Hysteresis: once grounded, require being airborne for at least one frame before ungrounding
+            // This prevents flickering on rough terrain
+            if (_wasGroundedLastFrame && !groundedThisFrame)
+            {
+                // Just left ground - still allow jumping via coyote time
+                Grounded = false;
+            }
+            else
+            {
+                Grounded = groundedThisFrame;
+            }
+
+            _wasGroundedLastFrame = groundedThisFrame;
 
             if (_animController != null)
             {
@@ -182,28 +213,18 @@ namespace HeistNSeek.Core.Player
 
             if (_input.MoveInput == Vector2.zero) targetSpeed = 0.0f;
 
-            float currentHorizontalSpeed = new Vector3(_controller.velocity.x, 0.0f, _controller.velocity.z).magnitude;
+            // Smooth acceleration/deceleration using MoveTowards for linear, predictable speed changes
+            _speed = Mathf.MoveTowards(_speed, targetSpeed, SpeedChangeRate * Time.deltaTime);
 
-            float speedOffset = 0.1f;
-
-            if (currentHorizontalSpeed < targetSpeed - speedOffset || currentHorizontalSpeed > targetSpeed + speedOffset)
-            {
-                _speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed, Time.deltaTime * SpeedChangeRate);
-                _speed = Mathf.Round(_speed * 1000f) / 1000f;
-            }
-            else
-            {
-                _speed = targetSpeed;
-            }
-
-            Vector3 inputDirection = new Vector3(_input.MoveInput.x, 0.0f, _input.MoveInput.y).normalized;
+            Vector3 inputDirection = Vector3.zero;
 
             if (_input.MoveInput != Vector2.zero)
             {
                 inputDirection = transform.right * _input.MoveInput.x + transform.forward * _input.MoveInput.y;
+                inputDirection.Normalize();
             }
 
-            _controller.Move(inputDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
+            _controller.Move(inputDirection * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
 
             if (_animController != null)
             {
@@ -245,9 +266,13 @@ namespace HeistNSeek.Core.Player
 
         private void OnJumpEvent(JumpEvent evt)
         {
-            if (Grounded && _jumpTimeoutDelta <= 0.0f)
+            // Allow jumping if grounded OR within coyote time window AND jump timeout has passed
+            bool canJump = (Grounded || _coyoteTimeCounter > 0f) && _jumpTimeoutDelta <= 0.0f;
+
+            if (canJump)
             {
                 _verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
+                _coyoteTimeCounter = 0f; // Consume coyote time on jump
 
                 if (_animController != null)
                 {
@@ -268,9 +293,9 @@ namespace HeistNSeek.Core.Player
             Color transparentGreen = new Color(0.0f, 1.0f, 0.0f, 0.35f);
             Color transparentRed = new Color(1.0f, 0.0f, 0.0f, 0.35f);
 
-            if (Grounded) Gizmos.color = transparentGreen;
-            else Gizmos.color = transparentRed;
+            Gizmos.color = Grounded ? transparentGreen : transparentRed;
 
+            // Ground check sphere is below player position (positive offset = downward)
             Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z), GroundedRadius);
         }
     }

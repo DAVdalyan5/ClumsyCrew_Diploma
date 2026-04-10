@@ -3,8 +3,6 @@ using R3;
 using R3.Triggers;
 using System.Collections.Generic;
 using Unity.Netcode;
-using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 namespace HeistNSeek.Core.NetworkedCowsins
@@ -25,35 +23,62 @@ namespace HeistNSeek.Core.NetworkedCowsins
         [SerializeField] private float impactForceScale = 1f;
         [Tooltip("Minimum seconds between ragdoll triggers.")]
         [SerializeField] private float impactCooldownSeconds = 0.2f;
+        [Tooltip("Time after landing during which ragdoll triggers are ignored.")]
+        [SerializeField] private float postLandingGracePeriod = 0.3f;
+        [Tooltip("Ignore collisions from objects below the player (ground-like).")]
+        [SerializeField] private bool ignoreCollisionsBelowPlayer = true;
+        [Tooltip("Angle threshold (degrees) for 'below player' check. Higher = more lenient.")]
+        [SerializeField] private float belowPlayerAngleThreshold = 45f;
         [Tooltip("Colliders to capture ragdoll triggers")]
         [SerializeField] private List<Collider> collidersToCapture;
 
         private NetworkedCowsinsRagdollController _ragdollController;
         private NetworkedCowsinsPlayerController _playerController;
+        private cowsins.PlayerMovement _playerMovement;
         private float _lastImpactTime;
+        private float _lastLandingTime;
+        private bool _wasGroundedLastFrame;
 
         private void Start()
         {
             _ragdollController = GetComponentInParent<NetworkedCowsinsRagdollController>();
             _playerController = GetComponentInParent<NetworkedCowsinsPlayerController>();
             if (_playerController != null && !_playerController.IsOwner)
+            {
                 enabled = false;
+                return;
+            }
+
+            _playerMovement = _playerController?.GetPlayerMovement();
+            _wasGroundedLastFrame = _playerMovement != null && _playerMovement.Grounded;
+            _lastLandingTime = -postLandingGracePeriod; // Allow immediate triggers at start
 
             collidersToCapture.ForEach(c => c.OnTriggerEnterAsObservable().Subscribe(CollisionEntered));
         }
 
-        /// <summary>
-        /// The logic: compute the direction from the player's center to the other collider's center — if that direction dot
-        /// Vector3.down > 0.5f (more than ~60° pointing downward), it's underneath the player and treated as ground, so the
-        /// impact is skipped.
-        /// The 0.5f threshold means only things that are clearly below you are ignored.A wall to the side will have a near-zero
-        /// or negative dot product with Vector3.down and will still trigger ragdoll normally.
-        /// </summary>
-        private static bool IsBelowPlayer(Collider other, Transform playerTransform)
+        private void Update()
         {
-            //this not used, but couuld be if needed.
+            if (_playerMovement == null) return;
+
+            bool isGroundedNow = _playerMovement.Grounded;
+            if (isGroundedNow && !_wasGroundedLastFrame)
+            {
+                // Just landed
+                _lastLandingTime = Time.unscaledTime;
+            }
+            _wasGroundedLastFrame = isGroundedNow;
+        }
+
+        /// <summary>
+        /// Checks if a collider is below the player (ground-like).
+        /// Uses angle threshold to determine if the collision is from below.
+        /// </summary>
+        private bool IsBelowPlayer(Collider other, Transform playerTransform)
+        {
             Vector3 toOther = other.bounds.center - playerTransform.position;
-            return Vector3.Dot(toOther.normalized, Vector3.down) > 0.5f;
+            // Convert angle threshold to dot product threshold
+            float dotThreshold = Mathf.Cos(belowPlayerAngleThreshold * Mathf.Deg2Rad);
+            return Vector3.Dot(toOther.normalized, Vector3.down) > dotThreshold;
         }
 
         private void CollisionEntered(Collider other)
@@ -65,9 +90,22 @@ namespace HeistNSeek.Core.NetworkedCowsins
             if (other.CompareTag("Ground"))
                 return;
 
+            // Skip if player is currently grounded - don't ragdoll during normal running
+            if (_playerMovement != null && _playerMovement.Grounded)
+                return;
+
+            // Skip collisions from objects below the player (ground-like impacts)
+            if (ignoreCollisionsBelowPlayer && IsBelowPlayer(other, _playerController.transform))
+                return;
+
+            // Skip during post-landing grace period (physics settling after a jump/fall)
+            if (Time.unscaledTime - _lastLandingTime < postLandingGracePeriod)
+                return;
+
             var rb = GetComponent<Rigidbody>();
             if (rb == null) return;
 
+            // Only use horizontal velocity - vertical landing velocity shouldn't trigger ragdoll
             var planarVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
             float impactSpeed = planarVelocity.magnitude;
             if (impactSpeed <= highSpeedThreshold)
@@ -79,6 +117,8 @@ namespace HeistNSeek.Core.NetworkedCowsins
             Vector3 forceVector = planarVelocity.normalized * (impactSpeed - highSpeedThreshold) * impactForceScale;
             if (forceVector.sqrMagnitude < 0.01f)
                 forceVector = -transform.forward * 5f;
+
+            Debug.Log($"[PlayerRigidbodyImpactDetector] Ragdoll triggered - Collider: {other.name}, Speed: {impactSpeed:F2}, Threshold: {highSpeedThreshold}");
 
             _ragdollController.TriggerRagdollFromImpactServerRpc(forceVector, impactSpeed);
         }
