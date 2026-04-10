@@ -1,4 +1,5 @@
 using Assets.Scripts.Core.Character;
+using Assets.Scripts.UI;
 using cowsins;
 using Unity.Netcode;
 using UnityEngine;
@@ -37,6 +38,7 @@ namespace HeistNSeek.Core.Enemy
         private EnemyControllerBase _enemyController;
         private EnemyWeaponController _weaponController;
         private EnemyWeaponShooter _weaponShooter;
+        private DamageParticleEffect _damageParticleEffect;
         private bool _isDead;
         private bool _hasAppliedDeathStateOnClient;
 
@@ -56,6 +58,7 @@ namespace HeistNSeek.Core.Enemy
             _enemyController = GetComponent<EnemyControllerBase>();
             _weaponController = GetComponent<EnemyWeaponController>();
             _weaponShooter = GetComponent<EnemyWeaponShooter>();
+            _damageParticleEffect = GetComponentInChildren<DamageParticleEffect>(true);
             _hasAppliedDeathStateOnClient = false;
             _isDead = false;
 
@@ -74,11 +77,11 @@ namespace HeistNSeek.Core.Enemy
         public void Damage(float damage, bool isHeadshot, Vector3 pos)
         {
             if (!IsSpawned || _isDead) return;
-            RequestTakeDamageServerRpc(damage, isHeadshot);
+            RequestTakeDamageServerRpc(damage, isHeadshot, pos);
         }
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-        private void RequestTakeDamageServerRpc(float damage, bool isHeadshot)
+        private void RequestTakeDamageServerRpc(float damage, bool isHeadshot, Vector3 attackerPos)
         {
             if (!IsServer || _isDead) return;
 
@@ -89,6 +92,9 @@ namespace HeistNSeek.Core.Enemy
             if (logDamageInConsole && applied > 0)
                 Debug.Log($"[NetworkedEnemyHealth] Enemy took {applied} damage{(isHeadshot ? " HEADSHOT" : "")}. Health: {previous:F0} -> {_health.Value:F0}");
 
+            if (applied > 0)
+                NotifyDamageTakenClientRpc(attackerPos);
+
             if (_health.Value <= GetDeathThreshold())
                 TriggerDeathServer();
         }
@@ -96,6 +102,12 @@ namespace HeistNSeek.Core.Enemy
         private float GetDeathThreshold()
         {
             return Mathf.Max(0f, deathHealthThreshold);
+        }
+
+        [ClientRpc]
+        private void NotifyDamageTakenClientRpc(Vector3 attackerPos)
+        {
+            _damageParticleEffect?.TriggerEffect(attackerPos);
         }
 
         private void TriggerDeathServer()
