@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Seagull.Bar_02.SceneProps {
+namespace Seagull.City_03.SceneProps {
     public class FenceData : MonoBehaviour {
         public Vector3 start;
         public Vector3 end;

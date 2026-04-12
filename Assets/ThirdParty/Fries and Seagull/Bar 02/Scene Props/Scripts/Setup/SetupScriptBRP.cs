@@ -6,7 +6,7 @@ using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
 using UnityEngine;
 
-namespace Seagull.Bar_02.SceneProps.Setup {
+namespace Seagull.City_03.SceneProps.Setup {
     public static class SetupScriptBRP {
         
         private const string PostProcessPackage = "com.unity.postprocessing";
@@ -81,12 +81,12 @@ namespace Seagull.Bar_02.SceneProps.Setup {
             }
         }
         
-        [MenuItem("Tools/Fries/Bar 02/Setup Built-in Rendering Pipeline", priority = 1)]
+        [MenuItem("Tools/Fries/City 03/Setup Built-in Rendering Pipeline", priority = 1)]
         public static void setup() {
             checkPackagesOnLoad();
             Debug.Log("Import of dependencies complete!");
             
-            string packagePath = "Assets/Fries and Seagull/Bar 02/Pipelines/Built-in Pipeline.unitypackage";
+            string packagePath = "Assets/Fries and Seagull/City 03/Pipelines/Built-in Pipeline.unitypackage";
             AssetDatabase.ImportPackage(packagePath, false);
             Debug.Log("Import of .unitypackage complete!");
             
@@ -108,15 +108,15 @@ namespace Seagull.Bar_02.SceneProps.Setup {
             EditorGUIUtility.PingObject(friesManager);
         }
 
-        [MenuItem("Tools/Fries/Bar 02/Setup for BRP Lighting Example (Optional)", priority = 51)]
-        public static void light() {
-            FriesManagerBRP.setupLight();
-        }
+        // [MenuItem("Tools/Fries/City 03/Setup for BRP Lighting Example (Optional)", priority = 51)]
+        // public static void light() {
+        //     FriesManagerBRP.setupLight();
+        // }
         
-        [MenuItem("Tools/Fries/Bar 02/Revert BRP Lighting Example Setting (Optional)", priority = 52)]
-        public static void delight() {
-            FriesManagerBRP.unsetLight();
-        }
+        // [MenuItem("Tools/Fries/City 03/Revert BRP Lighting Example Setting (Optional)", priority = 52)]
+        // public static void delight() {
+        //     FriesManagerBRP.unsetLight();
+        // }
     }
 }
 

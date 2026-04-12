@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using Seagull.Bar_02.Inspector;
+using Seagull.City_03.Inspector;
 
 # if UNITY_EDITOR
 # endif
 
 using UnityEngine;
 
-namespace Seagull.Bar_02.SceneProps {
+namespace Seagull.City_03.SceneProps {
     [Serializable]
     public class String2Rotatable : KiiValuePair<string, Rotatable> {}
     

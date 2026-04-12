@@ -1,7 +1,7 @@
 
 
 # if UNITY_EDITOR
-namespace Seagull.Bar_02.SceneProps.Setup {
+namespace Seagull.City_03.SceneProps.Setup {
     using UnityEngine.Rendering;
     using System.Threading;
     using UnityEditor;
@@ -79,7 +79,7 @@ namespace Seagull.Bar_02.SceneProps.Setup {
             }
         }
         
-        [MenuItem("Tools/Fries/Bar 02/Setup Universal Rendering Pipeline", priority = 2)]
+        [MenuItem("Tools/Fries/City 03/Setup Universal Rendering Pipeline", priority = 2)]
         public static void setup1() {
             RenderPipelineAsset currentRP = GraphicsSettings.defaultRenderPipeline;
             if (currentRP == null) {
@@ -94,7 +94,7 @@ namespace Seagull.Bar_02.SceneProps.Setup {
             checkPackagesOnLoad();
             Debug.Log("Import of dependencies complete!");
 
-            string packagePath = "Assets/Fries and Seagull/Bar 02/Pipelines/Universal Pipeline.unitypackage";
+            string packagePath = "Assets/Fries and Seagull/City 03/Pipelines/Universal Pipeline.unitypackage";
             AssetDatabase.ImportPackage(packagePath, false);
             Debug.Log("Import of .unitypackage complete!");
             
@@ -117,12 +117,12 @@ namespace Seagull.Bar_02.SceneProps.Setup {
         }
         
         
-        [MenuItem("Tools/Fries/Bar 02/Setup for URP Lighting Example (Optional)", priority = 53)]
+        [MenuItem("Tools/Fries/City 03/Setup for URP Lighting Example (Optional)", priority = 53)]
         public static void light() {
             FriesManagerURP.setupLight();
         }
         
-        [MenuItem("Tools/Fries/Bar 02/Revert URP Lighting Example Setting (Optional)", priority = 54)]
+        [MenuItem("Tools/Fries/City 03/Revert URP Lighting Example Setting (Optional)", priority = 54)]
         public static void delight() {
             FriesManagerURP.unsetLight();
         }

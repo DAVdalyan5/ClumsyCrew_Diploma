@@ -1,6 +1,6 @@
 ﻿
 
-namespace Seagull.Bar_02.Inspector {
+namespace Seagull.City_03.Inspector {
 # if UNITY_EDITOR
     using UnityEditor;
     using UnityEngine;
