@@ -9808,6 +9808,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb3a4bcb2d02b154992fdc29ee66f6f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.UI.DamageVignetteUI
+  vignetteImage: {fileID: 1544918163}
+  peakAlpha: 0.75
+  fadeDuration: 0.5
 --- !u!114 &1544918163
 MonoBehaviour:
   m_ObjectHideFlags: 0
