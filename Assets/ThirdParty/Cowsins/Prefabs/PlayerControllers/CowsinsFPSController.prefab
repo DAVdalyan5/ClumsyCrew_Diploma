@@ -426,8 +426,34 @@ MonoBehaviour:
     topReachedForwardForce: 10
     hideWeaponWhileClimbing: 1
     footstepSounds:
-      defaultStep: []
-      surfaceSounds: []
+      defaultStep:
+      - {fileID: 8300000, guid: 3b2fd8aa823253841a84bf5e637506fa, type: 3}
+      - {fileID: 8300000, guid: 72b076623538fe64187a0ef594b7af2a, type: 3}
+      surfaceSounds:
+      - layerName: Ground
+        sounds:
+        - {fileID: 8300000, guid: 3b2fd8aa823253841a84bf5e637506fa, type: 3}
+        - {fileID: 8300000, guid: 72b076623538fe64187a0ef594b7af2a, type: 3}
+        cachedLayerIndex: -1
+      - layerName: Grass
+        sounds:
+        - {fileID: 8300000, guid: dbce20ed023af154cba63f1dd0d79db9, type: 3}
+        cachedLayerIndex: -1
+      - layerName: Metal
+        sounds:
+        - {fileID: 8300000, guid: 15c95a9d6b592a442b81b282f779d9de, type: 3}
+        - {fileID: 8300000, guid: 71aab2bc571c17e4b8b65856ec082791, type: 3}
+        cachedLayerIndex: -1
+      - layerName: Mud
+        sounds:
+        - {fileID: 8300000, guid: e0d679089d83b5c46a3ff07e89463af0, type: 3}
+        - {fileID: 8300000, guid: 6b979e9901d1aaa4494e452c6522269e, type: 3}
+        cachedLayerIndex: -1
+      - layerName: Wood
+        sounds:
+        - {fileID: 8300000, guid: 3b2fd8aa823253841a84bf5e637506fa, type: 3}
+        - {fileID: 8300000, guid: 72b076623538fe64187a0ef594b7af2a, type: 3}
+        cachedLayerIndex: -1
     footstepVolume: 0.3
     footstepSpeed: 0.7
     sounds:

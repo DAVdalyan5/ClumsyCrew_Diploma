@@ -8663,6 +8663,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4612824604642224938, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8712639485920481737}
+    - targetCorrespondingSourceObject: {fileID: 4612824604642224938, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8712639485920481738}
     - targetCorrespondingSourceObject: {fileID: 4612824603642630890, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1308802268738642336}
@@ -8817,6 +8820,57 @@ MonoBehaviour:
   - {fileID: 4067789209094731521}
   ownerOnlyInput: 1
   ownerOnlyPhysics: 1
+--- !u!114 &8712639485920481736
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1195374611476548383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1e2d3c4b5a6978890a1b2c3d4e5f679, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.NetworkedCowsins.NetworkedCowsinsProgression
+  ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &8712639485920481737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1195374611476548383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9f8d7c6b5a4938271605f4e3d2c1b0a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.NetworkedCowsins.NetworkedCowsinsRemoteFireSfx
+  ShowTopMostFoldoutHeaderGroup: 1
+  audioOrigin: {fileID: 0}
+  weaponController: {fileID: 0}
+  weaponLookup:
+  - {fileID: 11400000, guid: 907aa7bd70f532947bfa1d5f3ce12fa9, type: 2}
+  - {fileID: 11400000, guid: 1cb39c6c8005c554e93289889a1892e1, type: 2}
+  - {fileID: 11400000, guid: 6553d6d464f4c3d489647f8005b06c2e, type: 2}
+  - {fileID: 11400000, guid: 354403e2e1c9d094db0018ef2f98b0b5, type: 2}
+  - {fileID: 11400000, guid: 1d20e1aeca53c9449a1d7219d9022761, type: 2}
+  - {fileID: 11400000, guid: 11986c1487b69b24fa433a76cf966fb5, type: 2}
+  - {fileID: 11400000, guid: 80da6c1185b9c6744b9452ea80dee4b3, type: 2}
+  - {fileID: 11400000, guid: c259d6fd3ab632a4980785deebd26164, type: 2}
+--- !u!114 &8712639485920481738
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1195374611476548383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8e7f6d5c4b3a2918e7f6d5c4b3a2910, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.NetworkedCowsins.NetworkedCowsinsRemoteFootsteps
+  playerMovement: {fileID: 1195374612628124382}
+  pooledAudio3DSourcePrefab: {fileID: 7792999683319668278, guid: 6a43c38369e9cfe4198f7626dcab7ebb, type: 3}
 --- !u!114 &6124408511337917785
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9016,34 +9070,6 @@ MonoBehaviour:
   wobbleDuration: 0.5
   impactShakeAmount: 0.4
   recoverySpeed: 12
---- !u!114 &8712639485920481736
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1195374611476548383}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f1e2d3c4b5a6978890a1b2c3d4e5f679, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.NetworkedCowsins.NetworkedCowsinsProgression
-  ShowTopMostFoldoutHeaderGroup: 1
---- !u!114 &8712639485920481737
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1195374611476548383}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e9f8d7c6b5a4938271605f4e3d2c1b0a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HeistNSeek.Core.NetworkedCowsins.NetworkedCowsinsRemoteFireSfx
-  ShowTopMostFoldoutHeaderGroup: 1
-  audioOrigin: {fileID: 0}
-  weaponController: {fileID: 0}
 --- !u!4 &1195374612628124357 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4612824603642630896, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
