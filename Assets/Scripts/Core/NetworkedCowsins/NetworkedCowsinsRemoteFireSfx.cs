@@ -14,10 +14,6 @@ namespace HeistNSeek.Core.NetworkedCowsins
     [DisallowMultipleComponent]
     public sealed class NetworkedCowsinsRemoteFireSfx : NetworkBehaviour
     {
-        private static int _dbgFireObserverClientRxCount;
-        private static int _dbgFirePlayAtPosLogCount;
-        private static int _dbgFireServerRpcLogCount;
-
         private const byte ReloadKindNormal = 1;
         private const byte ReloadKindEmptyMag = 2;
 
@@ -57,14 +53,6 @@ namespace HeistNSeek.Core.NetworkedCowsins
         {
             base.OnNetworkSpawn();
 
-            // #region agent log
-            AgentDebugSessionLog.Write(
-                "H1",
-                "NetworkedCowsinsRemoteFireSfx.OnNetworkSpawn",
-                "spawn",
-                $"\"isOwner\":{IsOwner.ToString().ToLowerInvariant()},\"isServer\":{IsServer.ToString().ToLowerInvariant()},\"wcNull\":{(weaponController == null).ToString().ToLowerInvariant()},\"lookupLen\":{((weaponLookup != null) ? weaponLookup.Length : 0)},\"clientId\":{((NetworkManager.Singleton != null) ? NetworkManager.Singleton.LocalClientId : -1)}");
-            // #endregion
-
             if (!IsOwner || weaponController == null)
                 return;
 
@@ -90,23 +78,7 @@ namespace HeistNSeek.Core.NetworkedCowsins
             if (!IsSpawned || !IsOwner)
                 return;
             if (!TryBuildFirePayload(out var weaponName, out var clipIndex, out var pitchVariation))
-            {
-                // #region agent log
-                AgentDebugSessionLog.Write(
-                    "H1",
-                    "NetworkedCowsinsRemoteFireSfx.OnOwnerUserShoot",
-                    "TryBuildFirePayload_failed");
-                // #endregion
                 return;
-            }
-
-            // #region agent log
-            AgentDebugSessionLog.Write(
-                "H1",
-                "NetworkedCowsinsRemoteFireSfx.OnOwnerUserShoot",
-                "RequestFireSoundServerRpc",
-                $"\"weapon\":\"{AgentDebugSessionLog.EscapeForJson(weaponName.ToString())}\",\"clipIndex\":{clipIndex},\"pitch\":{pitchVariation.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-            // #endregion
 
             RequestFireSoundServerRpc(GetAudioWorldPosition(), weaponName, clipIndex, pitchVariation);
         }
@@ -117,6 +89,7 @@ namespace HeistNSeek.Core.NetworkedCowsins
                 return;
             if (!TryBuildReloadPayload(out var weaponName, out var reloadKind))
                 return;
+
             RequestReloadSoundServerRpc(GetAudioWorldPosition(), weaponName, reloadKind);
         }
 
@@ -177,18 +150,6 @@ namespace HeistNSeek.Core.NetworkedCowsins
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
         private void RequestFireSoundServerRpc(Vector3 worldPosition, FixedString128Bytes weaponSoName, byte clipIndex, float pitchVariation)
         {
-            // #region agent log
-            if (_dbgFireServerRpcLogCount < 40)
-            {
-                _dbgFireServerRpcLogCount++;
-                AgentDebugSessionLog.Write(
-                    "H1",
-                    "NetworkedCowsinsRemoteFireSfx.RequestFireSoundServerRpc",
-                    "server_rx",
-                    $"\"isServer\":{IsServer.ToString().ToLowerInvariant()},\"weapon\":\"{AgentDebugSessionLog.EscapeForJson(weaponSoName.ToString())}\",\"clipIndex\":{clipIndex}");
-            }
-            // #endregion
-
             PlayFireSoundObserversClientRpc(worldPosition, weaponSoName, clipIndex, pitchVariation);
         }
 
@@ -201,18 +162,6 @@ namespace HeistNSeek.Core.NetworkedCowsins
         [ClientRpc]
         private void PlayFireSoundObserversClientRpc(Vector3 worldPosition, FixedString128Bytes weaponSoName, byte clipIndex, float pitchVariation)
         {
-            // #region agent log
-            if (_dbgFireObserverClientRxCount < 48)
-            {
-                _dbgFireObserverClientRxCount++;
-                AgentDebugSessionLog.Write(
-                    "H2",
-                    "NetworkedCowsinsRemoteFireSfx.PlayFireSoundObserversClientRpc",
-                    "client_rx",
-                    $"\"isOwner\":{IsOwner.ToString().ToLowerInvariant()},\"willPlayRemote\":{(!IsOwner).ToString().ToLowerInvariant()},\"weapon\":\"{AgentDebugSessionLog.EscapeForJson(weaponSoName.ToString())}\",\"clipIndex\":{clipIndex}");
-            }
-            // #endregion
-
             if (IsOwner)
                 return;
             TryPlayFireSoundForObservers(worldPosition, weaponSoName, clipIndex, pitchVariation);
@@ -229,16 +178,7 @@ namespace HeistNSeek.Core.NetworkedCowsins
         private void TryPlayFireSoundForObservers(Vector3 worldPosition, FixedString128Bytes weaponSoName, byte clipIndex, float pitchVariation)
         {
             if (!TryResolveWeapon(weaponSoName, out var weaponSo))
-            {
-                // #region agent log
-                AgentDebugSessionLog.Write(
-                    "H5",
-                    "NetworkedCowsinsRemoteFireSfx.TryPlayFireSoundForObservers",
-                    "TryResolveWeapon_failed",
-                    $"\"key\":\"{AgentDebugSessionLog.EscapeForJson(weaponSoName.ToString())}\",\"lookupCount\":{(_weaponByName != null ? _weaponByName.Count : 0)}");
-                // #endregion
                 return;
-            }
             var shooting = weaponSo.audioSFX != null ? weaponSo.audioSFX.shooting : null;
             if (shooting == null || shooting.Length == 0)
                 return;
@@ -249,7 +189,9 @@ namespace HeistNSeek.Core.NetworkedCowsins
 
         private void TryPlayReloadSoundForObservers(Vector3 worldPosition, FixedString128Bytes weaponSoName, byte reloadKind)
         {
-            if (!TryResolveWeapon(weaponSoName, out var weaponSo) || weaponSo.audioSFX == null)
+            if (!TryResolveWeapon(weaponSoName, out var weaponSo))
+                return;
+            if (weaponSo.audioSFX == null)
                 return;
 
             AudioClip clip = null;
@@ -275,28 +217,7 @@ namespace HeistNSeek.Core.NetworkedCowsins
         private static void TryPlaySoundAtPosition(AudioClip clip, Vector3 worldPosition, float delay, float pitchAdded, bool randomPitch)
         {
             if (clip == null || SoundManager.Instance == null || PoolManager.Instance == null)
-            {
-                // #region agent log
-                AgentDebugSessionLog.Write(
-                    "H4",
-                    "NetworkedCowsinsRemoteFireSfx.TryPlaySoundAtPosition",
-                    "skip_play",
-                    $"\"clipNull\":{(clip == null).ToString().ToLowerInvariant()},\"smNull\":{(SoundManager.Instance == null).ToString().ToLowerInvariant()},\"poolNull\":{(PoolManager.Instance == null).ToString().ToLowerInvariant()}");
-                // #endregion
                 return;
-            }
-
-            // #region agent log
-            if (_dbgFirePlayAtPosLogCount < 40)
-            {
-                _dbgFirePlayAtPosLogCount++;
-                AgentDebugSessionLog.Write(
-                    "H4",
-                    "NetworkedCowsinsRemoteFireSfx.TryPlaySoundAtPosition",
-                    "play",
-                    $"\"clip\":\"{AgentDebugSessionLog.EscapeForJson(clip != null ? clip.name : string.Empty)}\",\"delay\":{delay.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-            }
-            // #endregion
 
             SoundManager.Instance.PlaySoundAtPosition(clip, worldPosition, delay, pitchAdded, randomPitch);
         }

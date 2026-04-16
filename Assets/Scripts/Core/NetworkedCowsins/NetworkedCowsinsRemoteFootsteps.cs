@@ -13,15 +13,12 @@ namespace HeistNSeek.Core.NetworkedCowsins
     public sealed class NetworkedCowsinsRemoteFootsteps : NetworkBehaviour
     {
         private static bool _loggedVolumeFallbackWarning;
-        private static int _dbgFootstepEmitLogCount;
-        private static int _dbgFootstepServerLogCount;
-        private static int _dbgFootstepObserverClientRxCount;
 
         [Header("References")]
         [SerializeField] private PlayerMovement playerMovement;
 
-        [Tooltip("Same 3D AudioSource prefab as on session Cowsins SoundManager (PoolManager pool). Enables correct footstep volume.")]
-        [SerializeField] private GameObject pooledAudio3DSourcePrefab;
+        [Tooltip("Same reference as session Cowsins SoundManager.source3D: drag the AudioSource component from AudioSource_3D.prefab (not the root Transform alone). PoolManager needs the prefab root GameObject.")]
+        [SerializeField] private AudioSource pooledAudio3DSourcePrefab;
 
         private float _stepTimer;
         private float _cachedFootstepVolume = -1f;
@@ -36,14 +33,6 @@ namespace HeistNSeek.Core.NetworkedCowsins
         public override void OnNetworkSpawn()
         {
             base.OnNetworkSpawn();
-
-            // #region agent log
-            AgentDebugSessionLog.Write(
-                "H1",
-                "NetworkedCowsinsRemoteFootsteps.OnNetworkSpawn",
-                "spawn",
-                $"\"isOwner\":{IsOwner.ToString().ToLowerInvariant()},\"pmNull\":{(playerMovement == null).ToString().ToLowerInvariant()},\"clientId\":{((NetworkManager.Singleton != null) ? NetworkManager.Singleton.LocalClientId : -1)}");
-            // #endregion
 
             if (!IsOwner || playerMovement == null)
                 return;
@@ -142,18 +131,6 @@ namespace HeistNSeek.Core.NetworkedCowsins
             var vol = _cachedFootstepVolume >= 0f ? _cachedFootstepVolume : 1f;
             PlayFootstepForLocalClient(clip, hit.point, vol);
 
-            // #region agent log
-            if (_dbgFootstepEmitLogCount < 18)
-            {
-                _dbgFootstepEmitLogCount++;
-                AgentDebugSessionLog.Write(
-                    "H1",
-                    "NetworkedCowsinsRemoteFootsteps.TickFootsteps",
-                    "RequestFootstepServerRpc",
-                    $"\"layer\":{layer},\"clipIndex\":{clipIndex},\"vol\":{vol.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-            }
-            // #endregion
-
             RequestFootstepServerRpc(hit.point, layer, clipIndex, vol);
         }
 
@@ -164,33 +141,44 @@ namespace HeistNSeek.Core.NetworkedCowsins
             return true;
         }
 
+        private GameObject GetPooledAudioPrefabRoot()
+        {
+            return pooledAudio3DSourcePrefab != null ? pooledAudio3DSourcePrefab.gameObject : null;
+        }
+
         private void PlayFootstepForLocalClient(AudioClip clip, Vector3 worldPosition, float volume)
         {
-            if (pooledAudio3DSourcePrefab != null && PoolManager.Instance != null)
-                StartCoroutine(PlayPooledFootstepCoroutine(clip, worldPosition, volume, pooledAudio3DSourcePrefab));
+            var poolRoot = GetPooledAudioPrefabRoot();
+            if (poolRoot != null && PoolManager.Instance != null)
+                StartCoroutine(PlayPooledFootstepCoroutine(clip, worldPosition, volume, poolRoot));
             else
                 TryPlaySoundManagerFallback(clip, worldPosition, volume);
         }
 
         private static void TryPlaySoundManagerFallback(AudioClip clip, Vector3 worldPosition, float volume)
         {
-            if (clip == null || SoundManager.Instance == null || PoolManager.Instance == null)
+            if (clip == null)
+                return;
+
+            if (SoundManager.Instance != null && PoolManager.Instance != null)
             {
-                // #region agent log
-                AgentDebugSessionLog.Write(
-                    "H4",
-                    "NetworkedCowsinsRemoteFootsteps.TryPlaySoundManagerFallback",
-                    "skip_play",
-                    $"\"clipNull\":{(clip == null).ToString().ToLowerInvariant()},\"smNull\":{(SoundManager.Instance == null).ToString().ToLowerInvariant()},\"poolNull\":{(PoolManager.Instance == null).ToString().ToLowerInvariant()}");
-                // #endregion
+                SoundManager.Instance.PlaySoundAtPosition(clip, worldPosition, 0f, 0.3f, true);
+                if (volume < 0.99f && !_loggedVolumeFallbackWarning)
+                {
+                    _loggedVolumeFallbackWarning = true;
+                    Debug.LogWarning("[NetworkedCowsinsRemoteFootsteps] Assign pooledAudio3DSourcePrefab (AudioSource on AudioSource_3D, same as SoundManager.source3D) for correct footstep volume when volume is below 1.");
+                }
                 return;
             }
-            SoundManager.Instance.PlaySoundAtPosition(clip, worldPosition, 0f, 0.3f, true);
-            if (volume < 0.99f && !_loggedVolumeFallbackWarning)
-            {
-                _loggedVolumeFallbackWarning = true;
-                Debug.LogWarning("[NetworkedCowsinsRemoteFootsteps] Assign pooledAudio3DSourcePrefab (same as session SoundManager 3D source) for correct footstep volume when volume is below 1.");
-            }
+
+            PlayWorldClipOneShot(clip, worldPosition, volume);
+        }
+
+        private static void PlayWorldClipOneShot(AudioClip clip, Vector3 worldPosition, float volume)
+        {
+            if (clip == null)
+                return;
+            AudioSource.PlayClipAtPoint(clip, worldPosition, Mathf.Clamp01(volume));
         }
 
         private IEnumerator PlayPooledFootstepCoroutine(AudioClip clip, Vector3 position, float volume, GameObject prefab)
@@ -200,11 +188,17 @@ namespace HeistNSeek.Core.NetworkedCowsins
 
             var go = PoolManager.Instance.GetFromPool(prefab, position, Quaternion.identity);
             if (go == null)
+            {
+                PlayWorldClipOneShot(clip, position, volume);
                 yield break;
+            }
 
             var src = go.GetComponent<AudioSource>();
             if (src == null)
+            {
+                PlayWorldClipOneShot(clip, position, volume);
                 yield break;
+            }
 
             src.spatialBlend = 1f;
             src.volume = volume;
@@ -220,72 +214,32 @@ namespace HeistNSeek.Core.NetworkedCowsins
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
         private void RequestFootstepServerRpc(Vector3 worldPosition, int groundLayer, byte clipIndex, float volume)
         {
-            // #region agent log
-            if (_dbgFootstepServerLogCount < 24)
-            {
-                _dbgFootstepServerLogCount++;
-                AgentDebugSessionLog.Write(
-                    "H1",
-                    "NetworkedCowsinsRemoteFootsteps.RequestFootstepServerRpc",
-                    "server_rx",
-                    $"\"isServer\":{IsServer.ToString().ToLowerInvariant()},\"layer\":{groundLayer},\"clipIndex\":{clipIndex}");
-            }
-            // #endregion
-
             PlayFootstepObserversClientRpc(worldPosition, groundLayer, clipIndex, volume);
         }
 
         [ClientRpc]
         private void PlayFootstepObserversClientRpc(Vector3 worldPosition, int groundLayer, byte clipIndex, float volume)
         {
-            // #region agent log
-            if (_dbgFootstepObserverClientRxCount < 28)
-            {
-                _dbgFootstepObserverClientRxCount++;
-                AgentDebugSessionLog.Write(
-                    "H2",
-                    "NetworkedCowsinsRemoteFootsteps.PlayFootstepObserversClientRpc",
-                    "client_rx",
-                    $"\"isOwner\":{IsOwner.ToString().ToLowerInvariant()},\"willPlayRemote\":{(!IsOwner).ToString().ToLowerInvariant()},\"layer\":{groundLayer},\"clipIndex\":{clipIndex}");
-            }
-            // #endregion
-
             if (IsOwner)
                 return;
 
             if (playerMovement == null)
                 playerMovement = GetComponentInChildren<PlayerMovement>(true);
             if (playerMovement == null)
-            {
-                // #region agent log
-                AgentDebugSessionLog.Write(
-                    "H3",
-                    "NetworkedCowsinsRemoteFootsteps.PlayFootstepObserversClientRpc",
-                    "playerMovement_null");
-                // #endregion
                 return;
-            }
 
             var sounds = playerMovement.playerSettings.footstepSounds.GetSoundsForLayer(groundLayer);
             if (sounds == null || sounds.Length == 0)
-            {
-                // #region agent log
-                AgentDebugSessionLog.Write(
-                    "H3",
-                    "NetworkedCowsinsRemoteFootsteps.PlayFootstepObserversClientRpc",
-                    "GetSoundsForLayer_empty",
-                    $"\"layer\":{groundLayer}");
-                // #endregion
                 return;
-            }
 
             var i = Mathf.Clamp(clipIndex, 0, sounds.Length - 1);
             var clip = sounds[i];
             if (clip == null)
                 return;
 
-            if (pooledAudio3DSourcePrefab != null && PoolManager.Instance != null)
-                StartCoroutine(PlayPooledFootstepCoroutine(clip, worldPosition, volume, pooledAudio3DSourcePrefab));
+            var poolRoot = GetPooledAudioPrefabRoot();
+            if (poolRoot != null && PoolManager.Instance != null)
+                StartCoroutine(PlayPooledFootstepCoroutine(clip, worldPosition, volume, poolRoot));
             else
                 TryPlaySoundManagerFallback(clip, worldPosition, volume);
         }
