@@ -118,6 +118,7 @@ namespace HeistNSeek.Core.Enemy
             _isDead = true;
             // Dedicated server never runs ClientRpc locally; shut down NavMesh/AI here so no stray state transitions hit SetDestination.
             DisableAI();
+            DisableBlockingCollidersOutsideRagdollHierarchy();
             TriggerDeathClientRpc();
         }
 
@@ -172,6 +173,36 @@ namespace HeistNSeek.Core.Enemy
             {
                 transform.position = ragdollPositionRoot.position;
             }
+
+            DisableBlockingCollidersOutsideRagdollHierarchy();
+        }
+
+        /// <summary>
+        /// Turns off hit/detection colliders on the animated proxy (e.g. EnemyBody capsule) so only ragdoll bones
+        /// collide after death. Runs on server for headless/dedicated and again on clients after ragdoll enables.
+        /// </summary>
+        private void DisableBlockingCollidersOutsideRagdollHierarchy()
+        {
+            Transform ragdollRoot = ragdollHierarchyPart != null ? ragdollHierarchyPart.transform : null;
+            var colliders = GetComponentsInChildren<Collider>(true);
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                var col = colliders[i];
+                if (col == null)
+                    continue;
+
+                if (ragdollRoot != null && IsUnderTransform(col.transform, ragdollRoot))
+                    continue;
+
+                col.enabled = false;
+            }
+        }
+
+        private static bool IsUnderTransform(Transform t, Transform ancestor)
+        {
+            if (ancestor == null || t == null)
+                return false;
+            return t == ancestor || t.IsChildOf(ancestor);
         }
     }
 }
