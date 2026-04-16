@@ -13,6 +13,9 @@ namespace HeistNSeek.Core.NetworkedCowsins
     public sealed class NetworkedCowsinsRemoteFootsteps : NetworkBehaviour
     {
         private static bool _loggedVolumeFallbackWarning;
+        private static int _dbgFootstepEmitLogCount;
+        private static int _dbgFootstepServerLogCount;
+        private static int _dbgFootstepObserverClientRxCount;
 
         [Header("References")]
         [SerializeField] private PlayerMovement playerMovement;
@@ -33,6 +36,14 @@ namespace HeistNSeek.Core.NetworkedCowsins
         public override void OnNetworkSpawn()
         {
             base.OnNetworkSpawn();
+
+            // #region agent log
+            AgentDebugSessionLog.Write(
+                "H1",
+                "NetworkedCowsinsRemoteFootsteps.OnNetworkSpawn",
+                "spawn",
+                $"\"isOwner\":{IsOwner.ToString().ToLowerInvariant()},\"pmNull\":{(playerMovement == null).ToString().ToLowerInvariant()},\"clientId\":{((NetworkManager.Singleton != null) ? NetworkManager.Singleton.LocalClientId : -1)}");
+            // #endregion
 
             if (!IsOwner || playerMovement == null)
                 return;
@@ -130,6 +141,19 @@ namespace HeistNSeek.Core.NetworkedCowsins
 
             var vol = _cachedFootstepVolume >= 0f ? _cachedFootstepVolume : 1f;
             PlayFootstepForLocalClient(clip, hit.point, vol);
+
+            // #region agent log
+            if (_dbgFootstepEmitLogCount < 18)
+            {
+                _dbgFootstepEmitLogCount++;
+                AgentDebugSessionLog.Write(
+                    "H1",
+                    "NetworkedCowsinsRemoteFootsteps.TickFootsteps",
+                    "RequestFootstepServerRpc",
+                    $"\"layer\":{layer},\"clipIndex\":{clipIndex},\"vol\":{vol.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+            }
+            // #endregion
+
             RequestFootstepServerRpc(hit.point, layer, clipIndex, vol);
         }
 
@@ -151,7 +175,16 @@ namespace HeistNSeek.Core.NetworkedCowsins
         private static void TryPlaySoundManagerFallback(AudioClip clip, Vector3 worldPosition, float volume)
         {
             if (clip == null || SoundManager.Instance == null || PoolManager.Instance == null)
+            {
+                // #region agent log
+                AgentDebugSessionLog.Write(
+                    "H4",
+                    "NetworkedCowsinsRemoteFootsteps.TryPlaySoundManagerFallback",
+                    "skip_play",
+                    $"\"clipNull\":{(clip == null).ToString().ToLowerInvariant()},\"smNull\":{(SoundManager.Instance == null).ToString().ToLowerInvariant()},\"poolNull\":{(PoolManager.Instance == null).ToString().ToLowerInvariant()}");
+                // #endregion
                 return;
+            }
             SoundManager.Instance.PlaySoundAtPosition(clip, worldPosition, 0f, 0.3f, true);
             if (volume < 0.99f && !_loggedVolumeFallbackWarning)
             {
@@ -187,23 +220,64 @@ namespace HeistNSeek.Core.NetworkedCowsins
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
         private void RequestFootstepServerRpc(Vector3 worldPosition, int groundLayer, byte clipIndex, float volume)
         {
+            // #region agent log
+            if (_dbgFootstepServerLogCount < 24)
+            {
+                _dbgFootstepServerLogCount++;
+                AgentDebugSessionLog.Write(
+                    "H1",
+                    "NetworkedCowsinsRemoteFootsteps.RequestFootstepServerRpc",
+                    "server_rx",
+                    $"\"isServer\":{IsServer.ToString().ToLowerInvariant()},\"layer\":{groundLayer},\"clipIndex\":{clipIndex}");
+            }
+            // #endregion
+
             PlayFootstepObserversClientRpc(worldPosition, groundLayer, clipIndex, volume);
         }
 
         [ClientRpc]
         private void PlayFootstepObserversClientRpc(Vector3 worldPosition, int groundLayer, byte clipIndex, float volume)
         {
+            // #region agent log
+            if (_dbgFootstepObserverClientRxCount < 28)
+            {
+                _dbgFootstepObserverClientRxCount++;
+                AgentDebugSessionLog.Write(
+                    "H2",
+                    "NetworkedCowsinsRemoteFootsteps.PlayFootstepObserversClientRpc",
+                    "client_rx",
+                    $"\"isOwner\":{IsOwner.ToString().ToLowerInvariant()},\"willPlayRemote\":{(!IsOwner).ToString().ToLowerInvariant()},\"layer\":{groundLayer},\"clipIndex\":{clipIndex}");
+            }
+            // #endregion
+
             if (IsOwner)
                 return;
 
             if (playerMovement == null)
                 playerMovement = GetComponentInChildren<PlayerMovement>(true);
             if (playerMovement == null)
+            {
+                // #region agent log
+                AgentDebugSessionLog.Write(
+                    "H3",
+                    "NetworkedCowsinsRemoteFootsteps.PlayFootstepObserversClientRpc",
+                    "playerMovement_null");
+                // #endregion
                 return;
+            }
 
             var sounds = playerMovement.playerSettings.footstepSounds.GetSoundsForLayer(groundLayer);
             if (sounds == null || sounds.Length == 0)
+            {
+                // #region agent log
+                AgentDebugSessionLog.Write(
+                    "H3",
+                    "NetworkedCowsinsRemoteFootsteps.PlayFootstepObserversClientRpc",
+                    "GetSoundsForLayer_empty",
+                    $"\"layer\":{groundLayer}");
+                // #endregion
                 return;
+            }
 
             var i = Mathf.Clamp(clipIndex, 0, sounds.Length - 1);
             var clip = sounds[i];
