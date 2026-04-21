@@ -17,6 +17,8 @@ using VContainer.Unity;
 public class GameplayLifetimeScope : LifetimeScope
 {
     [SerializeField] private GameObject playerSpawnerPrefab;
+    [Tooltip("Optional. World position and rotation for spawning the networked player (scene object in Main). If unset, players spawn at world origin.")]
+    [SerializeField] private Transform playerSpawnPoint;
     [SerializeField] private ScatterConfigSO scatterConfigSO;
     [SerializeField] private GameObject networkedItemSpawnManager;
     [SerializeField] private GameObject cowsinsSessionServicesPrefab;
@@ -36,6 +38,7 @@ public class GameplayLifetimeScope : LifetimeScope
     protected override void Configure(IContainerBuilder builder)
     {
         builder.RegisterInstance(scatterConfigSO);
+        builder.RegisterInstance(new PlayerSpawnContext(playerSpawnPoint));
 
         builder.RegisterEntryPoint<GameplayEntryPoint>(Lifetime.Singleton).WithParameter(new EntryPointParameters(playerSpawnerPrefab, networkedItemSpawnManager, cowsinsSessionServicesPrefab));
     }

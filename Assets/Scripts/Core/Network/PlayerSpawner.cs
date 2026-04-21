@@ -20,11 +20,13 @@ namespace Assets.Scripts.Runtime.Core
 
         private GameObject playerInstance;
         private IObjectResolver container;
+        private Transform _playerSpawnTransform;
 
         [Inject]
-        public void Init(IObjectResolver container)
+        public void Init(IObjectResolver container, PlayerSpawnContext spawnContext)
         {
             this.container = container;
+            _playerSpawnTransform = spawnContext.SpawnTransform;
 
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
@@ -53,13 +55,14 @@ namespace Assets.Scripts.Runtime.Core
         {
             if (!IsServer) return;
 
-            Vector3 spawnPosition = Vector3.zero;
+            Vector3 spawnPosition = _playerSpawnTransform != null ? _playerSpawnTransform.position : Vector3.zero;
+            Quaternion spawnRotation = _playerSpawnTransform != null ? _playerSpawnTransform.rotation : Quaternion.identity;
 
             // IMPORTANT (Netcode):
             // VContainer's 3-arg Instantiate(prefab, pos, rot) may temporarily parent the instance under the LifetimeScope
             // and then SetParent(null). Netcode throws SpawnStateException if a NetworkObject is reparented before Spawn().
             // Use the overload with explicit parent = null to avoid any pre-spawn parenting.
-            playerInstance = container.Instantiate(playerPrefab, spawnPosition, Quaternion.identity, null);
+            playerInstance = container.Instantiate(playerPrefab, spawnPosition, spawnRotation, null);
 
             StripNestedNetworkObjects(playerInstance);
 
