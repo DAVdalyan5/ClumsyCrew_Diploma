@@ -1,62 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 # if UNITY_EDITOR
-using Seagull.Bar_02.Inspector;
+using Seagull.City_03.Inspector;
+using Seagull.Interior_01.Utility;
 using UnityEditor;
 # endif
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 
-namespace Seagull.Bar_02.SceneProps.Setup {
+namespace Seagull.City_03.SceneProps.Setup {
     public class FriesManagerBRP : MonoBehaviour {
 
-        public static void setupLight() {
-# if UNITY_EDITOR
-            PostProcessVolume volume = GameObject.Find("Post Process Volume (Fries)").GetComponent<PostProcessVolume>();
-            if (volume == null) {
-                Debug.LogWarning("Could not find PostProcessVolume Component");
-                return;
-            }
-            AmbientOcclusion ao;
-            if (!volume.profile.TryGetSettings(out ao)) 
-                ao = volume.profile.AddSettings<AmbientOcclusion>();
-            ao.enabled.Override(true);  // 开启 AO 效果
-            ao.mode.Override(AmbientOcclusionMode.ScalableAmbientObscurance);
-            ao.intensity.Override(1.49f);
-            ao.radius.Override(11.6f);
-            ao.quality.Override(AmbientOcclusionQuality.Lowest);
-            ao.color.Override(Color.black);
-            ao.ambientOnly.Override(true);
-            
-            RenderSettings.ambientMode = AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(48f/255f, 50f/255f, 152f/255f);
-            RenderSettings.fog = true;
-            RenderSettings.fogMode = FogMode.Linear;
-            RenderSettings.fogColor = new Color(53f/255f, 17f/255f, 58f/255f);
-            RenderSettings.fogStartDistance = 0f;
-            RenderSettings.fogEndDistance = 316.7f;
-# endif
-        }
-        public static void unsetLight() {
-# if UNITY_EDITOR
-            PostProcessVolume volume = GameObject.Find("Post Process Volume (Fries)").GetComponent<PostProcessVolume>();
-            if (volume == null) {
-                Debug.LogWarning("Could not find PostProcessVolume Component");
-                return;
-            }
-            if (volume.profile.TryGetSettings<AmbientOcclusion>(out _)) 
-                volume.profile.RemoveSettings<AmbientOcclusion>();
-            
-            RenderSettings.ambientMode = AmbientMode.Skybox;
-            RenderSettings.ambientLight = new Color(54f/255f, 58f/255f, 66f/255f);
-            RenderSettings.fog = false;
-            RenderSettings.fogMode = FogMode.ExponentialSquared;
-            RenderSettings.fogColor = new Color(128f/255f, 128f/255f, 128f/255f);
-            RenderSettings.fogStartDistance = 0f;
-            RenderSettings.fogEndDistance = 300f;
-# endif
-        }
+        public static void setupLight() { }
+        public static void unsetLight() { }
 
         public GameObject postProcessVolumePrefab;
         

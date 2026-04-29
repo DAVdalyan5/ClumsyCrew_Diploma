@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Seagull.Bar_02.SceneProps.Setup {
+namespace Seagull.City_03.SceneProps.Setup {
     public class FriesPostProcessorIdentifier : MonoBehaviour {
 
         private FriesManagerBRP friesManagerBrp;

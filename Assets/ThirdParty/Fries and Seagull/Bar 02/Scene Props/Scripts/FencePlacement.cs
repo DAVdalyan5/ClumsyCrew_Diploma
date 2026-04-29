@@ -7,7 +7,7 @@ using UnityEditor.SceneManagement;
 # endif
 using UnityEngine;
 
-namespace Seagull.Bar_02.SceneProps {
+namespace Seagull.City_03.SceneProps {
     public enum SingleAxisOption {
         X, Y, Z
     }
