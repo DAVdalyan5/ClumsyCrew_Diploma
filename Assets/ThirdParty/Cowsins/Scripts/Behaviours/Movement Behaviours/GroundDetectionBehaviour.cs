@@ -26,17 +26,17 @@ namespace cowsins
         private float lastLandingTime = -1f;
         private const float landingCooldown = 0.2f;
 
-        // Ground Buffer
+        // Ground Buffer - reduced from 2 to 1 for more responsive grounding
         private int groundedFrameCount = 0;
         private int notGroundedFrameCount = 0;
-        private const int requiredFrames = 2;
+        private const int requiredFrames = 1;
 
         private bool cancellingGrounded;
 
         // Ground detection optimization
         private int groundCheckFrameSkip = 0;
-        // Check ground state every 2 frames.
-        private const int GROUND_CHECK_INTERVAL = 2;
+        // Check ground state every frame for responsive movement (was 2, causing stutters)
+        private const int GROUND_CHECK_INTERVAL = 1;
         private bool lastGroundCheckResult = false;
         private RaycastHit cachedGroundHit;
 
@@ -187,7 +187,8 @@ namespace cowsins
 
         private IEnumerator StopGroundedCoroutine()
         {
-            yield return new WaitForSeconds(0.1f);
+            // Reduced from 0.1f to 0.05f for more responsive ground detection
+            yield return new WaitForSeconds(0.05f);
 
             // Check if we are grounded
             bool stillHasGround = PerformGroundCheck(out RaycastHit hit);
@@ -243,9 +244,39 @@ namespace cowsins
             Vector3 top = playerCapsuleCollider.bounds.max - Vector3.up * playerCapsuleCollider.radius;
             float radius = playerCapsuleCollider.radius * 0.95f;
 
-            // Ground check
+            // Primary ground check with capsule cast
             bool foundGround = Physics.CapsuleCast(top, bottom, radius, Vector3.down, out hit, playerSettings.groundCheckDistance, context.WhatIsGround)
                               && CowsinsUtilities.IsFloor(hit.normal, playerSettings.maxSlopeAngle);
+
+            // If capsule cast fails (e.g., hitting stair edge), try a simple raycast from center-bottom
+            // This helps with stairs and uneven terrain where capsule cast might hit vertical surfaces
+            if (!foundGround)
+            {
+                Vector3 rayOrigin = context.Transform.position + Vector3.up * 0.1f;
+                if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit rayHit, playerSettings.groundCheckDistance + 0.15f, context.WhatIsGround))
+                {
+                    if (CowsinsUtilities.IsFloor(rayHit.normal, playerSettings.maxSlopeAngle))
+                    {
+                        hit = rayHit;
+                        foundGround = true;
+                    }
+                }
+            }
+
+            // Additional check: sphere cast at feet for better stair detection
+            if (!foundGround)
+            {
+                Vector3 sphereOrigin = playerCapsuleCollider.bounds.center;
+                sphereOrigin.y = playerCapsuleCollider.bounds.min.y + radius;
+                if (Physics.SphereCast(sphereOrigin, radius * 0.5f, Vector3.down, out RaycastHit sphereHit, playerSettings.groundCheckDistance + 0.1f, context.WhatIsGround))
+                {
+                    if (CowsinsUtilities.IsFloor(sphereHit.normal, playerSettings.maxSlopeAngle))
+                    {
+                        hit = sphereHit;
+                        foundGround = true;
+                    }
+                }
+            }
 
             return foundGround;
         }

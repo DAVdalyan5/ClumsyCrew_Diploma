@@ -1,6 +1,5 @@
 using cowsins;
 using UnityEngine;
-using System; 
 
 public class BasicMovementBehaviour
 {
@@ -24,8 +23,8 @@ public class BasicMovementBehaviour
     public RaycastHit SlopeHit;
     private const float frictionThreshold = 0.1f;
     private const float slopeGravityMultiplier = 150;
-    private const float extraGravityMultiplier = 10f;
     private bool wasMovingLastFrame;
+
     public BasicMovementBehaviour(MovementContext context)
     {
         this.context = context;
@@ -51,23 +50,24 @@ public class BasicMovementBehaviour
     {
         if(!playerControl.IsMovementControllable) return;
 
-        //Extra gravity
-        rb.AddForce(Vector3.down * Time.fixedDeltaTime * extraGravityMultiplier);
+        // Note: Extra gravity is already applied in PlayerMovement.FixedUpdate()
+        // Removed redundant gravity here to prevent double-application causing jitter
 
         //Find actual velocity relative to where player is looking
         Vector2 relativeVelocity = FindVelRelativeToLook();
-        float xRelativeVelocity = relativeVelocity.x, yRelativeVelocity = relativeVelocity.y;
 
-        // Counteract sliding and sloppy movement.
+        // Counteract sliding and sloppy movement
         FrictionForce(inputManager.X, inputManager.Y, relativeVelocity);
-        //If speed is larger than maxspeed, clamp the velocity so you don't go over max speed
-        LimitDiagonalVelocity();
 
-        if (rb.linearVelocity.magnitude < .1f) rb.linearVelocity = Vector3.zero;
+        // Only zero velocity when truly stationary AND no input is being applied
+        // This prevents the janky stop-start behavior when running
+        bool hasMovementInput = Mathf.Abs(inputManager.X) > 0.01f || Mathf.Abs(inputManager.Y) > 0.01f;
+        if (rb.linearVelocity.magnitude < .05f && !hasMovementInput) rb.linearVelocity = Vector3.zero;
 
         if (!playerControl.IsControllable)
         {
-            if (playerMovement.Grounded) rb.linearVelocity = Vector3.zero;
+            // Don't zero velocity immediately - let physics handle deceleration naturally
+            // Only apply drag when grounded to prevent floating
             return;
         }
 
@@ -76,7 +76,7 @@ public class BasicMovementBehaviour
 
         if (isCrouchSliding && !playerSettings.allowMoveWhileSliding) return;
 
-        float airborneMultiplier = !playerMovement.Grounded ? playerSettings.controlAirborne : 1;
+        float airborneMultiplier = !playerMovement.Grounded ? playerSettings.controlAirborne : 1f;
         float movementMultipliers = playerSettings.acceleration * Time.deltaTime * airborneMultiplier;
 
         // Reduce movement influence while sliding if sliding is active and movement while sliding isn't allowed
@@ -87,11 +87,24 @@ public class BasicMovementBehaviour
         {
             moveDirection = GetSlopeDirection();
             rb.useGravity = false;
-            if (moveDirection.magnitude == 0 && !context.HasJumped) rb.linearVelocity = Vector3.zero;
+            // Only zero velocity if truly idle (no input) and not recently jumped - prevents unwanted sliding
+            if (moveDirection.magnitude == 0 && !context.HasJumped && !hasMovementInput)
+            {
+                // Gradually slow down instead of instant stop for smoother feel
+                Vector3 vel = rb.linearVelocity;
+                vel.x *= 0.9f;
+                vel.z *= 0.9f;
+                rb.linearVelocity = vel;
+            }
             if (rb.linearVelocity.y != 0 && moveDirection.magnitude != 0) rb.AddForce(Vector3.down * slopeGravityMultiplier);
         }
         else
         {
+            // Re-enable gravity when not on slope (fixes bug where gravity stayed disabled)
+            if (!rb.useGravity && !playerMovement.IsClimbing && !playerMovement.IsWallRunning)
+            {
+                rb.useGravity = true;
+            }
             moveDirection = (orientation.Forward * inputManager.Y + orientation.Right * inputManager.X).normalized;
         }
 
@@ -108,6 +121,8 @@ public class BasicMovementBehaviour
             playerEvents.Events.OnMovingToIdle?.Invoke();
         }
 
+        // Update tracking variable for next frame
+        wasMovingLastFrame = isMoving;
 
         if (moveDirection.magnitude > .1f)
         {
@@ -123,6 +138,9 @@ public class BasicMovementBehaviour
         // If crouch-sliding, respect steering multiplier and don't add full movement force
         if (isCrouchSliding) rb.AddForce(moveDirection * movementMultipliers * playerSettings.slideSteerMultiplier);
         else rb.AddForce(moveDirection * movementMultipliers);
+
+        // Clamp velocity AFTER applying movement force to prevent oscillation
+        LimitDiagonalVelocity();
     }
 
 
@@ -162,7 +180,7 @@ public class BasicMovementBehaviour
     }
 
     /// <summary>
-    /// Add friction force to the player when it�s not airborne
+    /// Add friction force to the player when it's not airborne
     /// Please note that it counters movement, since it goes in the opposite direction to velocity
     /// </summary>
     private void FrictionForce(float x, float y, Vector2 mag)
@@ -178,13 +196,24 @@ public class BasicMovementBehaviour
 
         float friction = isCrouchSliding ? playerSettings.slideFrictionForceAmount : playerSettings.controlsResponsiveness;
 
-        // Counter movement ( Friction while moving )
-        // Prevent from sliding not on purpose
-        if (Math.Abs(mag.x) > frictionThreshold && Math.Abs(x) < 0.5f || (mag.x < -frictionThreshold && x > 0) || (mag.x > frictionThreshold && x < 0))
+        // Apply friction on X axis (strafe) - only when:
+        // 1. There's velocity but no input (stopping), OR
+        // 2. Velocity and input are in opposite directions (direction change)
+        bool noXInput = Mathf.Abs(x) < 0.1f;
+        bool hasXVelocity = Mathf.Abs(mag.x) > frictionThreshold;
+        bool xDirectionsOpposed = (mag.x * x) < 0; // negative product means opposite signs
+
+        if (hasXVelocity && (noXInput || xDirectionsOpposed))
         {
             rb.AddForce(playerSettings.acceleration * orientation.Right * Time.deltaTime * -mag.x * friction);
         }
-        if (Math.Abs(mag.y) > frictionThreshold && Math.Abs(y) < 0.05f || (mag.y < -frictionThreshold && y > 0) || (mag.y > frictionThreshold && y < 0))
+
+        // Apply friction on Y axis (forward/back) - same logic
+        bool noYInput = Mathf.Abs(y) < 0.1f;
+        bool hasYVelocity = Mathf.Abs(mag.y) > frictionThreshold;
+        bool yDirectionsOpposed = (mag.y * y) < 0;
+
+        if (hasYVelocity && (noYInput || yDirectionsOpposed))
         {
             rb.AddForce(playerSettings.acceleration * orientation.Forward * Time.deltaTime * -mag.y * friction);
         }

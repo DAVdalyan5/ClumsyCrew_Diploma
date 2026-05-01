@@ -23,7 +23,26 @@ public class ClimbLadderBehaviour
         this.playerEvents = context.Dependencies.PlayerMovementEvents;
         this.weaponReference = context.Dependencies.WeaponReference;
         this.playerSettings = context.Settings;
-        this.ladderMask = LayerMask.GetMask("Ladder");
+
+        // Use configured layer mask from settings, or fallback to "Ladder" layer
+        if (playerSettings.whatIsLadder != 0)
+        {
+            this.ladderMask = playerSettings.whatIsLadder;
+        }
+        else
+        {
+            int ladderLayer = LayerMask.NameToLayer("Ladder");
+            if (ladderLayer != -1)
+            {
+                this.ladderMask = 1 << ladderLayer;
+            }
+            else
+            {
+                // No ladder mask: disable climbing by using an empty mask
+                this.ladderMask = 0;
+                Debug.LogWarning("[ClimbLadderBehaviour] No 'Ladder' layer found and whatIsLadder not configured. Ladder climbing is disabled. Create a 'Ladder' layer or configure whatIsLadder in PlayerMovementSettings.");
+            }
+        }
     }
 
     public void Enter()

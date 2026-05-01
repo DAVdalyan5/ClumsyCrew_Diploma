@@ -194,7 +194,10 @@ namespace cowsins
 
         private void FixedUpdate()
         {
-            Y = inputActions.GameControls.Movement.ReadValue<Vector2>().y;
+            // Update both X and Y in FixedUpdate to ensure physics has fresh input values
+            Vector2 moveInput = inputActions.GameControls.Movement.ReadValue<Vector2>();
+            X = moveInput.x;
+            Y = moveInput.y;
         }
 
         #region others

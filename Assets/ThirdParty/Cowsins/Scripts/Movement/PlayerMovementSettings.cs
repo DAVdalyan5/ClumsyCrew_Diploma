@@ -351,9 +351,12 @@ namespace cowsins
 
         // ---------------- CLIMB SETTINGS ---------------- //
 
-        [Tooltip("If true, allows the player to use a customizable grappling hook.")] public bool canClimb = true;
+        [Tooltip("If true, allows the player to climb ladders.")] public bool canClimb = true;
 
         public LadderMovementMode ladderMovementMode = LadderMovementMode.Combined;
+
+        [Tooltip("Layer mask for detecting ladders. If not set, will use a 'Ladder' layer or fallback to ground layer.")]
+        public LayerMask whatIsLadder;
 
         [Min(0)] public float maxLadderDetectionDistance = 1;
 
