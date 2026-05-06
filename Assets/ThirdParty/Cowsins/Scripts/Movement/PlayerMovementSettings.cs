@@ -121,6 +121,25 @@ namespace cowsins
 
         [Tooltip("Maximum slope angle that you can walk through."), Range(10, 80)] public float maxSlopeAngle = 35f;
 
+
+        // ---------------- STEP HANDLING ---------------- //
+
+        [Tooltip("Enable automatic step handling to allow the player to walk over small obstacles and stairs.")]
+        public bool enableStepHandling = true;
+
+        [Min(0f), Tooltip("Maximum height (in Unity units) of obstacles the player can automatically step over.")]
+        public float maxStepHeight = 0.35f;
+
+        [Min(0.1f), Tooltip("Vertical speed (units/second) at which the player climbs up detected steps.")]
+        public float stepClimbSpeed = 4f;
+
+        [Min(0.05f), Tooltip("How far forward (in Unity units) to look for climbable steps.")]
+        public float stepCheckDistance = 0.15f;
+
+        [Min(0f), Tooltip("Obstacles shorter than this height (in metres) are ignored. Increase to skip small floor bumps and irregularities.")]
+        public float minStepHeight = 0.05f;
+
+
         // ---------------- CROUCH SETTINGS ---------------- //
 
         [Tooltip("Set to true to enable the player to crouch")] public bool allowCrouch;
