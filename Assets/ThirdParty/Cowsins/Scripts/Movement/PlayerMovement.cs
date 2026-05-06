@@ -83,6 +83,7 @@ namespace cowsins
         public ClimbLadderBehaviour climbLadderBehaviour { get; private set; }
         public WallRunBehaviour wallRunBehaviour { get; private set; }
         public GrapplingHookBehaviour grapplingHookBehaviour { get; private set; }
+        public StepHandlingBehaviour stepHandlingBehaviour { get; private set; }
 
         #endregion
 
@@ -122,6 +123,7 @@ namespace cowsins
             rb.linearVelocity = Vector3.ClampMagnitude(rb.linearVelocity, playerSettings.maxSpeedAllowed);
 
             staminaBehaviour?.Tick();
+            stepHandlingBehaviour?.Tick();
         }
 
         /// <summary>
@@ -164,6 +166,7 @@ namespace cowsins
             staminaBehaviour = new StaminaBehaviour(movementContext);
             footstepsBehaviour = new FootstepsBehaviour(movementContext);
             speedLinesBehaviour = new SpeedLinesBehaviour(movementContext);
+            stepHandlingBehaviour = new StepHandlingBehaviour(movementContext);
         }
         #endregion
 
