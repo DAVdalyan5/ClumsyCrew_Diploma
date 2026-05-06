@@ -1109,7 +1109,7 @@ Transform:
   m_GameObject: {fileID: 71001181}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -37.94, y: -1.82, z: -18.429993}
+  m_LocalPosition: {x: -37.94, y: 3.16, z: -18.429993}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -12587,6 +12587,7 @@ MonoBehaviour:
   - {fileID: 1912170186}
   - {fileID: 1237631690}
   playerSpawnerPrefab: {fileID: 78505982812229185, guid: 5873d64c02e199346a56927145c3b3ec, type: 3}
+  playerSpawnPoint: {fileID: 0}
   scatterConfigSO: {fileID: 11400000, guid: 3b84e00c514ab43489986757786a7ae3, type: 2}
   networkedItemSpawnManager: {fileID: 2043999773559601908, guid: 34702a674c1d9594db4242b64456849c, type: 3}
   cowsinsSessionServicesPrefab: {fileID: 2998051602686989831, guid: c3d4e5f6a7b8490a9b8c7d6e5f403120, type: 3}
@@ -13633,7 +13634,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2142192002560380902, guid: 34291881a1be6834283ed9c6f4db87dd, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -5.03
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2142192002560380902, guid: 34291881a1be6834283ed9c6f4db87dd, type: 3}
       propertyPath: m_LocalPosition.z
