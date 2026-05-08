@@ -203,6 +203,12 @@ namespace cowsins
             ungroundCoroutine = null;
         }
 
+        // Surfaces flatter than this aren't treated as slopes. Prevents IsPlayerOnSlope from
+        // toggling on/off when the capsule sits on stair treads or floors with imperceptible
+        // tilt — that toggle was the main source of stair-top jitter because the slope branch
+        // disables gravity and re-projects movement each time it flips.
+        private const float minSlopeAngle = 5f;
+
         /// <summary>
         /// Determines whether the player is on a slope.
         /// </summary>
@@ -211,7 +217,7 @@ namespace cowsins
             if (isGrounded)
             {
                 float angle = Vector3.Angle(Vector3.up, hit.normal);
-                return angle < playerSettings.maxSlopeAngle && angle != 0;
+                return angle > minSlopeAngle && angle < playerSettings.maxSlopeAngle;
             }
             return false;
         }

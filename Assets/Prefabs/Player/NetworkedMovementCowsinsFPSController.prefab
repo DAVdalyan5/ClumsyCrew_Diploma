@@ -6532,11 +6532,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4612824603642630891, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: playerSettings.maxStepHeight
-      value: 1
+      value: 0.4
       objectReference: {fileID: 0}
     - target: {fileID: 4612824603642630891, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: playerSettings.minStepHeight
-      value: 0.1
+      value: 0.05
       objectReference: {fileID: 0}
     - target: {fileID: 4612824603642630891, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: playerSettings.useSpeedLines
@@ -6564,7 +6564,7 @@ PrefabInstance:
       objectReference: {fileID: 8300000, guid: 5b89821e23504434888537fadaccc6ae, type: 3}
     - target: {fileID: 4612824603642630891, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: playerSettings.stepClimbSpeed
-      value: 4
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 4612824603642630891, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: playerSettings.wallrunningFOV
@@ -6624,7 +6624,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4612824603642630891, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: playerSettings.stepCheckDistance
-      value: 1
+      value: 0.25
       objectReference: {fileID: 0}
     - target: {fileID: 4612824603642630891, guid: fa4cc848e07107e459dce4ea99d04302, type: 3}
       propertyPath: playerSettings.wallMinimumHeight

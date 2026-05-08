@@ -21,6 +21,11 @@ public class StepHandlingBehaviour
     // Internal noise floor — below this height, floating-point error makes detection unreliable
     private const float minStepThreshold = 0.005f;
 
+    // Tracks whether we applied climb velocity last fixed frame. When step handling
+    // stops detecting a climbable step, we use this to dampen residual upward velocity
+    // so the player doesn't pop into the air after cresting a stair.
+    private bool wasClimbingLastFrame;
+
     public StepHandlingBehaviour(MovementContext context)
     {
         this.context = context;
@@ -32,10 +37,12 @@ public class StepHandlingBehaviour
 
     public void Tick()
     {
-        if (!playerSettings.enableStepHandling) return;
-        if (!playerMovement.Grounded) return;
-        if (context.HasJumped) return;
-        if (context.IsPlayerOnSlope) return;
+        if (!playerSettings.enableStepHandling || !playerMovement.Grounded
+            || context.HasJumped || context.IsPlayerOnSlope)
+        {
+            EndClimbIfNeeded();
+            return;
+        }
 
         HandleStep();
     }
@@ -45,15 +52,29 @@ public class StepHandlingBehaviour
         // Require actual input so residual physics contact velocity doesn't trigger climbing
         // while the player is standing still next to a step
         InputManager input = context.InputManager;
-        if (Mathf.Abs(input.X) < 0.1f && Mathf.Abs(input.Y) < 0.1f) return;
+        if (Mathf.Abs(input.X) < 0.1f && Mathf.Abs(input.Y) < 0.1f)
+        {
+            EndClimbIfNeeded();
+            return;
+        }
 
         Vector3 horizontalVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
-        if (horizontalVelocity.magnitude < 0.1f) return;
+        if (horizontalVelocity.magnitude < 0.1f)
+        {
+            EndClimbIfNeeded();
+            return;
+        }
 
         Vector3 moveDir = horizontalVelocity.normalized;
         float feetY = capsule.bounds.min.y;
-        float checkDist = capsule.radius + playerSettings.stepCheckDistance;
-        float maxStep = playerSettings.maxStepHeight;
+        // Cap forward sweep at ~1.5x capsule radius so an over-tuned stepCheckDistance
+        // can't trigger climbs while the step is still well in front of the player.
+        float maxSweep = capsule.radius * 1.5f;
+        float requestedSweep = Mathf.Min(playerSettings.stepCheckDistance, maxSweep);
+        float checkDist = capsule.radius + requestedSweep;
+        // Also clamp the climbable height to something physical: roughly knee-high relative
+        // to the capsule. Prevents an over-tuned maxStepHeight from teleporting up walls.
+        float maxStep = Mathf.Min(playerSettings.maxStepHeight, capsule.height * 0.5f);
 
         float bestStepHeight = 0f;
         foreach (float angle in checkAngles)
@@ -65,7 +86,11 @@ public class StepHandlingBehaviour
         }
 
         float effectiveMin = Mathf.Max(minStepThreshold, playerSettings.minStepHeight);
-        if (bestStepHeight < effectiveMin) return;
+        if (bestStepHeight < effectiveMin)
+        {
+            EndClimbIfNeeded();
+            return;
+        }
 
         // Velocity needed to cover exactly bestStepHeight in one physics step,
         // plus compensation for gravity that will subtract from vel during integration.
@@ -82,6 +107,25 @@ public class StepHandlingBehaviour
             vel.y = climbVelY;
             rb.linearVelocity = vel;
         }
+
+        wasClimbingLastFrame = true;
+    }
+
+    // Called whenever step handling decides not to apply a climb impulse this frame.
+    // If we were climbing last frame and still have residual upward velocity, dampen it
+    // so cresting a step doesn't launch the player into the air.
+    private void EndClimbIfNeeded()
+    {
+        if (!wasClimbingLastFrame) return;
+
+        Vector3 vel = rb.linearVelocity;
+        if (vel.y > 0f)
+        {
+            vel.y = 0f;
+            rb.linearVelocity = vel;
+        }
+
+        wasClimbingLastFrame = false;
     }
 
     private float GetStepHeight(Vector3 direction, float feetY, float checkDist, float maxStep)
