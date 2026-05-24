@@ -25,6 +25,15 @@ public class BasicMovementBehaviour
     private const float slopeGravityMultiplier = 150;
     private bool wasMovingLastFrame;
 
+    // Stair climbing settings
+    private const float maxStepHeight = 0.35f;  // Maximum height of a step the player can climb
+    private const float stepCheckDistance = 0.5f;  // How far ahead to check for steps
+    private const float stepUpForce = 12f;  // Force to help player step up (increased for smoother climb)
+
+    // Stair climbing cooldown to prevent jittery repeated applications
+    private float lastStairClimbTime = 0f;
+    private const float stairClimbCooldown = 0.15f;  // Minimum time between stair climb assists
+
     public BasicMovementBehaviour(MovementContext context)
     {
         this.context = context;
@@ -141,6 +150,67 @@ public class BasicMovementBehaviour
 
         // Clamp velocity AFTER applying movement force to prevent oscillation
         LimitDiagonalVelocity();
+
+        // Handle stair climbing when grounded and moving
+        if (playerMovement.Grounded && moveDirection.magnitude > 0.1f)
+        {
+            HandleStairClimbing(moveDirection);
+        }
+    }
+
+    /// <summary>
+    /// Detects steps/stairs ahead and applies upward force to help the player climb them smoothly.
+    /// </summary>
+    private void HandleStairClimbing(Vector3 moveDirection)
+    {
+        // Cooldown check to prevent jittery repeated applications
+        if (Time.time - lastStairClimbTime < stairClimbCooldown) return;
+
+        // Get the horizontal move direction
+        Vector3 horizontalDir = new Vector3(moveDirection.x, 0, moveDirection.z).normalized;
+        if (horizontalDir.magnitude < 0.1f) return;
+
+        // Cast a ray from foot height forward to detect potential step
+        Vector3 footPosition = context.Transform.position + Vector3.up * 0.05f;
+        float castRadius = playerCapsuleCollider.radius * 0.8f;
+
+        // Check if there's an obstacle at foot level
+        if (Physics.Raycast(footPosition, horizontalDir, out RaycastHit lowHit, stepCheckDistance + castRadius, context.WhatIsGround))
+        {
+            // Check if there's open space above the obstacle (indicating it's a step, not a wall)
+            Vector3 stepCheckOrigin = footPosition + Vector3.up * maxStepHeight;
+
+            if (!Physics.Raycast(stepCheckOrigin, horizontalDir, stepCheckDistance + castRadius, context.WhatIsGround))
+            {
+                // There's a step - check if it's climbable by casting down from above
+                Vector3 aboveStep = lowHit.point + horizontalDir * 0.1f + Vector3.up * (maxStepHeight + 0.1f);
+
+                if (Physics.Raycast(aboveStep, Vector3.down, out RaycastHit stepTopHit, maxStepHeight + 0.2f, context.WhatIsGround))
+                {
+                    // Verify the top surface is walkable (not too steep)
+                    if (CowsinsUtilities.IsFloor(stepTopHit.normal, playerSettings.maxSlopeAngle))
+                    {
+                        float stepHeight = stepTopHit.point.y - context.Transform.position.y;
+
+                        // Only assist if step is within climbable range and we're moving into it
+                        if (stepHeight > 0.05f && stepHeight <= maxStepHeight)
+                        {
+                            float velocityIntoStep = Vector3.Dot(rb.linearVelocity, horizontalDir);
+
+                            // Apply upward force proportional to how much we're moving into the step
+                            // Increased threshold to 0.5f to avoid triggering on minor terrain bumps
+                            if (velocityIntoStep > 0.5f)
+                            {
+                                float upwardForce = stepUpForce * (stepHeight / maxStepHeight);
+                                // Use Impulse instead of VelocityChange for smoother application
+                                rb.AddForce(Vector3.up * upwardForce, ForceMode.Impulse);
+                                lastStairClimbTime = Time.time;
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 

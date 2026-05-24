@@ -24,7 +24,7 @@ public class ClimbLadderBehaviour
         this.weaponReference = context.Dependencies.WeaponReference;
         this.playerSettings = context.Settings;
 
-        // Use configured layer mask from settings, or fallback to "Ladder" layer
+        // Use configured layer mask from settings, or fallback to "Ladder" layer, or ground layer as last resort
         if (playerSettings.whatIsLadder != 0)
         {
             this.ladderMask = playerSettings.whatIsLadder;
@@ -38,9 +38,9 @@ public class ClimbLadderBehaviour
             }
             else
             {
-                // No ladder mask: disable climbing by using an empty mask
-                this.ladderMask = 0;
-                Debug.LogWarning("[ClimbLadderBehaviour] No 'Ladder' layer found and whatIsLadder not configured. Ladder climbing is disabled. Create a 'Ladder' layer or configure whatIsLadder in PlayerMovementSettings.");
+                // Fallback to ground layer if no Ladder layer exists
+                this.ladderMask = context.WhatIsGround;
+                Debug.LogWarning("[ClimbLadderBehaviour] No 'Ladder' layer found and whatIsLadder not configured. Using ground layer for ladder detection. Create a 'Ladder' layer or configure whatIsLadder in PlayerMovementSettings.");
             }
         }
     }
